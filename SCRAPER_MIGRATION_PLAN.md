@@ -71,10 +71,10 @@ This plan extracts the complete scraper system from YFEvents (PHP) and migrates 
 
 From `/home/robug/YFEvents/www/html/.env`:
 ```
-FIRECRAWL_API_KEY=REDACTED_FIRECRAWL_KEY
-GOOGLE_MAPS_API_KEY=REDACTED_GOOGLE_KEY
-GMAIL_USERNAME=yakimafinds@gmail.com
-GMAIL_APP_PASSWORD=REDACTED_PASSWORD
+FIRECRAWL_API_KEY=<your_firecrawl_api_key>
+GOOGLE_MAPS_API_KEY=<your_google_maps_api_key>
+GMAIL_USERNAME=<your_email>
+GMAIL_APP_PASSWORD=<your_app_password>
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 ```
@@ -196,13 +196,13 @@ Note: The Segmind API key is in `/home/robug/YFEvents/config/api_keys.php` (not 
 
 1. **Update .env**
    ```
-   SEGMIND_API_KEY=<from config/api_keys.php>
-   FIRECRAWL_API_KEY=REDACTED_FIRECRAWL_KEY
-   GOOGLE_MAPS_API_KEY=REDACTED_GOOGLE_KEY
+   SEGMIND_API_KEY=<your_segmind_api_key>
+   FIRECRAWL_API_KEY=<your_firecrawl_api_key>
+   GOOGLE_MAPS_API_KEY=<your_google_maps_api_key>
    SMTP_HOST=smtp.gmail.com
    SMTP_PORT=587
-   SMTP_USER=yakimafinds@gmail.com
-   SMTP_PASS=REDACTED_PASSWORD
+   SMTP_USER=<your_email>
+   SMTP_PASS=<your_smtp_password>
    ```
 
 2. **Testing**
