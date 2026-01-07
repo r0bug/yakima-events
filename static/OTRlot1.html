@@ -1,0 +1,2169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Discogs Inventory Report</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { color: #aaa; }
+
+        .summary {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 30px;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            background: white;
+            padding: 25px 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #1a1a2e;
+        }
+        .stat-card .label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+        .stat-card.green .number { color: #2d6a4f; }
+        .stat-card.orange .number { color: #e85d04; }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        th {
+            background: #1a1a2e;
+            color: white;
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .cover {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 5px;
+            background: #eee;
+        }
+        .no-cover {
+            width: 60px;
+            height: 60px;
+            background: #ddd;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 10px;
+        }
+
+        .title-cell {
+            max-width: 300px;
+        }
+        .title { font-weight: 600; color: #1a1a2e; }
+        .artist { color: #666; font-size: 0.9em; }
+
+        .price {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .price-low { color: #2d6a4f; }
+        .price-med { color: #e85d04; }
+        .no-price { color: #999; font-style: italic; }
+
+        .qty {
+            background: #e9ecef;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+        }
+
+        a {
+            color: #0077b6;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Discogs Inventory Report</h1>
+        <p>Generated December 24, 2025 at 10:37 PM</p>
+    </div>
+
+    <div class="summary">
+        <div class="stat-card">
+            <div class="number">132</div>
+            <div class="label">Unique Releases</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">182</div>
+            <div class="label">Total Items</div>
+        </div>
+        <div class="stat-card green">
+            <div class="number">$1,917.83</div>
+            <div class="label">Value (Lowest)</div>
+        </div>
+        <div class="stat-card orange">
+            <div class="number">$2,876.69</div>
+            <div class="label">Value (Est. Median)</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <table>
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Title / Artist</th>
+                    <th>Year</th>
+                    <th>Format</th>
+                    <th>Qty</th>
+                    <th>Lowest</th>
+                    <th>~Median</th>
+                    <th># For Sale</th>
+                    <th>Link</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/3KZJ1kF0KY5litz3C-YkyRxm4s3GkhbmptiHfFLm0xQ/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE1MDI3/ODc3LTE1OTI2ODMx/MTgtNTU2MC5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Lee Ann Womack</div>
+                        <div class="artist">Lee Ann Womack</div>
+                    </td>
+                    <td>1997</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$1.45</span></td>
+                    <td><span class="price price-med">$2.17</span></td>
+                    <td>3</td>
+                    <td><a href="https://www.discogs.com/release/15027877" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/RdIPD3EhJJidLp1ECYn7kDdU7LDaqMdKl3N41EnoE7s/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEwMjEz/MDA4LTE2NTcxOTcy/NDAtNDAzNC5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Best Of Bob Wills</div>
+                        <div class="artist">Bob Wills</div>
+                    </td>
+                    <td>2000</td>
+                    <td>CD</td>
+                    <td><span class="qty">3</span></td>
+                    <td><span class="price price-low">$3.64</span></td>
+                    <td><span class="price price-med">$5.46</span></td>
+                    <td>1</td>
+                    <td><a href="https://www.discogs.com/release/10213008" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/5FoNq9kz0lwExviLM3CG2UZGPwOuS6K8iUkLXfgT4Z8/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTkwNjkz/MzQtMTQ3NDIyMzg2/Mi01NDYzLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">More Cajun Music And Zydeco</div>
+                        <div class="artist">Various</div>
+                    </td>
+                    <td>1995</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$4.50</span></td>
+                    <td><span class="price price-med">$6.75</span></td>
+                    <td>15</td>
+                    <td><a href="https://www.discogs.com/release/9069334" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/-RhPKbBkx3jIuUCZz52-XBXKBSr0eeO-1zfRdfjtXRo/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTY4NjAz/ODgtMTQyODE3NjQx/NC0xODIxLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Your Mama Don't Know</div>
+                        <div class="artist">Nathan & The Zydeco Cha Chas</div>
+                    </td>
+                    <td>1991</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$2.35</span></td>
+                    <td><span class="price price-med">$3.53</span></td>
+                    <td>19</td>
+                    <td><a href="https://www.discogs.com/release/6860388" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/6gRQEHNZFiAx5Iu4pFSL09KrADpKrcrJIlt1oGHw5hE/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTk1MDMz/Mi0xNjU3NzUxOTMy/LTU2MDAuanBlZw.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Check It Out, Lock It In, Crank It Up!</div>
+                        <div class="artist">Beau Jocque & The Zydeco Hi-Rollers</div>
+                    </td>
+                    <td>1998</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$4.00</span></td>
+                    <td><span class="price price-med">$6.00</span></td>
+                    <td>18</td>
+                    <td><a href="https://www.discogs.com/release/950332" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/JqL_j1_G7jQ97-PKB_g9eZGq5gBoyrAaqJCRw9U5Hew/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTkwMzQx/MzctMTQ3MzYyMTk5/MS01MzM1LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Essential Recordings: Let The Good Times Roll</div>
+                        <div class="artist">Buckwheat Zydeco</div>
+                    </td>
+                    <td>2009</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$6.95</span></td>
+                    <td><span class="price price-med">$10.43</span></td>
+                    <td>4</td>
+                    <td><a href="https://www.discogs.com/release/9034137" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/xUuLSRQ6mzweC5vBzIQuotinFs2oKYJCll9CKkc2W5M/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE1MTE5/MjMzLTE1ODY5MjM0/ODEtNjA4MC5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Simplify</div>
+                        <div class="artist">Ryan Shupe & The Rubberband</div>
+                    </td>
+                    <td>1999</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td>-</td>
+                    <td><a href="https://www.discogs.com/release/15119233" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/FqvjT8iUK2AB-d1spEBvltqtdeusA3i6C9ywGqyPxLM/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTkwMTk5/OTYtMTQ3MzM4NDM0/My01MzU0LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">While The Gettin' Is Good</div>
+                        <div class="artist">Corey Smith (10)</div>
+                    </td>
+                    <td>2015</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$1.00</span></td>
+                    <td><span class="price price-med">$1.50</span></td>
+                    <td>16</td>
+                    <td><a href="https://www.discogs.com/release/9019996" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/ZwgaFLRriR8_7UgAuOQy6imIu3BUg9jhLXkvuslGXgI/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMwOTI2/MjctMTMxNTM2NzQ4/Mi5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Attention Deficit Domination</div>
+                        <div class="artist">Hank Williams III</div>
+                    </td>
+                    <td>2011</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$3.14</span></td>
+                    <td><span class="price price-med">$4.71</span></td>
+                    <td>25</td>
+                    <td><a href="https://www.discogs.com/release/3092627" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/EBQJlQ7fCLsxuxgV2tS23Ts3_HqnbbDdTgzbibHHnAM/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQ5Njk2/ODEtMTQ2MDQ5NzAz/NS01Mjg1LnBuZw.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">A Fiendish Threat</div>
+                        <div class="artist">Hank Williams III</div>
+                    </td>
+                    <td>2013</td>
+                    <td>CD</td>
+                    <td><span class="qty">5</span></td>
+                    <td><span class="price price-low">$5.00</span></td>
+                    <td><span class="price price-med">$7.50</span></td>
+                    <td>11</td>
+                    <td><a href="https://www.discogs.com/release/4969681" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/bVTIr4XGtzPvJs-WFeXIhLWOOaU0ET3isy7-EuEk3iI/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTgwNDUz/MS0xMTYyOTUyODIw/LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Man! The Ultimate Isaac Hayes (1969-1977)</div>
+                        <div class="artist">Isaac Hayes</div>
+                    </td>
+                    <td>2001</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$6.35</span></td>
+                    <td><span class="price price-med">$9.52</span></td>
+                    <td>31</td>
+                    <td><a href="https://www.discogs.com/release/804531" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/iqxwAbd-TsIXC_Oy9gijDPUddkeJFgBmUqeMqxVc4v8/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTg4MzA4/MjYtMTQ2OTY3OTYx/NC00NTI3LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Hank Williams - 40 Greatest Hits</div>
+                        <div class="artist">Hank Williams</div>
+                    </td>
+                    <td>0</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$4.52</span></td>
+                    <td><span class="price price-med">$6.78</span></td>
+                    <td>3</td>
+                    <td><a href="https://www.discogs.com/release/8830826" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/GYEB8xt_kqFptwR83Hi885068bKLc_ntXYEoqJraG60/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEwNjQ1/NjUxLTE1MDE1ODgw/MzctNDc4Mi5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Barry White's Greatest Hits</div>
+                        <div class="artist">Barry White</div>
+                    </td>
+                    <td>0</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$0.34</span></td>
+                    <td><span class="price price-med">$0.51</span></td>
+                    <td>8</td>
+                    <td><a href="https://www.discogs.com/release/10645651" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/C40NjCDdHEfyeFcSxBesAS3P9pR9TJGbd1AfXVoMNXg/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMzMjYy/MjI0LTE3NDA2NjE4/MTMtNjI1NC5wbmc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Smiling Faces: The Best Of Undisputed Truth</div>
+                        <div class="artist">The Undisputed Truth</div>
+                    </td>
+                    <td>2003</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$14.69</span></td>
+                    <td><span class="price price-med">$22.04</span></td>
+                    <td>1</td>
+                    <td><a href="https://www.discogs.com/release/33262224" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/6N0rHdEkQsu09giyBo6Lb17Pm3-Y84IEUCO4WRsLKWM/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEzNjA0/MjAxLTE1NTczNDM3/ODMtNTE2My5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">ReCreation</div>
+                        <div class="artist">Zap Mama</div>
+                    </td>
+                    <td>2009</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$1.93</span></td>
+                    <td><span class="price price-med">$2.90</span></td>
+                    <td>17</td>
+                    <td><a href="https://www.discogs.com/release/13604201" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/_Jmmw7zfSO_7NpR9mSwBXDwV7eKtqKNUE84AFky-2V4/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExMDI4/ODIxLTE1MDkwNTAy/MTUtNjI1Mi5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Greatest Hits</div>
+                        <div class="artist">Luther Vandross</div>
+                    </td>
+                    <td>1999</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$1.95</span></td>
+                    <td><span class="price price-med">$2.92</span></td>
+                    <td>7</td>
+                    <td><a href="https://www.discogs.com/release/11028821" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/thx0yWsSmidCR2zSFtpAkG2b3TAutcAKFRmtVEx03lU/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE4MDg2/MTQtMTM5ODYxMzYy/MC05MjM2LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Miseducation Of Lauryn Hill</div>
+                        <div class="artist">Lauryn Hill</div>
+                    </td>
+                    <td>1998</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$3.65</span></td>
+                    <td><span class="price price-med">$5.47</span></td>
+                    <td>10</td>
+                    <td><a href="https://www.discogs.com/release/1808614" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/l8cve_FJZRYkRcBqBZyTwiCQDt6oKMEASGr-67xjqqo/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTkzNDQy/NS0xMTg4NTA2ODYy/LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Waitin' To Inhale</div>
+                        <div class="artist">Devin The Dude</div>
+                    </td>
+                    <td>2007</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$9.30</span></td>
+                    <td><span class="price price-med">$13.95</span></td>
+                    <td>9</td>
+                    <td><a href="https://www.discogs.com/release/934425" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/RJZ8wgjhYDrMdNJipwx6B7teM-SoxxE4fPcG9N4vq30/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIzMTMx/MDQtMTM4ODE2NTgw/OS00NDYxLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Roots</div>
+                        <div class="artist">Gipsy Kings</div>
+                    </td>
+                    <td>2004</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$1.00</span></td>
+                    <td><span class="price price-med">$1.50</span></td>
+                    <td>19</td>
+                    <td><a href="https://www.discogs.com/release/2313104" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/zzqoX4_CAH6vkV9hitLMhs2xqHXks1c9y9yr1dEQCJ4/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE3MDc0/ODA2LTE2MTE0NTY2/NjktMzE2Ni5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">A Donny Hathaway Collection</div>
+                        <div class="artist">Donny Hathaway</div>
+                    </td>
+                    <td>1990</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$5.00</span></td>
+                    <td><span class="price price-med">$7.50</span></td>
+                    <td>3</td>
+                    <td><a href="https://www.discogs.com/release/17074806" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/udBWAJb_hat6-ZTXYA66kCfv8y5eyH_odFflV1wIagk/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMzMzM5/MDk4LTE3NDIyNDM4/NTYtOTIxOC5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">A Sailor's Guide To Earth</div>
+                        <div class="artist">Sturgill Simpson</div>
+                    </td>
+                    <td>2016</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$9.95</span></td>
+                    <td><span class="price price-med">$14.92</span></td>
+                    <td>1</td>
+                    <td><a href="https://www.discogs.com/release/33339098" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/rpqay1JMB0qbvLz9NYFEUjCuJN0lJiuLGMAl6KC9ZoA/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTkzNDk4/MjYtMTQ3OTA1MzYx/My0zMTAxLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Blake Shelton</div>
+                        <div class="artist">Blake Shelton</div>
+                    </td>
+                    <td>2001</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$5.00</span></td>
+                    <td><span class="price price-med">$7.50</span></td>
+                    <td>1</td>
+                    <td><a href="https://www.discogs.com/release/9349826" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/JP9JcafC4jBQV628aBemnYaD4n7myvo9Cqb2upi1qTU/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI2ODky/MDY1LTE2ODM1Nzc5/MDgtMTg0Mi5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Best Of Clarence "Frogman" Henry • Ain't Got No Home</div>
+                        <div class="artist">Clarence "Frogman" Henry</div>
+                    </td>
+                    <td>0</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$4.05</span></td>
+                    <td><span class="price price-med">$6.07</span></td>
+                    <td>2</td>
+                    <td><a href="https://www.discogs.com/release/26892065" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/P1aIYnl6QT8tq4paKacNU00fCUBo_Vh2YwkYbS3jjQ8/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExNzk3/MTg0LTE1MjI1NTQz/NTMtNzIxNC5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Greatest Hits</div>
+                        <div class="artist">John Schneider</div>
+                    </td>
+                    <td>0</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$1.88</span></td>
+                    <td><span class="price price-med">$2.82</span></td>
+                    <td>2</td>
+                    <td><a href="https://www.discogs.com/release/11797184" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/i_AHDeD2t9RbHjkRJ7DSxmQ5rNUMKxsQacJ55RO8Lho/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEyMDQ2/Mzg0LTE1MjcyMDE2/OTktMzMwOS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Every 1's A Winner : The Very Best of Hot Chocolate</div>
+                        <div class="artist">Hot Chocolate</div>
+                    </td>
+                    <td>1993</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$3.72</span></td>
+                    <td><span class="price price-med">$5.58</span></td>
+                    <td>7</td>
+                    <td><a href="https://www.discogs.com/release/12046384" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/ETQJ9AdmTKFsFSMwsRLJtp9Pz5116MD5Ig5_nyRbha8/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTc0MTY4/ODktMTYxNTE5NDA4/Mi0xMjg5LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Hallelujah! It's Raining Men And Other Gems</div>
+                        <div class="artist">The Weather Girls</div>
+                    </td>
+                    <td>2004</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$10.00</span></td>
+                    <td><span class="price price-med">$15.00</span></td>
+                    <td>8</td>
+                    <td><a href="https://www.discogs.com/release/7416889" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/lbkT1qsbQi0RQMJmnNVd-Yl3jZJNNceA9rxjvtijUdw/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTgyNDcz/MDUtMTY4ODA4NjIy/OC02MDc2LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Cajun & Zydeco Classics</div>
+                        <div class="artist">Various</div>
+                    </td>
+                    <td>1997</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$0.49</span></td>
+                    <td><span class="price price-med">$0.73</span></td>
+                    <td>14</td>
+                    <td><a href="https://www.discogs.com/release/8247305" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/IR7ToBx4JGTOwzhBKfsao7Sd1f-tIlh-JX-VacmfGlM/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExNjM4/MDMtMTI1ODI5Nzc4/Mi5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Love Songs</div>
+                        <div class="artist">Grover Washington, Jr.</div>
+                    </td>
+                    <td>2001</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$2.53</span></td>
+                    <td><span class="price price-med">$3.79</span></td>
+                    <td>7</td>
+                    <td><a href="https://www.discogs.com/release/1163803" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/L45ThfSjY1vQidRt_5Rg6H-wnckmP_CDW_h2vcvpxa8/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE1MTgx/NDIyLTE1ODc3NTU0/OTQtNDQ3NS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Very Best Of Dionne Warwick</div>
+                        <div class="artist">Dionne Warwick</div>
+                    </td>
+                    <td>2000</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$62.64</span></td>
+                    <td><span class="price price-med">$93.96</span></td>
+                    <td>1</td>
+                    <td><a href="https://www.discogs.com/release/15181422" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/KXT3t43xRUYNPeQ9_SZv92S8eNXCd1mDeuUDSFO15g0/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTUxNTUz/OTQtMTM4NTk5OTU0/Ny05NDg0LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Graham Central Station</div>
+                        <div class="artist">Graham Central Station</div>
+                    </td>
+                    <td>2006</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$15.77</span></td>
+                    <td><span class="price price-med">$23.66</span></td>
+                    <td>1</td>
+                    <td><a href="https://www.discogs.com/release/5155394" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/1gYBSBHHrLe3o1F2CCzjz3nY4Jo1posowMnV3pg7qNs/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEwMDY4/MTUzLTE0OTEwNTU4/ODAtNjgzNC5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">My Kind Of Music</div>
+                        <div class="artist">Ray Scott (4)</div>
+                    </td>
+                    <td>2005</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$1.00</span></td>
+                    <td><span class="price price-med">$1.50</span></td>
+                    <td>23</td>
+                    <td><a href="https://www.discogs.com/release/10068153" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/5Jf8D59zSKgCfXX1l2QSLuV33B7K1icA1QKe-eBPbOo/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI4ODE2/MDk5LTE2OTkyNTQy/NjgtMzY0NC5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Fully Loaded: God's Country</div>
+                        <div class="artist">Blake Shelton</div>
+                    </td>
+                    <td>2019</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$5.00</span></td>
+                    <td><span class="price price-med">$7.50</span></td>
+                    <td>7</td>
+                    <td><a href="https://www.discogs.com/release/28816099" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/YBnlL0NZFuR4qTqiDHQ0A9fGBT6rSm7495b7kqYauO0/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE4MzM3/OTAzLTE2MTg2NzE4/OTctNDQ1OS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Texoma Shore</div>
+                        <div class="artist">Blake Shelton</div>
+                    </td>
+                    <td>2017</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$10.21</span></td>
+                    <td><span class="price price-med">$15.32</span></td>
+                    <td>1</td>
+                    <td><a href="https://www.discogs.com/release/18337903" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/dMNoe17H1Nplo1sOtAcX1L97kCFXY2Zk1YVuGyomWMM/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTg1MzYz/MjktMTQ2MzU4MTg5/My0zOTUyLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">If I'm Honest</div>
+                        <div class="artist">Blake Shelton</div>
+                    </td>
+                    <td>2016</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$5.65</span></td>
+                    <td><span class="price price-med">$8.48</span></td>
+                    <td>6</td>
+                    <td><a href="https://www.discogs.com/release/8536329" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/pdTdL1pRlIsEgK8h21rQixEgYJ1Cw5VYqJqeGWhKcP8/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIwNDQw/MTg5LTE2MzMxMjQy/MzYtNTUyMy5wbmc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Bringing Back The Sunshine</div>
+                        <div class="artist">Blake Shelton</div>
+                    </td>
+                    <td>2014</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$1.99</span></td>
+                    <td><span class="price price-med">$2.98</span></td>
+                    <td>35</td>
+                    <td><a href="https://www.discogs.com/release/20440189" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/rf9MJq0533Hu_JiyXaPcSkt5jeDi02Z8W1KrmtG-kSo/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI0MjIw/MDY3LTE2NjA2NjI0/NTctOTEyMC5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Kuntry Livin'</div>
+                        <div class="artist">Big Smo</div>
+                    </td>
+                    <td>2014</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$4.99</span></td>
+                    <td><span class="price price-med">$7.49</span></td>
+                    <td>3</td>
+                    <td><a href="https://www.discogs.com/release/24220067" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/bMb7SY7QniWLUe_fIjYQ3dh5hby3MqmG3L1XO53dvT0/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE1ODI4/MjMtMTI0MDMwMTgx/MS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">[More] Pure BS</div>
+                        <div class="artist">Blake Shelton</div>
+                    </td>
+                    <td>2008</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$1.00</span></td>
+                    <td><span class="price price-med">$1.50</span></td>
+                    <td>33</td>
+                    <td><a href="https://www.discogs.com/release/1582823" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/A4lQh7ABCsya5Y-n-jQkJB0CP4h-INOItcaOBQyCvGY/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM1NTcw/NDMtMTMzNTIwMzM2/MS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Best Of The Savoy-Doucet Cajun Band</div>
+                        <div class="artist">Savoy-Doucet Cajun Band</div>
+                    </td>
+                    <td>2002</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$5.29</span></td>
+                    <td><span class="price price-med">$7.94</span></td>
+                    <td>8</td>
+                    <td><a href="https://www.discogs.com/release/3557043" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/ByFkGak9D3qmRPjqMNgCnM4PBEYb1lPmX5V86n9dKPA/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExOTQ1/Mjk3LTE1MjUyMTIx/OTgtNjc3Ny5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Dirt Rock</div>
+                        <div class="artist">The Lacs</div>
+                    </td>
+                    <td>2018</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$12.00</span></td>
+                    <td><span class="price price-med">$18.00</span></td>
+                    <td>4</td>
+                    <td><a href="https://www.discogs.com/release/11945297" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/d3p5sh6PbrjjmB7mGaKslRkcZXKWZQByLN0ECMl9iDY/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQxNDA2/ODItMTc0NDU1Nzky/My0xMzQ5LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Quality|Street|Music</div>
+                        <div class="artist">DJ Drama</div>
+                    </td>
+                    <td>2012</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$2.99</span></td>
+                    <td><span class="price price-med">$4.49</span></td>
+                    <td>5</td>
+                    <td><a href="https://www.discogs.com/release/4140682" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/QAudCUu6o2KG5dQsjN-dNJDLhc3N79f-3cTaeo5fdAA/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIyNjI5/MTMtMTM1MDY2MTMy/NC01NDc2LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Aneed</div>
+                        <div class="artist">Midnite (2)</div>
+                    </td>
+                    <td>2006</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td>-</td>
+                    <td><a href="https://www.discogs.com/release/2262913" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/UzR-SSSNlPP7h7Pyf7Q9HN2s0ZHva4Sgp_039Bw3Vxc/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE0MDY4/MTI2LTE3MTY0Mzc4/MTAtODE0OC5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Ruby</div>
+                        <div class="artist">Macy Gray</div>
+                    </td>
+                    <td>2018</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$18.42</span></td>
+                    <td><span class="price price-med">$27.63</span></td>
+                    <td>7</td>
+                    <td><a href="https://www.discogs.com/release/14068126" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/Pgv5I4uBCESPa7lzBhrdUuhFjbsUcPArpb7u2Af3WIs/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEyMDI0/NjQ5LTE1MjY3ODAx/MDMtNjE5MS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">An Introduction To Hot Chocolate</div>
+                        <div class="artist">Hot Chocolate</div>
+                    </td>
+                    <td>2017</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$3.95</span></td>
+                    <td><span class="price price-med">$5.93</span></td>
+                    <td>4</td>
+                    <td><a href="https://www.discogs.com/release/12024649" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/FAMryEjoQ_TPYpLAKje27wsCHwivCWyeU3hZjDydlQw/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI3ODIy/NzE0LTE3MDg2NzI1/MzEtMTc5Ni5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Father Of Asahd</div>
+                        <div class="artist">DJ Khaled</div>
+                    </td>
+                    <td>2019</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$10.07</span></td>
+                    <td><span class="price price-med">$15.11</span></td>
+                    <td>2</td>
+                    <td><a href="https://www.discogs.com/release/27822714" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/WJgOxTFRMp9gI6Hry1epT86e7x7mPKIwcp-hh1MdGjs/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMyNzE1/NjcyLTE3MzU2NjIz/ODAtODE3MS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">H.E.R.</div>
+                        <div class="artist">H.E.R. (2)</div>
+                    </td>
+                    <td>2019</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td>-</td>
+                    <td><a href="https://www.discogs.com/release/32715672" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/rjcFQOfWiDNT7JF2NCOutF3bjibLUjw9SdeQ-oz1CME/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTgzNTA5/MDItMTYzMDIwMTE2/My01NTMwLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Man About Town</div>
+                        <div class="artist">Mayer Hawthorne</div>
+                    </td>
+                    <td>2016</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$2.24</span></td>
+                    <td><span class="price price-med">$3.36</span></td>
+                    <td>13</td>
+                    <td><a href="https://www.discogs.com/release/8350902" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/CbBy3tjrDSzFZeHkQz0nlh-14ZFcOIc9W2TR96I7OeE/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEyNjM0/MTE3LTE1NDM3OTM3/NjktMzc4Ny5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Can U Cook?</div>
+                        <div class="artist">Seasick Steve</div>
+                    </td>
+                    <td>2018</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td>-</td>
+                    <td><a href="https://www.discogs.com/release/12634117" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/NLSpgYuXnVH1XjXkggUPUcMTSC71kIJygsFiBI9lMFc/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE0Mzk1/OTQ4LTE1NzM2NzA0/OTQtNDYzMS5wbmc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Brothers</div>
+                        <div class="artist">LoCash Cowboys</div>
+                    </td>
+                    <td>2019</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$2.00</span></td>
+                    <td><span class="price price-med">$3.00</span></td>
+                    <td>5</td>
+                    <td><a href="https://www.discogs.com/release/14395948" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/vuB01n4GPIoo87Ckm2rk3lV9kXZ2mtL4V2_ZTuop2JA/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTUzNjIy/NjktMTUxMTAyMTI5/My02ODcyLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Big Girls Don't Cry </div>
+                        <div class="artist">The Weather Girls</div>
+                    </td>
+                    <td>2013</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$5.88</span></td>
+                    <td><span class="price price-med">$8.82</span></td>
+                    <td>10</td>
+                    <td><a href="https://www.discogs.com/release/5362269" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/FeQ07MhHaSzlxNsyhrJe9BlyWiFkaE2kMqWu0A1du1w/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTk3NTI4/MDgtMTQ4NTgxMDM0/My01NDM0LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Hurtin's All Over - RCA Country Hits 1964-1972</div>
+                        <div class="artist">Connie Smith</div>
+                    </td>
+                    <td>2011</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$8.04</span></td>
+                    <td><span class="price price-med">$12.06</span></td>
+                    <td>6</td>
+                    <td><a href="https://www.discogs.com/release/9752808" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/TuomwQMoyCohwr60GtufLt5k_QAC8Wvg627bW2-c54U/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMzOTY4/NDItMTcwNDA5ODM3/MC04Mjg2LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">You Sexy Thing: The Best Of Hot Chocolate</div>
+                        <div class="artist">Hot Chocolate</div>
+                    </td>
+                    <td>2012</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$3.99</span></td>
+                    <td><span class="price price-med">$5.99</span></td>
+                    <td>27</td>
+                    <td><a href="https://www.discogs.com/release/3396842" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/LQqvv31YrjKz7B6Tn7WtLXL-WkcROJ6khtyPDzTAzr4/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTYwNzkz/OTYtMTQxMDUyNzEw/NC0yMjMxLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Bye Bye Baby</div>
+                        <div class="artist">Mary Wells</div>
+                    </td>
+                    <td>2012</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$5.29</span></td>
+                    <td><span class="price price-med">$7.94</span></td>
+                    <td>3</td>
+                    <td><a href="https://www.discogs.com/release/6079396" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/-krjRuLNT46yzS5nPBEo_4htgsIwkQ5HWQyY2nfIXrc/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTYyNjYw/MTctMTYzNDY0MTk0/My0yMzU5LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Way</div>
+                        <div class="artist">Macy Gray</div>
+                    </td>
+                    <td>2014</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$6.71</span></td>
+                    <td><span class="price price-med">$10.06</span></td>
+                    <td>17</td>
+                    <td><a href="https://www.discogs.com/release/6266017" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/WwoZ_KcF0yFDnSLBYlsjN6B8V1Lm7EDSojTL0MguKdw/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIzNzAz/NDczLTE2NTYyODQz/NjMtMTc1OS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Best Of: The Soul Years</div>
+                        <div class="artist">Bobby Womack</div>
+                    </td>
+                    <td>0</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$6.00</span></td>
+                    <td><span class="price price-med">$9.00</span></td>
+                    <td>5</td>
+                    <td><a href="https://www.discogs.com/release/23703473" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/e2VLREdxsXC0Ew0Q7WF5eubU2SIVOpIdEkJ8sSskJzA/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEwMjE3/MDYzLTE2MjAyNjg5/ODgtMzgyNC5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Greatest Hits</div>
+                        <div class="artist">Lee Ann Womack</div>
+                    </td>
+                    <td>2004</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$7.30</span></td>
+                    <td><span class="price price-med">$10.95</span></td>
+                    <td>2</td>
+                    <td><a href="https://www.discogs.com/release/10217063" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/S6pmAyVvrUzfok-sGtY7o1SlkOEU5uBiCocNLvYpFbU/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTU0MDcz/MzAtMTcyMTI2MDQy/MC00NjQwLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Darryl Worley</div>
+                        <div class="artist">Darryl Worley</div>
+                    </td>
+                    <td>2004</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$1.40</span></td>
+                    <td><span class="price price-med">$2.10</span></td>
+                    <td>24</td>
+                    <td><a href="https://www.discogs.com/release/5407330" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/WYQCJZvPL7vx2vjdL5god5oBN1cHvFzQcUyhKSW4exY/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEzMTg1/NDQ2LTE1NDk1NjM3/NjUtMjYzMy5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">D12 World</div>
+                        <div class="artist">D12</div>
+                    </td>
+                    <td>2004</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td>-</td>
+                    <td><a href="https://www.discogs.com/release/13185446" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/u_8S0ijXqRO3x4RRBKZbbbhK-9tggC-MM6_zyQNNZwc/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM0MTQ5/MjItMTczNzM4MDU5/NC04NjExLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Ones We Never Knew</div>
+                        <div class="artist">Holly Williams</div>
+                    </td>
+                    <td>2004</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$2.00</span></td>
+                    <td><span class="price price-med">$3.00</span></td>
+                    <td>22</td>
+                    <td><a href="https://www.discogs.com/release/3414922" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/P2xyOBjRZ6RbNNcVhQb9d7EPZW4Ni7yMDKuy6UMe_6M/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExMDk4/NjgzLTE1MDk4MjM0/ODUtNzc0Ni5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Professional Pt. 3</div>
+                        <div class="artist">DJ Clue</div>
+                    </td>
+                    <td>2006</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$5.35</span></td>
+                    <td><span class="price price-med">$8.02</span></td>
+                    <td>2</td>
+                    <td><a href="https://www.discogs.com/release/11098683" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/NQYOtuKubYLsY31z-g3Jm_VJg8kTrm1hLmcY5tj7Ons/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExMzM4/NTQ4LTE1MTQ1MTQ0/NDQtMTI3MS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Definitive Collection</div>
+                        <div class="artist">Mark Wills (2)</div>
+                    </td>
+                    <td>2007</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$2.29</span></td>
+                    <td><span class="price price-med">$3.44</span></td>
+                    <td>7</td>
+                    <td><a href="https://www.discogs.com/release/11338548" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/pAYJYrZ46534eVXzHVfQYf7YAtoyyK0VlT70gRcbBVs/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExNDE3/OTA1LTE2MDk1NDc1/MDctNTU0NS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Here With Me</div>
+                        <div class="artist">Holly Williams</div>
+                    </td>
+                    <td>2009</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$1.98</span></td>
+                    <td><span class="price price-med">$2.97</span></td>
+                    <td>3</td>
+                    <td><a href="https://www.discogs.com/release/11417905" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/cygCQB4MfitEIW497zMHc2Sq9vLz3GVLlSzZ-VQ6uEs/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTUxMDIx/NTItMTQzODg0MjEy/OC02ODAwLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Where Does This Door Go</div>
+                        <div class="artist">Mayer Hawthorne</div>
+                    </td>
+                    <td>2013</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$3.00</span></td>
+                    <td><span class="price price-med">$4.50</span></td>
+                    <td>10</td>
+                    <td><a href="https://www.discogs.com/release/5102152" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/13ZyLx2IZAwgFAy37xFb0vdnTWFg9tQATSuXNIux0NM/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI3NDk4/MTY1LTE2ODc3ODY4/ODQtNDk1Mi5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Love Remains</div>
+                        <div class="artist">Hillary Scott & The Scott Family</div>
+                    </td>
+                    <td>2016</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td>-</td>
+                    <td><a href="https://www.discogs.com/release/27498165" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/r5aZviYDfF1X8t9kNzIZHyfmy2hiWyaohVBmKPSloMg/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTk1MjA0/OTYtMTU5Njg4ODA0/NS02NDc2LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Starboy</div>
+                        <div class="artist">The Weeknd</div>
+                    </td>
+                    <td>2016</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$19.71</span></td>
+                    <td><span class="price price-med">$29.57</span></td>
+                    <td>3</td>
+                    <td><a href="https://www.discogs.com/release/9520496" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/UjRNG8-LqstMd81HsZAaf5i7fel71Bzo9Wmg0QTqDVQ/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM1MDc3/MTkwLTE3NTc2Njkx/MDQtNjAwNy5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">My Dear Melancholy,</div>
+                        <div class="artist">The Weeknd</div>
+                    </td>
+                    <td>2018</td>
+                    <td>CD</td>
+                    <td><span class="qty">10</span></td>
+                    <td><span class="price price-low">$69.99</span></td>
+                    <td><span class="price price-med">$104.98</span></td>
+                    <td>1</td>
+                    <td><a href="https://www.discogs.com/release/35077190" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/VTRdnCnAekulWZEfJ41-kRcwrSmt-lsw_WY3ufMJuUA/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEyODcx/NTIzLTE3NTYxMjIz/MjItNjE1MS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Only Human</div>
+                        <div class="artist">Calum Scott</div>
+                    </td>
+                    <td>2018</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$5.92</span></td>
+                    <td><span class="price price-med">$8.88</span></td>
+                    <td>9</td>
+                    <td><a href="https://www.discogs.com/release/12871523" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/m35UjBVTfroa5V2FOgkVlnWwbm3eGUmMgGcTywrBJvg/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTg2MTcz/ODMtMTQ2NTIzMjI4/OS02MzgxLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Introducing Bela Lakatos & The Gypsy Youth Project</div>
+                        <div class="artist">Bela Lakatos & The Gypsy Youth Project</div>
+                    </td>
+                    <td>2006</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$2.18</span></td>
+                    <td><span class="price price-med">$3.27</span></td>
+                    <td>13</td>
+                    <td><a href="https://www.discogs.com/release/8617383" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/6XaMpMJX1CPWqSmS2pcw5WL8fkX8OGCsDbONjQRzogU/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTc0ODMw/MDctMTQ0MjQyNTk0/MS01OTI4LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Devils Night</div>
+                        <div class="artist">D12</div>
+                    </td>
+                    <td>2001</td>
+                    <td>CD</td>
+                    <td><span class="qty">4</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td>-</td>
+                    <td><a href="https://www.discogs.com/release/7483007" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/ezXdskPsW8VFi3n0Ej_kY3QvWjXZM80vTDVKniQxidk/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMzNjAw/MTAtMTU4NTYwMDA5/Ny02MDA2LnBuZw.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Best Of Jennifer Holliday</div>
+                        <div class="artist">Jennifer Holliday</div>
+                    </td>
+                    <td>2000</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$2.00</span></td>
+                    <td><span class="price price-med">$3.00</span></td>
+                    <td>24</td>
+                    <td><a href="https://www.discogs.com/release/3360010" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/zz20SA31uXJ1qo75OyBwaA8SL8iuDsJ06fFEJ8I60DI/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIyMDU2/NTg2LTE2NDQxODY5/NzktNjU5Ni5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">You Don't Own Me Anymore</div>
+                        <div class="artist">The Secret Sisters</div>
+                    </td>
+                    <td>2017</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$14.85</span></td>
+                    <td><span class="price price-med">$22.27</span></td>
+                    <td>1</td>
+                    <td><a href="https://www.discogs.com/release/22056586" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/cZ4CTESz7HQjJ6496VIcvcNgpZWGsLqQKw4wAvS4I6M/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEzNjY4/OTYzLTE1NTg2NTMx/NTgtMzI2NC5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">She's Back</div>
+                        <div class="artist">Dionne Warwick</div>
+                    </td>
+                    <td>2019</td>
+                    <td>CD, CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$5.99</span></td>
+                    <td><span class="price price-med">$8.98</span></td>
+                    <td>9</td>
+                    <td><a href="https://www.discogs.com/release/13668963" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/l11wJsLStbITSiD6aaRSkF2pfrEnhFgczbdmXwSFL1c/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM2ODM4/NzAtMTM0MDIzOTQy/MS03MzM1LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Bravest Man In The Universe</div>
+                        <div class="artist">Bobby Womack</div>
+                    </td>
+                    <td>2012</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$1.99</span></td>
+                    <td><span class="price price-med">$2.98</span></td>
+                    <td>22</td>
+                    <td><a href="https://www.discogs.com/release/3683870" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/VqPruihjMM0xPtw3iBZnS_vH1UCiIJP7sH1DNo6DToA/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExMzM4/NTI2LTE1MTQ1MTM2/NTEtMjI4MS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Fighters</div>
+                        <div class="artist">LoCash Cowboys</div>
+                    </td>
+                    <td>2016</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$2.00</span></td>
+                    <td><span class="price price-med">$3.00</span></td>
+                    <td>9</td>
+                    <td><a href="https://www.discogs.com/release/11338526" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/T8gmQy4eqXmG7_mqX57R28HLVsIsBlut-dlZM6vEEp4/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTg4Njc3/MjgtMTQ3MDQyNTU0/Ni0xMzg4LnBuZw.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Country Boy's Paradise</div>
+                        <div class="artist">The Lacs</div>
+                    </td>
+                    <td>2011</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$4.74</span></td>
+                    <td><span class="price price-med">$7.11</span></td>
+                    <td>2</td>
+                    <td><a href="https://www.discogs.com/release/8867728" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/w1Vm-xTeM_Zx8XCybo95ES2sB-R0PremvISMW9WLSiM/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExMTIz/NDkyLTE3MjExMjI0/MjUtNTIzNy5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">190 Proof</div>
+                        <div class="artist">The Lacs</div>
+                    </td>
+                    <td>2012</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$5.00</span></td>
+                    <td><span class="price price-med">$7.50</span></td>
+                    <td>4</td>
+                    <td><a href="https://www.discogs.com/release/11123492" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/FUtotcV3Qn778dbi9ffdmn3ghodqsSocffA-3SBsTXE/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExNTI0/ODM5LTE1MzAxMDQx/NDgtNTgyMy5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Blacked Out</div>
+                        <div class="artist">Moonshine Bandits</div>
+                    </td>
+                    <td>2015</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$9.99</span></td>
+                    <td><span class="price price-med">$14.98</span></td>
+                    <td>7</td>
+                    <td><a href="https://www.discogs.com/release/11524839" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/IXluI1P6NOcpT_LH4cqATvmb5OF0c7HkH4sWLGRoV0o/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTkxNTkw/OTAtMTQ3NTgzMTM2/Mi05MTQxLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Welcome to Dodge City</div>
+                        <div class="artist">Racket County, The Lacs, Hard Target (3)</div>
+                    </td>
+                    <td>2016</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$1.05</span></td>
+                    <td><span class="price price-med">$1.58</span></td>
+                    <td>9</td>
+                    <td><a href="https://www.discogs.com/release/9159090" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/rDn27DOcSToMSi_-_LQEEykR2z0tMoK2Vb-rVoHftFY/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExMzA3/MDM0LTE1MTM4NzI2/MjUtMjEyOS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Baptized In Bourbon</div>
+                        <div class="artist">Moonshine Bandits</div>
+                    </td>
+                    <td>2017</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$11.45</span></td>
+                    <td><span class="price price-med">$17.17</span></td>
+                    <td>5</td>
+                    <td><a href="https://www.discogs.com/release/11307034" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/2PqBVYwv2Y1VPwaIoaOJca99f0QXzhydwl39NWIP3ok/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEwMjMz/MzUzLTE0OTM4MzU1/MzUtNDYzNy5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Love Hope Faith</div>
+                        <div class="artist">Colt Ford</div>
+                    </td>
+                    <td>2017</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$4.48</span></td>
+                    <td><span class="price price-med">$6.72</span></td>
+                    <td>10</td>
+                    <td><a href="https://www.discogs.com/release/10233353" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/U59drvG5emswVoOmI7SxV7sJ8yZJpEBrrjcYhemD4Hs/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExODgw/MjUwLTE1MjQwMDA4/NzktODI2Ni5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Throwdown: The Greatest Hits</div>
+                        <div class="artist">Moonshine Bandits</div>
+                    </td>
+                    <td>2018</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$10.00</span></td>
+                    <td><span class="price price-med">$15.00</span></td>
+                    <td>1</td>
+                    <td><a href="https://www.discogs.com/release/11880250" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/yiUgYMq5v0LBjG-pp8ybhISJy_o3JhLENvAjODHtHoI/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTgyOTIx/MDYtMTQ1ODc2MjM0/Ny0yMDA4LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Kershaw (Genus Cambarus)</div>
+                        <div class="artist">Doug Kershaw</div>
+                    </td>
+                    <td>2006</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$11.38</span></td>
+                    <td><span class="price price-med">$17.07</span></td>
+                    <td>5</td>
+                    <td><a href="https://www.discogs.com/release/8292106" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/uDH8-ROaf4MUPx7HLIi-okvsTIbaZfDkQrpy1Ku9pbg/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTgyMTEx/ODUtMTQ1NzIxNTcy/NS01ODI1LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Cluck Ol' Hen (Live)</div>
+                        <div class="artist">Ricky Skaggs, Bruce Hornsby</div>
+                    </td>
+                    <td>2013</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$4.00</span></td>
+                    <td><span class="price price-med">$6.00</span></td>
+                    <td>15</td>
+                    <td><a href="https://www.discogs.com/release/8211185" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/ghb_H1GvZZsL4BoWTaqjOxVi0V2KMnrf3AJiv7jSNYA/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTk5MjE4/MjItMTUzNjA0OTU3/Ny0zNjQzLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Hearts Like Ours</div>
+                        <div class="artist">Ricky Skaggs, Sharon White</div>
+                    </td>
+                    <td>2014</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$3.00</span></td>
+                    <td><span class="price price-med">$4.50</span></td>
+                    <td>8</td>
+                    <td><a href="https://www.discogs.com/release/9921822" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/AY4KxWJias8MYjwX00iQBeWlBfqbN6QrT2SlMtd21P4/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI2MzU1/NjQ3LTE2NzgzNTU2/NjktMjAyMy5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Gypsy Spirit</div>
+                        <div class="artist">Various</div>
+                    </td>
+                    <td>2011</td>
+                    <td>CD, Box Set</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td>-</td>
+                    <td><a href="https://www.discogs.com/release/26355647" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/Rn95vrhWTT2IUE1ftCNgzt64xk6VbUYKr_5sYeRCrAw/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMwMTQ2/MzQyLTE3MTA4ODE4/NTUtNTA3MS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Lovesick, Broke & Driftin'</div>
+                        <div class="artist">Hank Williams III</div>
+                    </td>
+                    <td>2012</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$39.43</span></td>
+                    <td><span class="price price-med">$59.14</span></td>
+                    <td>1</td>
+                    <td><a href="https://www.discogs.com/release/30146342" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/VDdrfh1CZp0ZDl4lUzWcXB0jRi0VcBigcq8ZfExxlOk/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEyMjQ3/NjM2LTE2MjQ3NTE1/MDItMjM5My5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Dylan Scott</div>
+                        <div class="artist">Dylan Scott</div>
+                    </td>
+                    <td>2016</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$9.95</span></td>
+                    <td><span class="price price-med">$14.92</span></td>
+                    <td>3</td>
+                    <td><a href="https://www.discogs.com/release/12247636" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/PKwnURgGG5-CREj3t4rFXTNc9AB4BSb_ZIF4RzdmI68/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTcwNTA4/MDgtMTQzMjU2MjIy/Ni0zNzY1LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Take As Needed For Pain</div>
+                        <div class="artist">Hank Williams III</div>
+                    </td>
+                    <td>2015</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$9.99</span></td>
+                    <td><span class="price price-med">$14.98</span></td>
+                    <td>10</td>
+                    <td><a href="https://www.discogs.com/release/7050808" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/7wL1uZBzGy0OYYkVx42uKbJ9cn3g1QnDmEQ6nwDtT9g/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE1ODIy/NjE1LTE1OTg0NDcy/MTQtNTExOS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Dylan Scott Deluxe Edition</div>
+                        <div class="artist">Dylan Scott</div>
+                    </td>
+                    <td>2017</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$5.26</span></td>
+                    <td><span class="price price-med">$7.89</span></td>
+                    <td>4</td>
+                    <td><a href="https://www.discogs.com/release/15822615" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/TRYbWlmDDLRyMFY0drQyH6bB2Go9rPHJYo6yOtL0kdg/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTgzNzI0/MjctMTUwMTEzODE1/MS05Njg2LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Confederate Tales  White Mansions / The Legend Of Jesse James</div>
+                        <div class="artist">Various</div>
+                    </td>
+                    <td>1997</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$11.76</span></td>
+                    <td><span class="price price-med">$17.64</span></td>
+                    <td>5</td>
+                    <td><a href="https://www.discogs.com/release/8372427" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/qn_7EfTj2WBbV5u9MyLqXdPu1KOEN6kQiukIXC4zazg/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEyMDA0/ODM5LTE1MjY1MzM3/MjAtNTU3Mi5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Permanently</div>
+                        <div class="artist">Mark Wills (2)</div>
+                    </td>
+                    <td>2000</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$5.50</span></td>
+                    <td><span class="price price-med">$8.25</span></td>
+                    <td>4</td>
+                    <td><a href="https://www.discogs.com/release/12004839" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/NhZZtL4qh6AoZpVrJez7sx6-InDLEKgFhG0ZHlJBvHQ/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM2Njc3/NzUtMTM0MDAxOTE1/NS0zMTMwLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Greatest Hits</div>
+                        <div class="artist">Al Green</div>
+                    </td>
+                    <td>2009</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$2.95</span></td>
+                    <td><span class="price price-med">$4.43</span></td>
+                    <td>55</td>
+                    <td><a href="https://www.discogs.com/release/3667775" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/m638_XpPAH4YO9c_mqPE2Nq_NE0182tHbZfJjvgyo4E/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE1MzEx/MjEyLTE1ODk1NTkx/ODgtOTYwNi5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Feels Like Christmas</div>
+                        <div class="artist">Al Green</div>
+                    </td>
+                    <td>2012</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$8.89</span></td>
+                    <td><span class="price price-med">$13.34</span></td>
+                    <td>6</td>
+                    <td><a href="https://www.discogs.com/release/15311212" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/bE9vgHLe674uGSWykwYLInlQZjvH2Eb8muKZPw6EVEc/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIxMDk0/MzQ4LTE2NTQzODAz/OTAtNTA3Ni5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Best Of The Best</div>
+                        <div class="artist">Jean Shepard</div>
+                    </td>
+                    <td>2001</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$1.50</span></td>
+                    <td><span class="price price-med">$2.25</span></td>
+                    <td>9</td>
+                    <td><a href="https://www.discogs.com/release/21094348" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/i2EOG6w5hhXnjWMM45rOBm3yoFyQXxXF8LUDwbjT8Vs/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTgyNDc4/NzgtMTYzODQ1NTIy/Mi02NjQ1LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Cajun Mardi Gras</div>
+                        <div class="artist">Jo-El Sonnier</div>
+                    </td>
+                    <td>2005</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$10.00</span></td>
+                    <td><span class="price price-med">$15.00</span></td>
+                    <td>1</td>
+                    <td><a href="https://www.discogs.com/release/8247878" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/Cqqn9gjJabTSfzyqZvgIq2RFAG2Ol8SEifHWD_RzNso/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM0MzQ5/MDY1LTE3NTA2OTAw/NzYtODE4Ny5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Pure Cinema</div>
+                        <div class="artist">Jim Brickman</div>
+                    </td>
+                    <td>2016</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td>-</td>
+                    <td><a href="https://www.discogs.com/release/34349065" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><div class="no-cover">No img</div></td>
+                    <td class="title-cell">
+                        <div class="title">High Top Mountain</div>
+                        <div class="artist">Sturgill Simpson</div>
+                    </td>
+                    <td>2014</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$8.11</span></td>
+                    <td><span class="price price-med">$12.16</span></td>
+                    <td>2</td>
+                    <td><a href="https://www.discogs.com/release/5960913" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/nRI8Z8_gSskf_lVgK45M-fgKmXIjNsXkYcc_uhHPK_k/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEzOTc1/NjQ3LTE1NjU2NjI0/NTQtNTA4OS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Dive Bar Saints</div>
+                        <div class="artist">Home Free</div>
+                    </td>
+                    <td>2019</td>
+                    <td>Vinyl</td>
+                    <td><span class="qty">3</span></td>
+                    <td><span class="price price-low">$29.92</span></td>
+                    <td><span class="price price-med">$44.88</span></td>
+                    <td>3</td>
+                    <td><a href="https://www.discogs.com/release/13975647" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/1231I6z2miPKMsPitiwMjGeb9oZicBRzhsMy4ypsLYE/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEyOTM2/NDMzLTE1ODY1MDM2/MzgtNTI1My5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Hooves Of The Horses</div>
+                        <div class="artist">Wylie & The Wild West</div>
+                    </td>
+                    <td>2004</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$2.50</span></td>
+                    <td><span class="price price-med">$3.75</span></td>
+                    <td>11</td>
+                    <td><a href="https://www.discogs.com/release/12936433" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/C4MxgmxtiVTBDrYBPgJfqkjNHw88jMxe1o2SAqWdalM/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEwNzA5/NTY0LTE1NjkwNDQ0/NTctMjA2MC5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Golden Age 2</div>
+                        <div class="artist">Dizzy Wright</div>
+                    </td>
+                    <td>2017</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$8.00</span></td>
+                    <td><span class="price price-med">$12.00</span></td>
+                    <td>5</td>
+                    <td><a href="https://www.discogs.com/release/10709564" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/aISBcZfw7V9qpcy5n6_DRB9XhKmS4E4odgEgMiqUt1I/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTYzNTEx/ODgtMTQxOTEwMjE0/NC03NzczLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">No Night So Long</div>
+                        <div class="artist">Dionne Warwick</div>
+                    </td>
+                    <td>2014</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$6.80</span></td>
+                    <td><span class="price price-med">$10.20</span></td>
+                    <td>11</td>
+                    <td><a href="https://www.discogs.com/release/6351188" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/4WOSW-19z1chRak7vE0R8ETCI8KTf4I1EcYCbYQaJ-s/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTc3NjEz/OTgtMTUxNTEwOTAz/Ni01MzIwLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Sounds Like Life</div>
+                        <div class="artist">Darryl Worley</div>
+                    </td>
+                    <td>2009</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$1.99</span></td>
+                    <td><span class="price price-med">$2.98</span></td>
+                    <td>8</td>
+                    <td><a href="https://www.discogs.com/release/7761398" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/2GVEqvgVyq_c3ZNzXS0NPUpVBF1hQIYLTXgTOSb-1ac/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEzOTAz/NzM0LTE1NjM5MTk0/ODctOTQyNS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Fire</div>
+                        <div class="artist">Davina Joy</div>
+                    </td>
+                    <td>2019</td>
+                    <td>CD</td>
+                    <td><span class="qty">5</span></td>
+                    <td><span class="price price-low">$41.18</span></td>
+                    <td><span class="price price-med">$61.77</span></td>
+                    <td>1</td>
+                    <td><a href="https://www.discogs.com/release/13903734" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/6QXSKxKtWaO_epzeKrZd7wNEpBppPouY99xaaTlcF10/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTkzMDMx/NTMtMTQ4OTI1Mjky/Ni05NzUxLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Long Road Home</div>
+                        <div class="artist">Danny Worsnop</div>
+                    </td>
+                    <td>2017</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$4.66</span></td>
+                    <td><span class="price price-med">$6.99</span></td>
+                    <td>8</td>
+                    <td><a href="https://www.discogs.com/release/9303153" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/nBJpAfZ3CJAvaJpdum2HnIsd4Z-8zPBcJ1UF0z7iHV8/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQ3NTA3/MjgtMTM3NDMzODAw/OS0xOTQ1LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Just A Country Boy</div>
+                        <div class="artist">Don Williams (2)</div>
+                    </td>
+                    <td>2012</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$5.88</span></td>
+                    <td><span class="price price-med">$8.82</span></td>
+                    <td>2</td>
+                    <td><a href="https://www.discogs.com/release/4750728" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><div class="no-cover">No img</div></td>
+                    <td class="title-cell">
+                        <div class="title">Dilated Peoples - Directors of Photography (2014)</div>
+                        <div class="artist"></div>
+                    </td>
+                    <td></td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td>-</td>
+                    <td><a href="https://www.discogs.com/release/5989012" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/r3n8k9rQQOPDUSpHvugtEVFuNNodJWPS18k9ln7-N0k/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEzOTAz/NzMzLTE1NjM5MTY5/MTMtMjg3Ny5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Built For The Battle</div>
+                        <div class="artist">Davina Joy</div>
+                    </td>
+                    <td>2017</td>
+                    <td>CD</td>
+                    <td><span class="qty">3</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td>-</td>
+                    <td><a href="https://www.discogs.com/release/13903733" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/7VYT5RgR2ZTHrAuTwFeqPVAMLTTPNRTUWGMEDhhY-FM/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIxODc3/MDY5LTE2NDMxMTA0/NDYtOTI1Ny5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">That's How Heartaches Are Made - 1958-1962 Recordings</div>
+                        <div class="artist">Baby Washington</div>
+                    </td>
+                    <td>2016</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$11.18</span></td>
+                    <td><span class="price price-med">$16.77</span></td>
+                    <td>6</td>
+                    <td><a href="https://www.discogs.com/release/21877069" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/P_aLyPjDyqHolqr7GJgtDZqadmj-zI1hwAUUp2LaIW8/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTk0MTM2/MjUtMTQ4MDE0NjM3/MS0yMzQ5LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">It's About Time</div>
+                        <div class="artist">Hank Williams Jr.</div>
+                    </td>
+                    <td>2016</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$5.00</span></td>
+                    <td><span class="price price-med">$7.50</span></td>
+                    <td>7</td>
+                    <td><a href="https://www.discogs.com/release/9413625" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/4GNmtM00k3KJItw2Z-pFzHN85DBAq1fCPHPLmKH1yBo/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTc4NTA1/MTktMTQ1MDI1MDQ0/OC0yMTI1LnBuZw.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Ladies & Gentlemen...Nigel Hall</div>
+                        <div class="artist">Nigel Hall</div>
+                    </td>
+                    <td>2015</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$11.75</span></td>
+                    <td><span class="price price-med">$17.62</span></td>
+                    <td>1</td>
+                    <td><a href="https://www.discogs.com/release/7850519" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/fEcFPCJUrxSp3zYXaEqW234K308pCJ7WG2-vcCkcO_o/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExMzI5/MjY0LTE1MTQzMzg1/NTYtNDM0Mi5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Don’t Just Stand There: 20 Greatest Hits</div>
+                        <div class="artist">Carl Smith (3)</div>
+                    </td>
+                    <td>2005</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$3.53</span></td>
+                    <td><span class="price price-med">$5.29</span></td>
+                    <td>5</td>
+                    <td><a href="https://www.discogs.com/release/11329264" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/F3POf5Pqa_bY1F27r0dMl3HaFGyHc5JyhZK3h5QTLiQ/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExMDk0/MTcxLTE1MzMxMTQ5/OTItNDI0NC5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Lonely, The Lonesome & The Gone</div>
+                        <div class="artist">Lee Ann Womack</div>
+                    </td>
+                    <td>2017</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$3.00</span></td>
+                    <td><span class="price price-med">$4.50</span></td>
+                    <td>13</td>
+                    <td><a href="https://www.discogs.com/release/11094171" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/0-NKMRv7fhCSwBpJbGfqv7JT-AXh0WU28h8pNHS32k0/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQxOTg3/ODktMTM1ODMwNjA2/OC0xNDM1LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Space Travel</div>
+                        <div class="artist">Aaron Lewis (7)</div>
+                    </td>
+                    <td>2008</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$8.02</span></td>
+                    <td><span class="price price-med">$12.03</span></td>
+                    <td>2</td>
+                    <td><a href="https://www.discogs.com/release/4198789" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/_Nu55ttEYijylTgO3zueLXoaKcieTxz5YfGtQfcsr2Y/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIzNDEw/NzItMTI3ODE4MDY4/NS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Greenlight EP</div>
+                        <div class="artist">Digital Underground</div>
+                    </td>
+                    <td>2010</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$7.99</span></td>
+                    <td><span class="price price-med">$11.98</span></td>
+                    <td>8</td>
+                    <td><a href="https://www.discogs.com/release/2341072" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/wwU6h_TnpUZ8m8aZ1jKOW5TUPALeqfzEH9W2Bh_oJ_Q/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE1MTUz/MTQ4LTE1ODczNzMy/MDAtMTc0MC5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Looking 4 Myself</div>
+                        <div class="artist">Usher</div>
+                    </td>
+                    <td>2012</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$0.99</span></td>
+                    <td><span class="price price-med">$1.48</span></td>
+                    <td>34</td>
+                    <td><a href="https://www.discogs.com/release/15153148" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/mD33RbIWKHHZEPIosVdobrui-knIzKqp6bXWYyh_YLU/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTk0MDM5/NjItMTUxODA2MzAx/OS03NzExLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Waitin' For The Sun To Shine</div>
+                        <div class="artist">Ricky Skaggs</div>
+                    </td>
+                    <td>2009</td>
+                    <td>CD, DVD, All Media</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$9.49</span></td>
+                    <td><span class="price price-med">$14.23</span></td>
+                    <td>6</td>
+                    <td><a href="https://www.discogs.com/release/9403962" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/N0dq4z7LBk4zaRzsWlPPw3Q_wHwPkCJeKO_BtNVFU_M/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE1NjA0/NDA0LTE2MzY0MzYx/ODAtODU4Mi5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Still Bill</div>
+                        <div class="artist">Bill Withers</div>
+                    </td>
+                    <td>0</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$15.00</span></td>
+                    <td><span class="price price-med">$22.50</span></td>
+                    <td>3</td>
+                    <td><a href="https://www.discogs.com/release/15604404" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/O22qEu33jKj5awlOkQAlMTaOVIV85eB0ci0PRx-hQho/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTYwMjc4/OTgtMTQwOTE4ODg5/Mi03OTIyLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Back To Love</div>
+                        <div class="artist">Anthony Hamilton</div>
+                    </td>
+                    <td>2011</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$2.00</span></td>
+                    <td><span class="price price-med">$3.00</span></td>
+                    <td>13</td>
+                    <td><a href="https://www.discogs.com/release/6027898" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/YUvghy1TpwmaZwKHtWptshaaiuQbkh5irEK8nvyg4Q8/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI1NzIz/NjMtMTI5MjY1Njkw/OS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Hot Buttered Soul</div>
+                        <div class="artist">Isaac Hayes</div>
+                    </td>
+                    <td>2009</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$5.29</span></td>
+                    <td><span class="price price-med">$7.94</span></td>
+                    <td>26</td>
+                    <td><a href="https://www.discogs.com/release/2572363" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/StDW26emTUdAV5kQ46zEKtW58isqwJMyBsFqlnvV6mA/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTg0Nzg5/NjMtMTQ2MjQxMTU1/MS02Njc5LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Reloaded I</div>
+                        <div class="artist">Jawga Boyz</div>
+                    </td>
+                    <td>2013</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td>-</td>
+                    <td><a href="https://www.discogs.com/release/8478963" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/0_RC3qFfDC29HsPWzi-ewDqY03PAvtoWglIMB-Jqjw8/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTgwMTY5/ODMtMTQ5NTQ0NjA4/Ni02NjEzLmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Chapter One</div>
+                        <div class="artist">Ella Henderson</div>
+                    </td>
+                    <td>2014</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$15.00</span></td>
+                    <td><span class="price price-med">$22.50</span></td>
+                    <td>1</td>
+                    <td><a href="https://www.discogs.com/release/8016983" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/y57kk_pPLdppuQPSyWsmXHg0SZqNMF8AYGM524fVBeM/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE1ODg4/MDQ5LTE1OTk2MjQ1/NTEtODYzMS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">G I R L</div>
+                        <div class="artist">Pharrell Williams</div>
+                    </td>
+                    <td>2014</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$8.96</span></td>
+                    <td><span class="price price-med">$13.44</span></td>
+                    <td>3</td>
+                    <td><a href="https://www.discogs.com/release/15888049" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/rr38uSvDzrpQinwUoxC31xgcaBEnF44ndbvWpH1OnRA/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEwODc3/MzkxLTE1MDU4MDEy/MjUtMTU0Mi5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Hard II Love</div>
+                        <div class="artist">Usher</div>
+                    </td>
+                    <td>2016</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$2.69</span></td>
+                    <td><span class="price price-med">$4.04</span></td>
+                    <td>7</td>
+                    <td><a href="https://www.discogs.com/release/10877391" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/AA-YObNCvNevSEYbR9XDZNiR34yXOaGvVXMu-4FWP5c/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTk1Mzg3/MjYtMTQ4MjMzNjUy/NC0xNzQ0LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Full Of Cheer</div>
+                        <div class="artist">Home Free</div>
+                    </td>
+                    <td>2014</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$1.35</span></td>
+                    <td><span class="price price-med">$2.03</span></td>
+                    <td>17</td>
+                    <td><a href="https://www.discogs.com/release/9538726" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/-aGomWTnL5O_q8K2M8ESmUitX_rPV_dv-LlPPUpEZQM/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEwNDMx/MDM0LTE0OTc2MTgz/OTUtNjM1Mi5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Playlist: The Very Best Of Charlie Wilson</div>
+                        <div class="artist">Charlie Wilson</div>
+                    </td>
+                    <td>2012</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$5.39</span></td>
+                    <td><span class="price price-med">$8.08</span></td>
+                    <td>6</td>
+                    <td><a href="https://www.discogs.com/release/10431034" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/K9ZTXwFX5EzNN8hpr9sDIf0p1AV4CEV0PXwOyJspNDs/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTgxNjE1/MTgtMTQ1NjI4MTgw/Ni05NjA2LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Wisdom And Good Vibes</div>
+                        <div class="artist">Dizzy Wright</div>
+                    </td>
+                    <td>2016</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$6.00</span></td>
+                    <td><span class="price price-med">$9.00</span></td>
+                    <td>12</td>
+                    <td><a href="https://www.discogs.com/release/8161518" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/QgB_MTkm6hRNAS2WiMV5tPQJQkmOHTFCcDy9mO-KPps/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExODAx/NzIyLTE3MzAzNzcw/ODctNzM5MC5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Big Brother</div>
+                        <div class="artist">DJ Kay Slay</div>
+                    </td>
+                    <td>2017</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$9.68</span></td>
+                    <td><span class="price price-med">$14.52</span></td>
+                    <td>10</td>
+                    <td><a href="https://www.discogs.com/release/11801722" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/6wX2u4MawkueWrWbVV24zpo4RIjJgGqjN8QvKdltmb0/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTc1MTA2/MjMtMTQ0Mjk2NzUx/NS0zOTk2LmpwZWc.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Soulful Classics</div>
+                        <div class="artist">Urban Mystic</div>
+                    </td>
+                    <td>2015</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$8.22</span></td>
+                    <td><span class="price price-med">$12.33</span></td>
+                    <td>7</td>
+                    <td><a href="https://www.discogs.com/release/7510623" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/luDdNEC65Y5HPFCUZ2h72a0fsqUUWfGhg0oUZr5-gt0/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEzODE5/MTg2LTE1NjE4Mjg2/MTctOTM5My5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Brit Eyed Soul</div>
+                        <div class="artist">Billy Valentine</div>
+                    </td>
+                    <td>2017</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td><span class="no-price">-</span></td>
+                    <td>-</td>
+                    <td><a href="https://www.discogs.com/release/13819186" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/T6siIkS9uoRYoTN2r3UIzLrjVDOTSWMA0vqpTqK8MT0/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEwNjcy/NTkwLTE3MzYzNDUz/NDgtMjkyNi5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Greatest Hits</div>
+                        <div class="artist">Ginuwine</div>
+                    </td>
+                    <td>2017</td>
+                    <td>CD</td>
+                    <td><span class="qty">2</span></td>
+                    <td><span class="price price-low">$8.36</span></td>
+                    <td><span class="price price-med">$12.54</span></td>
+                    <td>8</td>
+                    <td><a href="https://www.discogs.com/release/10672590" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/b4kYTw6fswb_D7G0nm-cn6qukdJTTyuBWY3w4CBtwGA/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEwNDc3/MDY5LTE0OTgyNzI1/MjktNTI3OS5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Grateful</div>
+                        <div class="artist">DJ Khaled</div>
+                    </td>
+                    <td>2017</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$5.00</span></td>
+                    <td><span class="price price-med">$7.50</span></td>
+                    <td>12</td>
+                    <td><a href="https://www.discogs.com/release/10477069" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/ieNtWEVGVY8naDpo-bYIwxrkNwDLY1OLqPI5Hqq52TQ/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExNjY2/MjQ2LTE1MjAzMDEy/MzQtNDc1My5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">Timeless</div>
+                        <div class="artist">Home Free</div>
+                    </td>
+                    <td>2017</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$1.50</span></td>
+                    <td><span class="price price-med">$2.25</span></td>
+                    <td>9</td>
+                    <td><a href="https://www.discogs.com/release/11666246" target="_blank">View</a></td>
+                </tr>
+
+                <tr>
+                    <td><img src="https://i.discogs.com/U001F6EOSwR4426RkOJ5A1Jn4FlDThdHk15KbMHnLHA/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI1MzU1/OTQtMTMxNTI2NDQw/Mi5qcGVn.jpeg" class="cover" loading="lazy"></td>
+                    <td class="title-cell">
+                        <div class="title">The Rough Guide To Gypsy Music</div>
+                        <div class="artist">Various</div>
+                    </td>
+                    <td>2009</td>
+                    <td>CD</td>
+                    <td><span class="qty">1</span></td>
+                    <td><span class="price price-low">$3.23</span></td>
+                    <td><span class="price price-med">$4.84</span></td>
+                    <td>12</td>
+                    <td><a href="https://www.discogs.com/release/2535594" target="_blank">View</a></td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        Prices from Discogs Marketplace API. Median/High are estimates based on lowest price.<br>
+        Images and data &copy; Discogs
+    </div>
+</body>
+</html>
