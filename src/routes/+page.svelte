@@ -3,6 +3,9 @@
   import Calendar from '$components/Calendar.svelte';
   import Header from '$components/Header.svelte';
   import Toast from '$components/Toast.svelte';
+  import type { PageData } from './$types';
+
+  export let data: PageData;
 
   let toastMessage = '';
   let toastType: 'success' | 'error' = 'success';
@@ -22,7 +25,7 @@
 </svelte:head>
 
 <div class="min-h-screen flex flex-col">
-  <Header />
+  <Header user={data.user} />
 
   <main class="flex-1">
     <Calendar on:toast={handleToast} />

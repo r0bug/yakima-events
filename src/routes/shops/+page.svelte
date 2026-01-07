@@ -2,6 +2,9 @@
   import { onMount } from 'svelte';
   import Header from '$lib/components/Header.svelte';
   import MapView from '$lib/components/MapView.svelte';
+  import type { PageData } from './$types';
+
+  export let data: PageData;
 
   interface Shop {
     id: number;
@@ -137,7 +140,7 @@
   <title>Local Shops - Yakima</title>
 </svelte:head>
 
-<Header />
+<Header user={data.user} />
 
 <main class="container mx-auto px-4 py-8">
   <div class="mb-8">

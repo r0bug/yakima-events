@@ -1,16 +1,20 @@
 <script lang="ts">
   import { PUBLIC_APP_NAME } from '$env/static/public';
+  import UserMenu from './UserMenu.svelte';
+  import type { SessionUser } from '$lib/server/auth/session';
+
+  export let user: SessionUser | null = null;
 </script>
 
 <header class="bg-gradient-to-r from-slate-800 to-blue-600 text-white shadow-lg">
   <div class="max-w-7xl mx-auto px-4 py-4">
     <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-      <h1 class="text-2xl font-bold flex items-center gap-2">
+      <a href="/" class="text-2xl font-bold flex items-center gap-2 hover:opacity-90">
         <svg class="w-8 h-8 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
         {PUBLIC_APP_NAME || 'Yakima Events'}
-      </h1>
+      </a>
 
       <nav class="flex items-center gap-3">
         <a
@@ -52,6 +56,10 @@
           </svg>
           <span class="hidden sm:inline">Add Event</span>
         </a>
+
+        <div class="ml-2 pl-2 border-l border-white/20">
+          <UserMenu {user} />
+        </div>
       </nav>
     </div>
   </div>

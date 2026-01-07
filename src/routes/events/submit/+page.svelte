@@ -1,5 +1,8 @@
 <script lang="ts">
   import Header from '$lib/components/Header.svelte';
+  import type { PageData } from './$types';
+
+  export let data: PageData;
 
   let formData = {
     title: '',
@@ -90,7 +93,7 @@
   <title>Submit Event - Yakima</title>
 </svelte:head>
 
-<Header />
+<Header user={data.user} />
 
 <main class="container mx-auto px-4 py-8 max-w-2xl">
   <div class="mb-8">

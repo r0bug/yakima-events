@@ -2,6 +2,9 @@
   import { onMount } from 'svelte';
   import Header from '$lib/components/Header.svelte';
   import MapView from '$lib/components/MapView.svelte';
+  import type { PageData } from './$types';
+
+  export let data: PageData;
 
   interface Event {
     id: number;
@@ -89,7 +92,7 @@
   <title>Map - Yakima Events & Shops</title>
 </svelte:head>
 
-<Header />
+<Header user={data.user} />
 
 <main class="h-[calc(100vh-64px)] flex flex-col">
   <!-- Controls -->
