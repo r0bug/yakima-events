@@ -32,12 +32,21 @@ export const events = mysqlTable('events', {
   externalEventId: varchar('external_event_id', { length: 255 }),
   status: mysqlEnum('status', ['pending', 'approved', 'rejected']).default('pending'),
   featured: boolean('featured').default(false),
+  // Collaboration fields
+  primaryShopId: int('primary_shop_id'),
+  createdByUserId: int('created_by_user_id'),
+  isCollaborative: boolean('is_collaborative').default(false),
+  proposalStatus: varchar('proposal_status', { length: 30 }),
+  proposalCreatedAt: timestamp('proposal_created_at'),
+  proposalApprovedAt: timestamp('proposal_approved_at'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
 }, (table) => ({
   statusIdx: index('idx_events_status').on(table.status),
   startDatetimeIdx: index('idx_events_start').on(table.startDatetime),
   locationIdx: index('idx_events_location').on(table.latitude, table.longitude),
+  primaryShopIdx: index('idx_primary_shop').on(table.primaryShopId),
+  createdByIdx: index('idx_created_by').on(table.createdByUserId),
 }));
 
 // ============================================================================
@@ -320,6 +329,170 @@ export const shopImages = mysqlTable('shop_images', {
 }));
 
 // ============================================================================
+// Users Table
+// ============================================================================
+export const users = mysqlTable('users', {
+  id: int('id').primaryKey().autoincrement(),
+  username: varchar('username', { length: 50 }).notNull(),
+  email: varchar('email', { length: 100 }).notNull(),
+  passwordHash: varchar('password_hash', { length: 255 }),
+  firstName: varchar('first_name', { length: 50 }),
+  lastName: varchar('last_name', { length: 50 }),
+  role: mysqlEnum('role', ['admin', 'moderator', 'user']).default('user'),
+  isSeller: boolean('is_seller').default(false),
+  isBusinessOwner: boolean('is_business_owner').default(false),
+  isYfVendor: boolean('is_yf_vendor').default(false),
+  isYfStaff: boolean('is_yf_staff').default(false),
+  isYfAssociate: boolean('is_yf_associate').default(false),
+  isWebcatUser: boolean('is_webcat_user').default(false),
+  sellerId: int('seller_id'),
+  shopId: int('shop_id'),
+  status: mysqlEnum('status', ['active', 'inactive', 'banned']).default('active'),
+  emailVerified: boolean('email_verified').default(false),
+  verificationToken: varchar('verification_token', { length: 255 }),
+  resetToken: varchar('reset_token', { length: 255 }),
+  resetExpires: datetime('reset_expires'),
+  lastLogin: datetime('last_login'),
+  loginAttempts: int('login_attempts').default(0),
+  lockedUntil: datetime('locked_until'),
+  // Google OAuth fields
+  googleId: varchar('google_id', { length: 255 }),
+  avatarUrl: varchar('avatar_url', { length: 500 }),
+  authProvider: varchar('auth_provider', { length: 20 }).default('local'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
+}, (table) => ({
+  usernameIdx: index('idx_username').on(table.username),
+  emailIdx: index('idx_email').on(table.email),
+  statusIdx: index('idx_status').on(table.status),
+  roleIdx: index('idx_role').on(table.role),
+  googleIdIdx: index('idx_google_id').on(table.googleId),
+}));
+
+// ============================================================================
+// User Sessions Table
+// ============================================================================
+export const userSessions = mysqlTable('user_sessions', {
+  id: varchar('id', { length: 128 }).primaryKey(),
+  userId: int('user_id').notNull(),
+  ipAddress: varchar('ip_address', { length: 45 }),
+  userAgent: text('user_agent'),
+  createdAt: timestamp('created_at').defaultNow(),
+  expiresAt: timestamp('expires_at').notNull(),
+  isActive: boolean('is_active').default(true),
+}, (table) => ({
+  userIdx: index('idx_user').on(table.userId),
+  expiresIdx: index('idx_expires').on(table.expiresAt),
+}));
+
+// ============================================================================
+// Shop Staff Table
+// ============================================================================
+export const shopStaff = mysqlTable('shop_staff', {
+  id: int('id').primaryKey().autoincrement(),
+  shopId: int('shop_id').notNull(),
+  userId: int('user_id').notNull(),
+  role: mysqlEnum('role', ['admin', 'staff']).default('staff').notNull(),
+  canEditShop: boolean('can_edit_shop').default(true),
+  canCreateEvents: boolean('can_create_events').default(true),
+  canPostDiscussions: boolean('can_post_discussions').default(true),
+  canManageStaff: boolean('can_manage_staff').default(false),
+  invitedByUserId: int('invited_by_user_id'),
+  inviteEmail: varchar('invite_email', { length: 255 }),
+  acceptedAt: timestamp('accepted_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
+  revokedAt: timestamp('revoked_at'),
+  revokedByUserId: int('revoked_by_user_id'),
+}, (table) => ({
+  shopIdx: index('idx_shop').on(table.shopId),
+  userIdx: index('idx_user').on(table.userId),
+  roleIdx: index('idx_role').on(table.role),
+  revokedIdx: index('idx_revoked').on(table.revokedAt),
+}));
+
+// ============================================================================
+// Shop Staff Invites Table
+// ============================================================================
+export const shopStaffInvites = mysqlTable('shop_staff_invites', {
+  id: int('id').primaryKey().autoincrement(),
+  shopId: int('shop_id').notNull(),
+  email: varchar('email', { length: 255 }).notNull(),
+  role: mysqlEnum('role', ['admin', 'staff']).default('staff').notNull(),
+  canEditShop: boolean('can_edit_shop').default(true),
+  canCreateEvents: boolean('can_create_events').default(true),
+  canPostDiscussions: boolean('can_post_discussions').default(true),
+  canManageStaff: boolean('can_manage_staff').default(false),
+  inviteToken: varchar('invite_token', { length: 100 }).notNull(),
+  invitedByUserId: int('invited_by_user_id').notNull(),
+  message: text('message'),
+  status: mysqlEnum('status', ['pending', 'accepted', 'expired', 'cancelled']).default('pending'),
+  expiresAt: timestamp('expires_at').notNull(),
+  acceptedAt: timestamp('accepted_at'),
+  acceptedByUserId: int('accepted_by_user_id'),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  shopIdx: index('idx_shop').on(table.shopId),
+  emailIdx: index('idx_email').on(table.email),
+  tokenIdx: index('idx_token').on(table.inviteToken),
+  statusIdx: index('idx_status').on(table.status),
+  expiresIdx: index('idx_expires').on(table.expiresAt),
+}));
+
+// ============================================================================
+// Shop Claim Requests Table
+// ============================================================================
+export const shopClaimRequests = mysqlTable('shop_claim_requests', {
+  id: int('id').primaryKey().autoincrement(),
+  shopId: int('shop_id'),
+  businessName: varchar('business_name', { length: 255 }).notNull(),
+  businessAddress: varchar('business_address', { length: 500 }),
+  businessDescription: text('business_description'),
+  businessWebsite: varchar('business_website', { length: 500 }),
+  businessPhone: varchar('business_phone', { length: 50 }),
+  requesterName: varchar('requester_name', { length: 255 }).notNull(),
+  requesterEmail: varchar('requester_email', { length: 255 }).notNull(),
+  requesterPhone: varchar('requester_phone', { length: 50 }),
+  relationshipToBusiness: varchar('relationship_to_business', { length: 100 }),
+  ownershipProof: text('ownership_proof'),
+  applicantNotes: text('applicant_notes'),
+  ipAddress: varchar('ip_address', { length: 45 }),
+  userAgent: text('user_agent'),
+  referrerUrl: varchar('referrer_url', { length: 500 }),
+  claimType: mysqlEnum('claim_type', ['existing', 'new', 'existing_shop', 'new_shop']).default('existing_shop'),
+  status: mysqlEnum('status', ['pending', 'approved', 'rejected']).default('pending'),
+  adminNotes: text('admin_notes'),
+  reviewedAt: datetime('reviewed_at'),
+  reviewedBy: varchar('reviewed_by', { length: 100 }),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
+}, (table) => ({
+  shopIdx: index('idx_shop').on(table.shopId),
+  statusIdx: index('idx_status').on(table.status),
+}));
+
+// ============================================================================
+// Event Shop Participants Table (Collaborative Events)
+// ============================================================================
+export const eventShopParticipants = mysqlTable('event_shop_participants', {
+  id: int('id').primaryKey().autoincrement(),
+  eventId: int('event_id').notNull(),
+  shopId: int('shop_id').notNull(),
+  approvalStatus: mysqlEnum('approval_status', ['pending', 'approved', 'rejected']).default('pending'),
+  approvedByUserId: int('approved_by_user_id'),
+  approvedAt: timestamp('approved_at'),
+  rejectionReason: text('rejection_reason'),
+  participationRole: mysqlEnum('participation_role', ['co_host', 'sponsor', 'venue', 'partner']).default('co_host'),
+  displayOrder: int('display_order').default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
+}, (table) => ({
+  eventIdx: index('idx_event').on(table.eventId),
+  shopIdx: index('idx_shop').on(table.shopId),
+  statusIdx: index('idx_status').on(table.approvalStatus),
+}));
+
+// ============================================================================
 // Relations
 // ============================================================================
 export const eventsRelations = relations(events, ({ one, many }) => ({
@@ -329,6 +502,16 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
   }),
   categoryMappings: many(eventCategoryMapping),
   images: many(eventImages),
+  // Collaboration relations
+  primaryShop: one(localShops, {
+    fields: [events.primaryShopId],
+    references: [localShops.id],
+  }),
+  createdByUser: one(users, {
+    fields: [events.createdByUserId],
+    references: [users.id],
+  }),
+  participantShops: many(eventShopParticipants),
 }));
 
 export const eventCategoriesRelations = relations(eventCategories, ({ many }) => ({
@@ -359,6 +542,15 @@ export const localShopsRelations = relations(localShops, ({ one, many }) => ({
     references: [shopCategories.id],
   }),
   images: many(shopImages),
+  // Collaboration relations
+  owner: one(users, {
+    fields: [localShops.ownerId],
+    references: [users.id],
+  }),
+  staff: many(shopStaff),
+  staffInvites: many(shopStaffInvites),
+  claimRequests: many(shopClaimRequests),
+  eventParticipations: many(eventShopParticipants),
 }));
 
 export const shopCategoriesRelations = relations(shopCategories, ({ many }) => ({
@@ -411,6 +603,87 @@ export const intelligentScraperBatchItemsRelations = relations(intelligentScrape
 }));
 
 // ============================================================================
+// User Relations
+// ============================================================================
+export const usersRelations = relations(users, ({ many }) => ({
+  sessions: many(userSessions),
+  shopStaffMemberships: many(shopStaff),
+  eventsCreated: many(events),
+}));
+
+export const userSessionsRelations = relations(userSessions, ({ one }) => ({
+  user: one(users, {
+    fields: [userSessions.userId],
+    references: [users.id],
+  }),
+}));
+
+// ============================================================================
+// Shop Staff Relations
+// ============================================================================
+export const shopStaffRelations = relations(shopStaff, ({ one }) => ({
+  shop: one(localShops, {
+    fields: [shopStaff.shopId],
+    references: [localShops.id],
+  }),
+  user: one(users, {
+    fields: [shopStaff.userId],
+    references: [users.id],
+  }),
+  invitedBy: one(users, {
+    fields: [shopStaff.invitedByUserId],
+    references: [users.id],
+  }),
+  revokedBy: one(users, {
+    fields: [shopStaff.revokedByUserId],
+    references: [users.id],
+  }),
+}));
+
+export const shopStaffInvitesRelations = relations(shopStaffInvites, ({ one }) => ({
+  shop: one(localShops, {
+    fields: [shopStaffInvites.shopId],
+    references: [localShops.id],
+  }),
+  invitedBy: one(users, {
+    fields: [shopStaffInvites.invitedByUserId],
+    references: [users.id],
+  }),
+  acceptedBy: one(users, {
+    fields: [shopStaffInvites.acceptedByUserId],
+    references: [users.id],
+  }),
+}));
+
+// ============================================================================
+// Shop Claim Relations
+// ============================================================================
+export const shopClaimRequestsRelations = relations(shopClaimRequests, ({ one }) => ({
+  shop: one(localShops, {
+    fields: [shopClaimRequests.shopId],
+    references: [localShops.id],
+  }),
+}));
+
+// ============================================================================
+// Event Shop Participants Relations
+// ============================================================================
+export const eventShopParticipantsRelations = relations(eventShopParticipants, ({ one }) => ({
+  event: one(events, {
+    fields: [eventShopParticipants.eventId],
+    references: [events.id],
+  }),
+  shop: one(localShops, {
+    fields: [eventShopParticipants.shopId],
+    references: [localShops.id],
+  }),
+  approvedBy: one(users, {
+    fields: [eventShopParticipants.approvedByUserId],
+    references: [users.id],
+  }),
+}));
+
+// ============================================================================
 // Type exports
 // ============================================================================
 export type Event = typeof events.$inferSelect;
@@ -429,3 +702,23 @@ export type NewIntelligentScraperSession = typeof intelligentScraperSessions.$in
 export type IntelligentScraperBatch = typeof intelligentScraperBatches.$inferSelect;
 export type IntelligentScraperBatchItem = typeof intelligentScraperBatchItems.$inferSelect;
 export type IntelligentScraperLog = typeof intelligentScraperLogs.$inferSelect;
+
+// User types
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+export type UserSession = typeof userSessions.$inferSelect;
+export type NewUserSession = typeof userSessions.$inferInsert;
+
+// Shop staff types
+export type ShopStaff = typeof shopStaff.$inferSelect;
+export type NewShopStaff = typeof shopStaff.$inferInsert;
+export type ShopStaffInvite = typeof shopStaffInvites.$inferSelect;
+export type NewShopStaffInvite = typeof shopStaffInvites.$inferInsert;
+
+// Shop claim types
+export type ShopClaimRequest = typeof shopClaimRequests.$inferSelect;
+export type NewShopClaimRequest = typeof shopClaimRequests.$inferInsert;
+
+// Collaborative event types
+export type EventShopParticipant = typeof eventShopParticipants.$inferSelect;
+export type NewEventShopParticipant = typeof eventShopParticipants.$inferInsert;
