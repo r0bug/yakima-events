@@ -40,12 +40,15 @@ export async function getEvents(filters: EventFilters = {}): Promise<EventWithDe
     conditions.push(eq(events.status, 'approved'));
   }
 
-  // Date range filter
+  // Date range filter - dates stored as strings in YYYY-MM-DD HH:MM:SS format
   if (filters.startDate) {
-    conditions.push(gte(events.startDatetime, new Date(filters.startDate)));
+    // Convert to string format for comparison
+    const startDateStr = new Date(filters.startDate).toISOString().slice(0, 19).replace('T', ' ');
+    conditions.push(gte(events.startDatetime, startDateStr));
   }
   if (filters.endDate) {
-    conditions.push(lte(events.startDatetime, new Date(filters.endDate)));
+    const endDateStr = new Date(filters.endDate).toISOString().slice(0, 19).replace('T', ' ');
+    conditions.push(lte(events.startDatetime, endDateStr));
   }
 
   // Featured filter
@@ -254,7 +257,7 @@ export async function getEventCategories() {
     .select()
     .from(eventCategories)
     .where(eq(eventCategories.active, true))
-    .orderBy(asc(eventCategories.sortOrder), asc(eventCategories.name));
+    .orderBy(asc(eventCategories.name));
 }
 
 /**
@@ -262,17 +265,22 @@ export async function getEventCategories() {
  */
 export async function findDuplicates(
   title: string,
-  startDatetime: Date,
+  startDatetime: Date | string,
   latitude?: number,
   longitude?: number
 ): Promise<Event[]> {
+  // Convert Date to string format for comparison
+  const dateStr = typeof startDatetime === 'string'
+    ? startDatetime
+    : startDatetime.toISOString().slice(0, 19).replace('T', ' ');
+
   const results = await db
     .select()
     .from(events)
     .where(
       and(
         eq(events.title, title),
-        eq(events.startDatetime, startDatetime)
+        eq(events.startDatetime, dateStr)
       )
     );
 

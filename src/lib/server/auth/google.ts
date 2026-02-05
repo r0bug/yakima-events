@@ -3,14 +3,19 @@
  * Handles Google OAuth authentication flow
  */
 
-import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } from '$env/static/private';
-import { PUBLIC_APP_URL } from '$env/static/public';
+import { env } from '$env/dynamic/private';
 import { randomBytes } from 'crypto';
 import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { createSession } from './session';
+
 import type { User } from '$lib/server/db/schema';
+
+// Get env vars with fallbacks for development
+const GOOGLE_CLIENT_ID = env.GOOGLE_CLIENT_ID || '';
+const GOOGLE_CLIENT_SECRET = env.GOOGLE_CLIENT_SECRET || '';
+const PUBLIC_APP_URL = env.PUBLIC_APP_URL || 'http://localhost:5173';
 
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';

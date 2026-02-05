@@ -26,13 +26,13 @@ export const GET: RequestHandler = async ({ params }) => {
       );
     }
 
-    // Format for API response
+    // Format for API response - dates are stored as Pacific time strings
     const formattedEvent = {
       ...event,
-      start_datetime: event.startDatetime?.toISOString(),
-      end_datetime: event.endDatetime?.toISOString(),
-      start_datetime_formatted: event.startDatetime?.toISOString(),
-      end_datetime_formatted: event.endDatetime?.toISOString(),
+      start_datetime: event.startDatetime,
+      end_datetime: event.endDatetime,
+      start_datetime_formatted: event.startDatetime,
+      end_datetime_formatted: event.endDatetime,
       contact_info: event.contactInfo,
       external_url: event.externalUrl,
       source_name: event.sourceName,
