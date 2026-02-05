@@ -684,6 +684,258 @@ export const eventShopParticipantsRelations = relations(eventShopParticipants, (
 }));
 
 // ============================================================================
+// Communication Channels Table
+// ============================================================================
+export const communicationChannels = mysqlTable('communication_channels', {
+  id: int('id').primaryKey().autoincrement(),
+  name: varchar('name', { length: 100 }).notNull(),
+  slug: varchar('slug', { length: 100 }).notNull(),
+  description: text('description'),
+  type: mysqlEnum('type', ['public', 'private', 'event', 'vendor', 'announcement']).default('public'),
+  createdByUserId: int('created_by_user_id').notNull(),
+  eventId: int('event_id'),
+  shopId: int('shop_id'),
+  isArchived: boolean('is_archived').default(false),
+  settings: json('settings'),
+  messageCount: int('message_count').default(0),
+  participantCount: int('participant_count').default(0),
+  lastActivityAt: timestamp('last_activity_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
+}, (table) => ({
+  typeIdx: index('idx_channels_type').on(table.type),
+  eventIdx: index('idx_channels_event').on(table.eventId),
+  shopIdx: index('idx_channels_shop').on(table.shopId),
+  activityIdx: index('idx_channels_activity').on(table.lastActivityAt),
+  archivedIdx: index('idx_channels_archived').on(table.isArchived),
+  slugIdx: index('idx_channels_slug').on(table.slug),
+}));
+
+// ============================================================================
+// Communication Messages Table
+// ============================================================================
+export const communicationMessages = mysqlTable('communication_messages', {
+  id: int('id').primaryKey().autoincrement(),
+  channelId: int('channel_id').notNull(),
+  userId: int('user_id').notNull(),
+  parentMessageId: int('parent_message_id'),
+  content: text('content').notNull(),
+  contentType: mysqlEnum('content_type', ['text', 'system', 'announcement']).default('text'),
+  isPinned: boolean('is_pinned').default(false),
+  isEdited: boolean('is_edited').default(false),
+  isDeleted: boolean('is_deleted').default(false),
+  metadata: json('metadata'),
+  emailMessageId: varchar('email_message_id', { length: 255 }),
+  replyCount: int('reply_count').default(0),
+  reactionCount: int('reaction_count').default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
+  deletedAt: timestamp('deleted_at'),
+}, (table) => ({
+  channelIdx: index('idx_messages_channel').on(table.channelId),
+  userIdx: index('idx_messages_user').on(table.userId),
+  parentIdx: index('idx_messages_parent').on(table.parentMessageId),
+  createdIdx: index('idx_messages_created').on(table.createdAt),
+  deletedIdx: index('idx_messages_deleted').on(table.isDeleted),
+  emailIdx: index('idx_messages_email').on(table.emailMessageId),
+  channelCreatedIdx: index('idx_messages_channel_created').on(table.channelId, table.createdAt),
+}));
+
+// ============================================================================
+// Communication Participants Table
+// ============================================================================
+export const communicationParticipants = mysqlTable('communication_participants', {
+  id: int('id').primaryKey().autoincrement(),
+  channelId: int('channel_id').notNull(),
+  userId: int('user_id').notNull(),
+  role: mysqlEnum('role', ['member', 'admin']).default('member'),
+  joinedAt: timestamp('joined_at').defaultNow(),
+  lastReadMessageId: int('last_read_message_id'),
+  lastReadAt: timestamp('last_read_at'),
+  notificationPreference: mysqlEnum('notification_preference', ['all', 'mentions', 'none']).default('all'),
+  emailDigestFrequency: mysqlEnum('email_digest_frequency', ['real-time', 'daily', 'weekly', 'none']).default('daily'),
+  isMuted: boolean('is_muted').default(false),
+}, (table) => ({
+  userIdx: index('idx_participants_user').on(table.userId),
+  channelIdx: index('idx_participants_channel').on(table.channelId),
+  roleIdx: index('idx_participants_role').on(table.role),
+  digestIdx: index('idx_participants_digest').on(table.emailDigestFrequency),
+  lastReadIdx: index('idx_participants_last_read').on(table.userId, table.lastReadAt),
+}));
+
+// ============================================================================
+// Communication Attachments Table
+// ============================================================================
+export const communicationAttachments = mysqlTable('communication_attachments', {
+  id: int('id').primaryKey().autoincrement(),
+  messageId: int('message_id').notNull(),
+  filename: varchar('filename', { length: 255 }).notNull(),
+  originalFilename: varchar('original_filename', { length: 255 }).notNull(),
+  filePath: varchar('file_path', { length: 500 }).notNull(),
+  fileSize: int('file_size').notNull(),
+  mimeType: varchar('mime_type', { length: 100 }).notNull(),
+  isImage: boolean('is_image').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  messageIdx: index('idx_attachments_message').on(table.messageId),
+  createdIdx: index('idx_attachments_created').on(table.createdAt),
+}));
+
+// ============================================================================
+// Communication Email Addresses Table
+// ============================================================================
+export const communicationEmailAddresses = mysqlTable('communication_email_addresses', {
+  id: int('id').primaryKey().autoincrement(),
+  channelId: int('channel_id').notNull(),
+  emailAddress: varchar('email_address', { length: 255 }).notNull(),
+  secretToken: varchar('secret_token', { length: 32 }).notNull(),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  activeIdx: index('idx_email_active').on(table.isActive),
+}));
+
+// ============================================================================
+// Communication Notifications Table
+// ============================================================================
+export const communicationNotifications = mysqlTable('communication_notifications', {
+  id: int('id').primaryKey().autoincrement(),
+  userId: int('user_id').notNull(),
+  channelId: int('channel_id'),
+  messageId: int('message_id'),
+  type: mysqlEnum('type', ['mention', 'reply', 'new_message', 'announcement', 'channel_invite']).notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
+  content: text('content'),
+  isRead: boolean('is_read').default(false),
+  isEmailed: boolean('is_emailed').default(false),
+  metadata: json('metadata'),
+  createdAt: timestamp('created_at').defaultNow(),
+  readAt: timestamp('read_at'),
+}, (table) => ({
+  userIdx: index('idx_notifications_user').on(table.userId),
+  unreadIdx: index('idx_notifications_unread').on(table.userId, table.isRead),
+  createdIdx: index('idx_notifications_created').on(table.createdAt),
+  typeIdx: index('idx_notifications_type').on(table.type),
+  userUnreadCreatedIdx: index('idx_notifications_user_unread').on(table.userId, table.isRead, table.createdAt),
+}));
+
+// ============================================================================
+// Communication Reactions Table
+// ============================================================================
+export const communicationReactions = mysqlTable('communication_reactions', {
+  id: int('id').primaryKey().autoincrement(),
+  messageId: int('message_id').notNull(),
+  userId: int('user_id').notNull(),
+  emoji: varchar('emoji', { length: 10 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  messageIdx: index('idx_reactions_message').on(table.messageId),
+  userIdx: index('idx_reactions_user').on(table.userId),
+}));
+
+// ============================================================================
+// Communication Relations
+// ============================================================================
+export const communicationChannelsRelations = relations(communicationChannels, ({ one, many }) => ({
+  createdBy: one(users, {
+    fields: [communicationChannels.createdByUserId],
+    references: [users.id],
+  }),
+  event: one(events, {
+    fields: [communicationChannels.eventId],
+    references: [events.id],
+  }),
+  shop: one(localShops, {
+    fields: [communicationChannels.shopId],
+    references: [localShops.id],
+  }),
+  messages: many(communicationMessages),
+  participants: many(communicationParticipants),
+  notifications: many(communicationNotifications),
+  emailAddress: one(communicationEmailAddresses, {
+    fields: [communicationChannels.id],
+    references: [communicationEmailAddresses.channelId],
+  }),
+}));
+
+export const communicationMessagesRelations = relations(communicationMessages, ({ one, many }) => ({
+  channel: one(communicationChannels, {
+    fields: [communicationMessages.channelId],
+    references: [communicationChannels.id],
+  }),
+  user: one(users, {
+    fields: [communicationMessages.userId],
+    references: [users.id],
+  }),
+  parentMessage: one(communicationMessages, {
+    fields: [communicationMessages.parentMessageId],
+    references: [communicationMessages.id],
+    relationName: 'messageReplies',
+  }),
+  replies: many(communicationMessages, {
+    relationName: 'messageReplies',
+  }),
+  attachments: many(communicationAttachments),
+  reactions: many(communicationReactions),
+  notifications: many(communicationNotifications),
+}));
+
+export const communicationParticipantsRelations = relations(communicationParticipants, ({ one }) => ({
+  channel: one(communicationChannels, {
+    fields: [communicationParticipants.channelId],
+    references: [communicationChannels.id],
+  }),
+  user: one(users, {
+    fields: [communicationParticipants.userId],
+    references: [users.id],
+  }),
+  lastReadMessage: one(communicationMessages, {
+    fields: [communicationParticipants.lastReadMessageId],
+    references: [communicationMessages.id],
+  }),
+}));
+
+export const communicationAttachmentsRelations = relations(communicationAttachments, ({ one }) => ({
+  message: one(communicationMessages, {
+    fields: [communicationAttachments.messageId],
+    references: [communicationMessages.id],
+  }),
+}));
+
+export const communicationEmailAddressesRelations = relations(communicationEmailAddresses, ({ one }) => ({
+  channel: one(communicationChannels, {
+    fields: [communicationEmailAddresses.channelId],
+    references: [communicationChannels.id],
+  }),
+}));
+
+export const communicationNotificationsRelations = relations(communicationNotifications, ({ one }) => ({
+  user: one(users, {
+    fields: [communicationNotifications.userId],
+    references: [users.id],
+  }),
+  channel: one(communicationChannels, {
+    fields: [communicationNotifications.channelId],
+    references: [communicationChannels.id],
+  }),
+  message: one(communicationMessages, {
+    fields: [communicationNotifications.messageId],
+    references: [communicationMessages.id],
+  }),
+}));
+
+export const communicationReactionsRelations = relations(communicationReactions, ({ one }) => ({
+  message: one(communicationMessages, {
+    fields: [communicationReactions.messageId],
+    references: [communicationMessages.id],
+  }),
+  user: one(users, {
+    fields: [communicationReactions.userId],
+    references: [users.id],
+  }),
+}));
+
+// ============================================================================
 // Type exports
 // ============================================================================
 export type Event = typeof events.$inferSelect;
@@ -722,3 +974,19 @@ export type NewShopClaimRequest = typeof shopClaimRequests.$inferInsert;
 // Collaborative event types
 export type EventShopParticipant = typeof eventShopParticipants.$inferSelect;
 export type NewEventShopParticipant = typeof eventShopParticipants.$inferInsert;
+
+// Communication types
+export type CommunicationChannel = typeof communicationChannels.$inferSelect;
+export type NewCommunicationChannel = typeof communicationChannels.$inferInsert;
+export type CommunicationMessage = typeof communicationMessages.$inferSelect;
+export type NewCommunicationMessage = typeof communicationMessages.$inferInsert;
+export type CommunicationParticipant = typeof communicationParticipants.$inferSelect;
+export type NewCommunicationParticipant = typeof communicationParticipants.$inferInsert;
+export type CommunicationAttachment = typeof communicationAttachments.$inferSelect;
+export type NewCommunicationAttachment = typeof communicationAttachments.$inferInsert;
+export type CommunicationEmailAddress = typeof communicationEmailAddresses.$inferSelect;
+export type NewCommunicationEmailAddress = typeof communicationEmailAddresses.$inferInsert;
+export type CommunicationNotification = typeof communicationNotifications.$inferSelect;
+export type NewCommunicationNotification = typeof communicationNotifications.$inferInsert;
+export type CommunicationReaction = typeof communicationReactions.$inferSelect;
+export type NewCommunicationReaction = typeof communicationReactions.$inferInsert;
