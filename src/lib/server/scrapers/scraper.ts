@@ -13,6 +13,7 @@ import { parseRssContent } from './parsers/rss';
 import { parseYakimaValleyContent } from './parsers/yakima-valley';
 import * as intelligentScraper from './intelligent';
 import * as firecrawlService from '$server/services/firecrawl';
+import * as facebookService from '$server/services/facebook';
 import { geocodeYakimaArea } from '$server/services/geocode';
 import { notifyScraperError } from '$server/services/email';
 
@@ -109,6 +110,10 @@ export async function scrapeSource(source: CalendarSource): Promise<ScrapeResult
 
       case 'firecrawl':
         scrapedEvents = await scrapeFirecrawl(source);
+        break;
+
+      case 'facebook':
+        scrapedEvents = await scrapeFacebook(source);
         break;
 
       default:
@@ -300,6 +305,24 @@ async function scrapeFirecrawl(source: CalendarSource): Promise<ScrapedEvent[]> 
     address: e.address,
     externalUrl: e.externalUrl,
   }));
+}
+
+/**
+ * Scrape Facebook page events
+ */
+async function scrapeFacebook(source: CalendarSource): Promise<ScrapedEvent[]> {
+  if (!facebookService.isAvailable()) {
+    throw new Error('Facebook scraper not available (RAPIDAPI_KEY not configured)');
+  }
+
+  const config = source.scrapeConfig || {};
+  const facebookConfig = {
+    pageId: config.facebookPageId as string | undefined,
+    includePastEvents: config.includePastEvents as boolean | undefined,
+    maxEvents: config.maxEvents as number | undefined,
+  };
+
+  return facebookService.scrapePageEvents(source.url, facebookConfig);
 }
 
 /**

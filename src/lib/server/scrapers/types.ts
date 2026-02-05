@@ -41,6 +41,10 @@ export interface ScrapeConfig {
   firecrawlMethod?: 'structured' | 'search' | 'basic';
   fallbackType?: ScrapeType;
   searchQuery?: string;
+  // Facebook options
+  facebookPageId?: string;
+  includePastEvents?: boolean;
+  maxEvents?: number;
 }
 
 export interface CalendarSource {
