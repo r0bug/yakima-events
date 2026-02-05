@@ -4,6 +4,7 @@
  */
 
 import type { ScrapedEvent } from '../scrapers/types';
+import { env } from '$env/dynamic/private';
 
 // RapidAPI configuration
 const RAPIDAPI_HOST = 'facebook-scraper3.p.rapidapi.com';
@@ -53,7 +54,7 @@ interface FacebookConfig {
  * Check if Facebook scraper is available (API key configured)
  */
 export function isAvailable(): boolean {
-  const apiKey = process.env.RAPIDAPI_KEY;
+  const apiKey = env.RAPIDAPI_KEY;
   return !!apiKey;
 }
 
@@ -61,7 +62,7 @@ export function isAvailable(): boolean {
  * Get API key from environment
  */
 function getApiKey(): string {
-  const apiKey = process.env.RAPIDAPI_KEY;
+  const apiKey = env.RAPIDAPI_KEY;
   if (!apiKey) {
     throw new Error('RAPIDAPI_KEY environment variable is not set');
   }
@@ -362,6 +363,6 @@ export function getStatus(): {
   return {
     available: isAvailable(),
     apiHost: RAPIDAPI_HOST,
-    hasApiKey: !!process.env.RAPIDAPI_KEY,
+    hasApiKey: !!env.RAPIDAPI_KEY,
   };
 }
