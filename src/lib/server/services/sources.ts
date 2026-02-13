@@ -27,7 +27,7 @@ export async function getSources(activeOnly = false): Promise<SourceWithStats[]>
     ORDER BY cs.name ASC
   `);
 
-  return (result[0] as any[]).map((row) => ({
+  return (result[0] as Record<string, unknown>[]).map((row) => ({
     ...row,
     eventCount: Number(row.event_count) || 0,
     configuration: typeof row.configuration === 'string'

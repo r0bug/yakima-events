@@ -1,6 +1,21 @@
 import { json } from '@sveltejs/kit';
+import { z } from 'zod';
 import type { RequestHandler } from './$types';
 import { getEvents, createEvent, getEventCategories } from '$server/services/events';
+
+const createEventSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(500),
+  description: z.string().max(10000).nullable().optional(),
+  start_datetime: z.string().min(1, 'Start date/time is required'),
+  end_datetime: z.string().nullable().optional(),
+  location: z.string().max(500).nullable().optional(),
+  address: z.string().max(500).nullable().optional(),
+  latitude: z.number().min(-90).max(90).nullable().optional(),
+  longitude: z.number().min(-180).max(180).nullable().optional(),
+  contact_info: z.record(z.unknown()).nullable().optional(),
+  external_url: z.string().url().max(2000).nullable().optional(),
+  category_id: z.number().int().positive().nullable().optional(),
+});
 
 /**
  * GET /api/events
@@ -71,16 +86,15 @@ export const GET: RequestHandler = async ({ url }) => {
  */
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json();
+    const body = await request.json();
+    const parsed = createEventSchema.safeParse(body);
 
-    // Validate required fields
-    if (!data.title || !data.start_datetime) {
-      return json(
-        { success: false, error: 'Title and start_datetime are required' },
-        { status: 400 }
-      );
+    if (!parsed.success) {
+      const errors = parsed.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+      return json({ success: false, error: errors }, { status: 400 });
     }
 
+    const data = parsed.data;
     const eventData = {
       title: data.title,
       description: data.description || null,
@@ -92,7 +106,7 @@ export const POST: RequestHandler = async ({ request }) => {
       longitude: data.longitude || null,
       contactInfo: data.contact_info || null,
       externalUrl: data.external_url || null,
-      status: 'pending' as const, // Public submissions require approval
+      status: 'pending' as const,
     };
 
     const eventId = await createEvent(eventData);

@@ -1,10 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import Header from '$lib/components/Header.svelte';
   import MapView from '$lib/components/MapView.svelte';
-  import type { PageData } from './$types';
-
-  export let data: PageData;
 
   interface Shop {
     id: number;
@@ -17,7 +13,7 @@
     email: string | null;
     website: string | null;
     categoryId: number | null;
-    operatingHours: any;
+    operatingHours: Record<string, { open: string; close: string; closed?: boolean }> | null;
     primaryImage: string | null;
     featured: boolean;
     verified: boolean;
@@ -140,8 +136,6 @@
   <title>Local Shops - Yakima</title>
 </svelte:head>
 
-<Header user={data.user} />
-
 <main class="container mx-auto px-4 py-8">
   <div class="mb-8">
     <h1 class="text-3xl font-bold text-gray-900 mb-2">Local Shops</h1>
@@ -150,9 +144,9 @@
 
   <!-- Filters -->
   <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
-    <div class="flex flex-wrap gap-4 items-center">
+    <div class="flex flex-wrap gap-3 items-center">
       <!-- Search -->
-      <div class="flex-1 min-w-64">
+      <div class="w-full sm:flex-1 sm:min-w-48">
         <div class="relative">
           <input
             type="text"

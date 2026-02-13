@@ -12,9 +12,9 @@ export const GET: RequestHandler = async () => {
 
     const processedEvents = events.map(event => ({
       ...event,
-      start_datetime: event.startDatetime?.toISOString(),
-      end_datetime: event.endDatetime?.toISOString(),
-      start_datetime_formatted: event.startDatetime?.toISOString(),
+      start_datetime: event.startDatetime,
+      end_datetime: event.endDatetime,
+      start_datetime_formatted: event.startDatetime,
       contact_info: event.contactInfo,
       external_url: event.externalUrl,
       source_name: event.sourceName,

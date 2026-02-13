@@ -38,12 +38,13 @@ pm2 status
 - `intelligent_scraper_*` - AI scraping tables (methods, sessions, cache, patterns, batches, logs)
 - `scraping_logs` - Scraping history
 
-### Tables in DB but NOT in Drizzle Schema (from YFEvents PHP)
+- `users`, `user_sessions` - User authentication (Google OAuth)
 - `shop_staff`, `shop_staff_invites` - Shop team management
-- `shop_owners`, `shop_claim_requests` - Shop claiming
+- `shop_claim_requests` - Shop claiming
 - `event_shop_participants` - Collaborative events
-- `users`, `user_roles`, `user_sessions` - User authentication
-- `communication_*` - Internal messaging
+- `communication_channels`, `communication_messages`, `communication_participants` - Messaging
+- `communication_attachments`, `communication_notifications`, `communication_reactions` - Messaging support
+- `communication_email_addresses` - Channel email integration
 
 ## Key Files
 
@@ -67,6 +68,17 @@ pm2 status
 - `src/lib/server/services/email.ts` - Email notifications
 - `src/lib/server/services/llm.ts` - LLM integration
 - `src/lib/server/services/firecrawl.ts` - Firecrawl web scraping
+- `src/lib/server/services/facebook.ts` - Facebook event scraping (RapidAPI)
+- `src/lib/server/services/eventbrite.ts` - Eventbrite event scraping
+- `src/lib/server/services/shopClaim.ts` - Shop claim workflow
+- `src/lib/server/services/shopStaff.ts` - Shop staff management
+- `src/lib/server/services/social.ts` - Social sharing
+- `src/lib/server/services/collaborativeEvents.ts` - Collaborative events
+- `src/lib/server/services/communication/` - Communication hub (channels, messages, notifications)
+
+### Utilities
+- `src/lib/server/api-utils.ts` - Shared API helper functions
+- `src/lib/types/index.ts` - Shared TypeScript type definitions
 
 ### Scrapers
 - `src/lib/server/scrapers/scraper.ts` - Main scraper orchestration
@@ -78,13 +90,24 @@ pm2 status
 - `src/lib/components/MapView.svelte` - Google Maps
 - `src/lib/components/Header.svelte` - Navigation
 - `src/lib/components/EventModal.svelte` - Event details modal
+- `src/lib/components/Footer.svelte` - Page footer
+- `src/lib/components/Skeleton.svelte` - Loading skeleton placeholders
+- `src/lib/components/ShareButton.svelte` - Social sharing dropdown
+- `src/lib/components/Toast.svelte` - Toast notifications
+- `src/lib/components/UserMenu.svelte` - Auth user menu dropdown
 
 ### Routes
 - `src/routes/+page.svelte` - Homepage
+- `src/routes/+error.svelte` - Error page
 - `src/routes/calendar/` - Calendar page
-- `src/routes/shops/` - Shops directory
+- `src/routes/shops/` - Shops directory (list, detail, claim, manage)
 - `src/routes/map/` - Map view
-- `src/routes/admin/scrapers/` - Scraper admin
+- `src/routes/events/submit/` - Public event submission
+- `src/routes/login/` - Login page
+- `src/routes/invites/` - Staff invite acceptance
+- `src/routes/tools/facebook-scraper/` - Facebook scraper admin tool
+- `src/routes/tools/eventbrite-scraper/` - Eventbrite scraper admin tool
+- `src/routes/admin/` - Admin panel (events, shops, users, scrapers, claims, communication)
 - `src/routes/api/` - REST API endpoints
 
 ## API Endpoints
@@ -106,17 +129,30 @@ pm2 status
 - `GET /api/sources` - List sources
 - `POST /api/scrape/:id` - Run scraper
 - `POST /api/scraper/intelligent` - AI scraper
+- `POST /api/scraper/facebook` - Facebook event scraper
+- `POST /api/scraper/eventbrite` - Eventbrite event scraper
 
-## Future Work: Shop Collaboration
+### Shop Collaboration
+- `POST /api/shops/:id/claim` - Submit shop claim request
+- `GET /api/shops/:id/team` - Shop team members
+- `PUT /api/shops/:id/team/:userId` - Update team member
+- `DELETE /api/shops/:id/team/:userId` - Remove team member
+- `GET /api/shops/:id/invites` - Shop invites
+- `POST /api/shops/:id/invites` - Create invite
+- `DELETE /api/shops/:id/invites/:inviteId` - Revoke invite
 
-The database has shop collaboration tables (`shop_staff`, `shop_staff_invites`) populated by the PHP backend. To add this to the SvelteKit app:
+### Communication
+- `GET /api/communication/channels` - List channels
+- `POST /api/communication/channels` - Create channel
+- `GET /api/communication/channels/:id/messages` - Get messages
+- `POST /api/communication/channels/:id/messages` - Post message
+- `GET /api/communication/notifications` - Get notifications
 
-1. Add Drizzle schema for `shopStaff` and `shopStaffInvites`
-2. Create shop staff service
-3. Add API endpoints for invites, permissions
-4. Build UI for shop owners to manage team
-
-Reference: `/home/robug/YFEvents/docs/SHOP_STAFF_IMPLEMENTATION.md`
+### User
+- `GET /api/user/shops` - User's managed shops
+- `GET /api/invites/info` - Get invite info by code
+- `POST /api/invites/accept` - Accept invite
+- `POST /api/events/propose` - Propose collaborative event
 
 ## Common Tasks
 

@@ -36,3 +36,4 @@ uploads/*
 
 # Test coverage
 coverage/
+ecosystem.config.cjs

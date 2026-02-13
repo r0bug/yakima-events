@@ -152,7 +152,7 @@ export async function getNearbyShops(
     ORDER BY distance ASC, s.featured DESC
   `);
 
-  return (results[0] as any[]).map(shop => ({
+  return (results[0] as Record<string, unknown>[]).map(shop => ({
     ...shop,
     categoryName: shop.category_name,
     categoryIcon: shop.category_icon,

@@ -24,9 +24,6 @@ const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo';
 // State tokens expire after 10 minutes
 const STATE_EXPIRY_MS = 10 * 60 * 1000;
 
-// In-memory state storage (in production, use Redis or database)
-const stateStore = new Map<string, { createdAt: number; redirectTo?: string }>();
-
 interface GoogleTokenResponse {
   access_token: string;
   expires_in: number;
@@ -48,47 +45,53 @@ interface GoogleUserInfo {
 
 /**
  * Generate a secure state token for CSRF protection
+ * Encodes the redirect URL and timestamp directly in the token
  */
 export function generateStateToken(redirectTo?: string): string {
-  const token = randomBytes(32).toString('hex');
-  stateStore.set(token, { createdAt: Date.now(), redirectTo });
+  const nonce = randomBytes(16).toString('hex');
+  const timestamp = Date.now().toString(36);
+  const redirect = redirectTo ? Buffer.from(redirectTo).toString('base64url') : '';
 
-  // Clean up expired tokens
-  cleanupExpiredStates();
-
-  return token;
+  // Format: nonce.timestamp.redirect
+  return `${nonce}.${timestamp}.${redirect}`;
 }
 
 /**
  * Validate a state token and return associated data
  */
 export function validateStateToken(token: string): { valid: boolean; redirectTo?: string } {
-  const state = stateStore.get(token);
-
-  if (!state) {
-    return { valid: false };
-  }
-
-  // Check expiration
-  if (Date.now() - state.createdAt > STATE_EXPIRY_MS) {
-    stateStore.delete(token);
-    return { valid: false };
-  }
-
-  // Token is valid, remove it (one-time use)
-  stateStore.delete(token);
-  return { valid: true, redirectTo: state.redirectTo };
-}
-
-/**
- * Clean up expired state tokens
- */
-function cleanupExpiredStates(): void {
-  const now = Date.now();
-  for (const [token, state] of stateStore.entries()) {
-    if (now - state.createdAt > STATE_EXPIRY_MS) {
-      stateStore.delete(token);
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return { valid: false };
     }
+
+    const [nonce, timestamp, redirect] = parts;
+
+    // Validate nonce format (32 hex chars)
+    if (!/^[a-f0-9]{32}$/.test(nonce)) {
+      return { valid: false };
+    }
+
+    // Check expiration
+    const createdAt = parseInt(timestamp, 36);
+    if (isNaN(createdAt) || Date.now() - createdAt > STATE_EXPIRY_MS) {
+      return { valid: false };
+    }
+
+    // Decode redirect URL
+    let redirectTo: string | undefined;
+    if (redirect) {
+      try {
+        redirectTo = Buffer.from(redirect, 'base64url').toString('utf8');
+      } catch {
+        // Invalid base64, ignore redirect
+      }
+    }
+
+    return { valid: true, redirectTo };
+  } catch {
+    return { valid: false };
   }
 }
 

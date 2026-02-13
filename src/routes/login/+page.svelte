@@ -14,7 +14,7 @@
 
   $: error = $page.url.searchParams.get('error');
   $: errorMessage = error ? errorMessages[error] || 'An error occurred.' : null;
-  $: redirect = $page.url.searchParams.get('redirect') || '/';
+  $: redirect = $page.url.searchParams.get('redirect') || $page.url.searchParams.get('return') || '/';
 </script>
 
 <svelte:head>

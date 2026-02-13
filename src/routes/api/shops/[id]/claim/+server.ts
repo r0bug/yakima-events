@@ -5,12 +5,24 @@
  */
 
 import { json } from '@sveltejs/kit';
+import { z } from 'zod';
 import type { RequestHandler } from './$types';
 import {
   submitClaimRequest,
   getClaimStatus,
   isShopClaimed,
 } from '$lib/server/services/shopClaim';
+
+const claimSchema = z.object({
+  businessName: z.string().min(1, 'Business name is required').max(200),
+  requesterName: z.string().min(1, 'Your name is required').max(200),
+  requesterEmail: z.string().email('Valid email is required'),
+  requesterPhone: z.string().max(50).optional().default(''),
+  relationshipToBusiness: z.enum(['owner', 'manager', 'employee', 'representative'], {
+    errorMap: () => ({ message: 'Please select your relationship to the business' }),
+  }),
+  ownershipProof: z.string().max(2000).optional().default(''),
+});
 
 export const GET: RequestHandler = async ({ params, locals }) => {
   const shopId = parseInt(params.id);
@@ -62,29 +74,21 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 
   try {
     const body = await request.json();
-    const {
-      businessName,
-      requesterName,
-      requesterEmail,
-      requesterPhone,
-      relationshipToBusiness,
-      ownershipProof,
-    } = body;
+    const parsed = claimSchema.safeParse(body);
 
-    // Validation
-    if (!businessName || !requesterName || !requesterEmail || !relationshipToBusiness) {
-      return json({
-        error: 'Business name, your name, email, and relationship to business are required'
-      }, { status: 400 });
+    if (!parsed.success) {
+      const errors = parsed.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+      return json({ error: errors }, { status: 400 });
     }
 
+    const data = parsed.data;
     const claim = await submitClaimRequest(shopId, {
-      businessName,
-      requesterName,
-      requesterEmail,
-      requesterPhone,
-      relationshipToBusiness,
-      ownershipProof,
+      businessName: data.businessName,
+      requesterName: data.requesterName,
+      requesterEmail: data.requesterEmail,
+      requesterPhone: data.requesterPhone,
+      relationshipToBusiness: data.relationshipToBusiness,
+      ownershipProof: data.ownershipProof,
     }, {
       ipAddress: request.headers.get('x-forwarded-for') || undefined,
       userAgent: request.headers.get('user-agent') || undefined,

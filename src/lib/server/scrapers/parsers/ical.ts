@@ -35,7 +35,7 @@ export function parseICalContent(content: string): ScrapedEvent[] {
 
     // Process previous key-value pair
     if (currentKey && currentEvent) {
-      (currentEvent as any)[currentKey] = currentValue;
+      (currentEvent as Record<string, string>)[currentKey] = currentValue;
     }
 
     const trimmedLine = line.trim();

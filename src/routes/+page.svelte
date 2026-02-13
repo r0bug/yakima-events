@@ -1,11 +1,6 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import Calendar from '$components/Calendar.svelte';
-  import Header from '$components/Header.svelte';
   import Toast from '$components/Toast.svelte';
-  import type { PageData } from './$types';
-
-  export let data: PageData;
 
   let toastMessage = '';
   let toastType: 'success' | 'error' = 'success';
@@ -24,14 +19,10 @@
   <meta name="description" content="Discover local events and shops in Yakima, WA" />
 </svelte:head>
 
-<div class="min-h-screen flex flex-col">
-  <Header user={data.user} />
+<main class="flex-1">
+  <Calendar on:toast={handleToast} />
+</main>
 
-  <main class="flex-1">
-    <Calendar on:toast={handleToast} />
-  </main>
-
-  {#if showToast}
-    <Toast message={toastMessage} type={toastType} on:close={() => (showToast = false)} />
-  {/if}
-</div>
+{#if showToast}
+  <Toast message={toastMessage} type={toastType} on:close={() => (showToast = false)} />
+{/if}

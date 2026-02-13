@@ -2,17 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --primary-color: #2c3e50;
-  --secondary-color: #3498db;
-  --accent-color: #e74c3c;
-  --success-color: #27ae60;
-  --warning-color: #f39c12;
-}
-
 body {
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   @apply bg-gray-50 text-gray-900;
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium;
+  }
+
+  .btn-success {
+    @apply px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium;
+  }
+
+  .btn-danger {
+    @apply px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium;
+  }
+
+  .btn-outline-danger {
+    @apply px-4 py-2 border border-red-600 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium;
+  }
+
+  .card {
+    @apply bg-white rounded-lg shadow-sm border;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent;
+  }
 }
 
 /* Custom scrollbar */
@@ -84,7 +106,7 @@ body {
 input:focus,
 select:focus,
 button:focus {
-  @apply outline-none ring-2 ring-blue-500 ring-opacity-50;
+  @apply outline-none ring-2 ring-purple-500 ring-opacity-50;
 }
 
 /* Info window styles for Google Maps */

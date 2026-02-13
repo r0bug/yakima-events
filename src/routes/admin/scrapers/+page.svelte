@@ -153,6 +153,18 @@
     <h1 class="text-3xl font-bold text-gray-900">Scraper Dashboard</h1>
     <div class="flex gap-4">
       <a
+        href="/tools/facebook-scraper"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+      >
+        Facebook Scraper
+      </a>
+      <a
+        href="/tools/eventbrite-scraper"
+        class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+      >
+        Eventbrite Scraper
+      </a>
+      <a
         href="/admin/scrapers/intelligent"
         class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
       >

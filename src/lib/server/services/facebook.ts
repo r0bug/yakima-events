@@ -1,52 +1,60 @@
 /**
  * Facebook Scraper Service
- * Uses RapidAPI facebook-scraper3 to fetch events from Facebook pages
+ * Uses RapidAPI facebook-event-scraper to fetch events from Facebook
  */
 
 import type { ScrapedEvent } from '../scrapers/types';
 import { env } from '$env/dynamic/private';
 
-// RapidAPI configuration
-const RAPIDAPI_HOST = 'facebook-scraper3.p.rapidapi.com';
+// RapidAPI configuration - Facebook Event Scraper by jerry
+const RAPIDAPI_HOST = 'facebook-event-scraper.p.rapidapi.com';
 
-interface FacebookEvent {
+interface FacebookEventResponse {
   id?: string;
   name?: string;
   description?: string;
-  start_time?: string;
-  end_time?: string;
-  place?: {
+  startTimestamp?: number;
+  endTimestamp?: number;
+  formattedDate?: string;
+  location?: {
     name?: string;
-    location?: {
-      city?: string;
-      street?: string;
-      state?: string;
-      zip?: string;
+    description?: string;
+    url?: string;
+    coordinates?: {
       latitude?: number;
       longitude?: number;
     };
-  };
-  cover?: {
-    source?: string;
-  };
-  event_url?: string;
-}
-
-interface FacebookPageEventsResponse {
-  events?: FacebookEvent[];
-  data?: FacebookEvent[];
-  paging?: {
-    cursors?: {
-      after?: string;
+    countryCode?: string;
+    id?: string;
+    type?: string;
+    address?: string;
+    city?: {
+      name?: string;
+      id?: string;
     };
   };
+  photo?: {
+    url?: string;
+    id?: string;
+  };
+  video?: unknown;
+  eventUrl?: string;
+  usersGoing?: number;
+  usersInterested?: number;
+  hosts?: Array<{
+    id?: string;
+    name?: string;
+    url?: string;
+    type?: string;
+    photo?: { url?: string };
+  }>;
+  onlineDetails?: unknown;
+  ticketUrl?: string;
   error?: string;
 }
 
 interface FacebookConfig {
-  pageId?: string;
-  pageUrl?: string;
-  includePastEvents?: boolean;
+  eventIds?: string[];
   maxEvents?: number;
 }
 
@@ -70,61 +78,48 @@ function getApiKey(): string {
 }
 
 /**
- * Extract page ID from various URL formats
+ * Extract event ID from Facebook event URL
+ * Handles: https://www.facebook.com/events/1234567890
+ *          https://facebook.com/events/1234567890/
+ *          https://www.facebook.com/events/1234567890?...
  */
-export function extractPageId(url: string): string | null {
+export function extractEventId(url: string): string | null {
   try {
+    // Direct event ID (just numbers)
+    if (/^\d+$/.test(url.trim())) {
+      return url.trim();
+    }
+
     const urlObj = new URL(url);
     const pathname = urlObj.pathname;
 
-    // Handle various Facebook URL formats:
-    // https://www.facebook.com/PageName
-    // https://www.facebook.com/PageName/events
-    // https://www.facebook.com/profile.php?id=123456789
-    // https://facebook.com/pages/PageName/123456789
-
-    // Check for profile.php format
-    const idParam = urlObj.searchParams.get('id');
-    if (idParam) {
-      return idParam;
-    }
-
-    // Check for /pages/Name/ID format
-    const pagesMatch = pathname.match(/\/pages\/[^/]+\/(\d+)/);
-    if (pagesMatch) {
-      return pagesMatch[1];
-    }
-
-    // Standard page name format
-    const parts = pathname.split('/').filter(p => p && p !== 'events');
-    if (parts.length > 0) {
-      return parts[0];
+    // Match /events/1234567890
+    const eventMatch = pathname.match(/\/events\/(\d+)/);
+    if (eventMatch) {
+      return eventMatch[1];
     }
 
     return null;
   } catch {
+    // If URL parsing fails, check if it's just an event ID
+    if (/^\d+$/.test(url.trim())) {
+      return url.trim();
+    }
     return null;
   }
 }
 
 /**
- * Fetch future events from a Facebook page
+ * Fetch a single event by ID
  */
-export async function getPageEventsFuture(
-  pageId: string,
-  cursor?: string
-): Promise<FacebookPageEventsResponse> {
+export async function getEventById(eventId: string): Promise<FacebookEventResponse> {
   const apiKey = getApiKey();
 
-  const url = new URL(`https://${RAPIDAPI_HOST}/page/events/future`);
-  url.searchParams.set('page_id', pageId);
-  if (cursor) {
-    url.searchParams.set('cursor', cursor);
-  }
+  const url = `https://${RAPIDAPI_HOST}/event?eventid=${eventId}`;
 
-  console.log(`[Facebook] Fetching future events for page: ${pageId}`);
+  console.log(`[Facebook] Fetching event: ${eventId}`);
 
-  const response = await fetch(url.toString(), {
+  const response = await fetch(url, {
     method: 'GET',
     headers: {
       'x-rapidapi-key': apiKey,
@@ -139,83 +134,58 @@ export async function getPageEventsFuture(
   }
 
   const data = await response.json();
-  return data as FacebookPageEventsResponse;
+  return data as FacebookEventResponse;
 }
 
 /**
- * Fetch past events from a Facebook page
+ * Convert Facebook event response to ScrapedEvent format
  */
-export async function getPageEventsPast(
-  pageId: string,
-  cursor?: string
-): Promise<FacebookPageEventsResponse> {
-  const apiKey = getApiKey();
-
-  const url = new URL(`https://${RAPIDAPI_HOST}/page/events/past`);
-  url.searchParams.set('page_id', pageId);
-  if (cursor) {
-    url.searchParams.set('cursor', cursor);
-  }
-
-  console.log(`[Facebook] Fetching past events for page: ${pageId}`);
-
-  const response = await fetch(url.toString(), {
-    method: 'GET',
-    headers: {
-      'x-rapidapi-key': apiKey,
-      'x-rapidapi-host': RAPIDAPI_HOST,
-    },
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`[Facebook] API error: ${response.status} - ${errorText}`);
-    throw new Error(`Facebook API error: ${response.status} - ${errorText}`);
-  }
-
-  const data = await response.json();
-  return data as FacebookPageEventsResponse;
-}
-
-/**
- * Convert Facebook event to ScrapedEvent format
- */
-function convertToScrapedEvent(fbEvent: FacebookEvent, pageUrl: string): ScrapedEvent | null {
-  if (!fbEvent.name || !fbEvent.start_time) {
+function convertToScrapedEvent(fbEvent: FacebookEventResponse): ScrapedEvent | null {
+  if (!fbEvent.name) {
     return null;
   }
 
-  const startDate = new Date(fbEvent.start_time);
+  // Parse start time
+  let startDate: Date;
+  if (fbEvent.startTimestamp) {
+    startDate = new Date(fbEvent.startTimestamp * 1000);
+  } else {
+    console.warn(`[Facebook] No start time for event: ${fbEvent.name}`);
+    return null;
+  }
+
   if (isNaN(startDate.getTime())) {
     console.warn(`[Facebook] Invalid start time for event: ${fbEvent.name}`);
     return null;
   }
 
+  // Parse end time
   let endDate: Date | undefined;
-  if (fbEvent.end_time) {
-    endDate = new Date(fbEvent.end_time);
+  if (fbEvent.endTimestamp) {
+    endDate = new Date(fbEvent.endTimestamp * 1000);
     if (isNaN(endDate.getTime())) {
       endDate = undefined;
     }
   }
 
   // Build location string
-  let location = fbEvent.place?.name || undefined;
-  let address: string | undefined;
+  const location = fbEvent.location?.name || undefined;
 
-  if (fbEvent.place?.location) {
-    const loc = fbEvent.place.location;
-    const addressParts = [loc.street, loc.city, loc.state, loc.zip].filter(Boolean);
+  // Build address
+  let address: string | undefined;
+  if (fbEvent.location) {
+    const loc = fbEvent.location;
+    const addressParts = [
+      loc.address,
+      loc.city?.name,
+    ].filter(Boolean);
     if (addressParts.length > 0) {
       address = addressParts.join(', ');
     }
   }
 
   // Build event URL
-  let eventUrl = fbEvent.event_url;
-  if (!eventUrl && fbEvent.id) {
-    eventUrl = `https://www.facebook.com/events/${fbEvent.id}`;
-  }
+  const eventUrl = fbEvent.eventUrl || (fbEvent.id ? `https://www.facebook.com/events/${fbEvent.id}` : undefined);
 
   return {
     title: fbEvent.name,
@@ -224,129 +194,91 @@ function convertToScrapedEvent(fbEvent: FacebookEvent, pageUrl: string): Scraped
     endDatetime: endDate,
     location,
     address,
-    latitude: fbEvent.place?.location?.latitude,
-    longitude: fbEvent.place?.location?.longitude,
+    latitude: fbEvent.location?.coordinates?.latitude,
+    longitude: fbEvent.location?.coordinates?.longitude,
     externalUrl: eventUrl,
     externalEventId: fbEvent.id ? `fb_${fbEvent.id}` : undefined,
   };
 }
 
 /**
- * Scrape events from a Facebook page
+ * Scrape a single Facebook event by URL or ID
  */
-export async function scrapePageEvents(
-  pageUrl: string,
-  config?: FacebookConfig
-): Promise<ScrapedEvent[]> {
-  const pageId = config?.pageId || extractPageId(pageUrl);
-  if (!pageId) {
-    throw new Error(`Could not extract page ID from URL: ${pageUrl}`);
+export async function scrapeEvent(eventUrlOrId: string): Promise<ScrapedEvent | null> {
+  const eventId = extractEventId(eventUrlOrId);
+  if (!eventId) {
+    throw new Error(`Could not extract event ID from: ${eventUrlOrId}`);
   }
 
-  const events: ScrapedEvent[] = [];
-  const maxEvents = config?.maxEvents || 50;
-  const includePast = config?.includePastEvents || false;
-
-  try {
-    // Fetch future events
-    console.log(`[Facebook] Scraping future events from page: ${pageId}`);
-    let futureResponse = await getPageEventsFuture(pageId);
-    let fbEvents = futureResponse.events || futureResponse.data || [];
-
-    for (const fbEvent of fbEvents) {
-      const scraped = convertToScrapedEvent(fbEvent, pageUrl);
-      if (scraped) {
-        events.push(scraped);
-      }
-      if (events.length >= maxEvents) break;
-    }
-
-    // Fetch more pages if available and under limit
-    let cursor = futureResponse.paging?.cursors?.after;
-    while (cursor && events.length < maxEvents) {
-      futureResponse = await getPageEventsFuture(pageId, cursor);
-      fbEvents = futureResponse.events || futureResponse.data || [];
-
-      for (const fbEvent of fbEvents) {
-        const scraped = convertToScrapedEvent(fbEvent, pageUrl);
-        if (scraped) {
-          events.push(scraped);
-        }
-        if (events.length >= maxEvents) break;
-      }
-
-      cursor = futureResponse.paging?.cursors?.after;
-    }
-
-    // Optionally include past events
-    if (includePast && events.length < maxEvents) {
-      console.log(`[Facebook] Scraping past events from page: ${pageId}`);
-      const pastResponse = await getPageEventsPast(pageId);
-      const pastEvents = pastResponse.events || pastResponse.data || [];
-
-      for (const fbEvent of pastEvents) {
-        const scraped = convertToScrapedEvent(fbEvent, pageUrl);
-        if (scraped) {
-          events.push(scraped);
-        }
-        if (events.length >= maxEvents) break;
-      }
-    }
-
-    console.log(`[Facebook] Found ${events.length} events from page: ${pageId}`);
-    return events;
-  } catch (error) {
-    console.error(`[Facebook] Error scraping page ${pageId}:`, error);
-    throw error;
-  }
+  const fbEvent = await getEventById(eventId);
+  return convertToScrapedEvent(fbEvent);
 }
 
 /**
- * Test the Facebook scraper with a page URL
+ * Scrape multiple Facebook events by URLs or IDs
  */
-export async function testScraper(pageUrl: string): Promise<{
+export async function scrapeEvents(eventUrlsOrIds: string[]): Promise<ScrapedEvent[]> {
+  const events: ScrapedEvent[] = [];
+
+  for (const urlOrId of eventUrlsOrIds) {
+    try {
+      const event = await scrapeEvent(urlOrId);
+      if (event) {
+        events.push(event);
+      }
+    } catch (error) {
+      console.error(`[Facebook] Error scraping event ${urlOrId}:`, error);
+    }
+  }
+
+  return events;
+}
+
+/**
+ * Test the Facebook scraper with an event URL or ID
+ */
+export async function testScraper(eventUrlOrId: string): Promise<{
   success: boolean;
-  pageId: string | null;
-  eventsFound: number;
-  events: ScrapedEvent[];
+  eventId: string | null;
+  event: ScrapedEvent | null;
+  rawResponse?: FacebookEventResponse;
   error?: string;
 }> {
-  const pageId = extractPageId(pageUrl);
+  const eventId = extractEventId(eventUrlOrId);
 
-  if (!pageId) {
+  if (!eventId) {
     return {
       success: false,
-      pageId: null,
-      eventsFound: 0,
-      events: [],
-      error: 'Could not extract page ID from URL',
+      eventId: null,
+      event: null,
+      error: 'Could not extract event ID from URL. Use format: https://www.facebook.com/events/1234567890',
     };
   }
 
   if (!isAvailable()) {
     return {
       success: false,
-      pageId,
-      eventsFound: 0,
-      events: [],
+      eventId,
+      event: null,
       error: 'RAPIDAPI_KEY not configured',
     };
   }
 
   try {
-    const events = await scrapePageEvents(pageUrl, { maxEvents: 10 });
+    const rawResponse = await getEventById(eventId);
+    const event = convertToScrapedEvent(rawResponse);
+
     return {
       success: true,
-      pageId,
-      eventsFound: events.length,
-      events,
+      eventId,
+      event,
+      rawResponse,
     };
   } catch (error) {
     return {
       success: false,
-      pageId,
-      eventsFound: 0,
-      events: [],
+      eventId,
+      event: null,
       error: error instanceof Error ? error.message : 'Unknown error',
     };
   }

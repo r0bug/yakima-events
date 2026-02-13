@@ -14,6 +14,7 @@ import { parseYakimaValleyContent } from './parsers/yakima-valley';
 import * as intelligentScraper from './intelligent';
 import * as firecrawlService from '$server/services/firecrawl';
 import * as facebookService from '$server/services/facebook';
+import * as eventbriteService from '$server/services/eventbrite';
 import { geocodeYakimaArea } from '$server/services/geocode';
 import { notifyScraperError } from '$server/services/email';
 
@@ -110,6 +111,10 @@ export async function scrapeSource(source: CalendarSource): Promise<ScrapeResult
 
       case 'firecrawl':
         scrapedEvents = await scrapeFirecrawl(source);
+        break;
+
+      case 'eventbrite':
+        scrapedEvents = await scrapeEventbriteSource(source);
         break;
 
       case 'facebook':
@@ -323,6 +328,25 @@ async function scrapeFacebook(source: CalendarSource): Promise<ScrapedEvent[]> {
   };
 
   return facebookService.scrapePageEvents(source.url, facebookConfig);
+}
+
+/**
+ * Scrape Eventbrite events (search or single event)
+ */
+async function scrapeEventbriteSource(source: CalendarSource): Promise<ScrapedEvent[]> {
+  if (!eventbriteService.isAvailable()) {
+    throw new Error('Eventbrite scraper not available (RAPIDAPI_KEY not configured)');
+  }
+
+  const config = source.scrapeConfig || {};
+  const maxPages = (config.maxPages as number) || 3;
+
+  if (eventbriteService.isSearchUrl(source.url)) {
+    return eventbriteService.scrapeSearchResults(source.url, maxPages);
+  }
+
+  const event = await eventbriteService.scrapeEvent(source.url);
+  return event ? [event] : [];
 }
 
 /**

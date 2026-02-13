@@ -2,7 +2,6 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
-  import Header from '$lib/components/Header.svelte';
   import type { PageData } from './$types';
 
   export let data: PageData;
@@ -179,8 +178,6 @@
 <svelte:head>
   <title>Events - {shopName} - Yakima</title>
 </svelte:head>
-
-<Header user={data.user} />
 
 <main class="container mx-auto px-4 py-8 max-w-4xl">
   {#if loading}

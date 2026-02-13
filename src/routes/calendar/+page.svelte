@@ -1,12 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  import Header from '$lib/components/Header.svelte';
   import Calendar from '$lib/components/Calendar.svelte';
   import EventModal from '$lib/components/EventModal.svelte';
-  import type { PageData } from './$types';
-
-  export let data: PageData;
 
   interface Event {
     id: number;
@@ -56,8 +52,6 @@
 <svelte:head>
   <title>Event Calendar - Yakima</title>
 </svelte:head>
-
-<Header user={data.user} />
 
 <main class="container mx-auto px-4 py-8">
   <div class="mb-8">

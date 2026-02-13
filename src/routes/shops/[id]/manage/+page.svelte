@@ -2,7 +2,6 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
-  import Header from '$lib/components/Header.svelte';
   import type { PageData } from './$types';
 
   export let data: PageData;
@@ -60,7 +59,7 @@
         throw new Error('Failed to check access');
       }
       const userShopsData = await userShopsRes.json();
-      const userShop = userShopsData.shops?.find((s: any) => s.shop.id === parseInt(shopId));
+      const userShop = userShopsData.shops?.find((s: { shop: { id: number } }) => s.shop.id === parseInt(shopId));
 
       if (!userShop) {
         throw new Error('You do not have access to manage this shop');
@@ -83,8 +82,6 @@
 <svelte:head>
   <title>Manage {shop?.name || 'Shop'} - Yakima</title>
 </svelte:head>
-
-<Header user={data.user} />
 
 <main class="container mx-auto px-4 py-8">
   {#if loading}

@@ -1,9 +1,5 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import Header from '$lib/components/Header.svelte';
-  import type { LayoutData } from './$types';
-
-  export let data: LayoutData;
 
   const navItems = [
     { href: '/admin/events', label: 'Events', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
@@ -18,8 +14,6 @@
     return $page.url.pathname.startsWith(href);
   }
 </script>
-
-<Header user={data.user} />
 
 <div class="flex min-h-[calc(100vh-64px)]">
   <!-- Sidebar -->

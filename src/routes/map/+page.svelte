@@ -1,10 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import Header from '$lib/components/Header.svelte';
   import MapView from '$lib/components/MapView.svelte';
-  import type { PageData } from './$types';
-
-  export let data: PageData;
 
   interface Event {
     id: number;
@@ -92,12 +88,10 @@
   <title>Map - Yakima Events & Shops</title>
 </svelte:head>
 
-<Header user={data.user} />
-
 <main class="h-[calc(100vh-64px)] flex flex-col">
   <!-- Controls -->
-  <div class="bg-white border-b px-4 py-3 flex items-center justify-between">
-    <div class="flex items-center gap-6">
+  <div class="bg-white border-b px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+    <div class="flex items-center gap-4 sm:gap-6">
       <label class="flex items-center gap-2 cursor-pointer">
         <input
           type="checkbox"
@@ -120,7 +114,7 @@
       </label>
     </div>
 
-    <div class="flex items-center gap-4 text-sm">
+    <div class="hidden sm:flex items-center gap-4 text-sm">
       <div class="flex items-center gap-2">
         <span class="w-3 h-3 rounded-full bg-purple-600"></span>
         <span class="text-gray-600">Events</span>
