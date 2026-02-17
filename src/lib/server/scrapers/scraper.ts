@@ -352,7 +352,7 @@ async function scrapeEventbriteSource(source: CalendarSource): Promise<ScrapedEv
 /**
  * Process and save a scraped event
  */
-async function processEvent(
+export async function processEvent(
   eventData: ScrapedEvent,
   sourceId: number
 ): Promise<'added' | 'duplicate' | 'invalid'> {
@@ -409,7 +409,7 @@ async function processEvent(
 /**
  * Find duplicate event
  */
-async function findDuplicate(
+export async function findDuplicate(
   title: string,
   startDatetime: Date,
   externalEventId?: string

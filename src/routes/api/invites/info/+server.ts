@@ -32,6 +32,6 @@ export const GET: RequestHandler = async ({ url }) => {
     return json(inviteInfo);
   } catch (error) {
     console.error('Error fetching invite info:', error);
-    return json({ error: 'Failed to fetch invite info' }, { status: 500 });
+    return json({ error: 'Invalid or expired invite' }, { status: 404 });
   }
 };

@@ -22,11 +22,19 @@ pm2 logs yakima-events
 
 # Check status
 pm2 status
+
+# IMPORTANT: PM2 must be started via ecosystem.config.cjs to load .env
+# If restarting from scratch: pm2 start ecosystem.config.cjs
 ```
+
+## Auth
+- Google OAuth via `/auth/google` → Google → `/auth/google/callback`
+- `PUBLIC_APP_URL` must be imported from `$env/dynamic/public` (not `$env/dynamic/private`)
+- Session cookies validated in `src/hooks.server.ts`
 
 ## Database
 
-**IMPORTANT**: This app shares the `yakima_finds` database with the PHP YFEvents application at `/home/robug/YFEvents`.
+**IMPORTANT**: This app is now the sole frontend — PHP routes have been removed from nginx. Legacy PHP URLs are 301-redirected to SvelteKit equivalents via nginx rules.
 
 ### Tables Used by This App
 - `events` - Event listings
@@ -101,13 +109,19 @@ pm2 status
 - `src/routes/+error.svelte` - Error page
 - `src/routes/calendar/` - Calendar page
 - `src/routes/shops/` - Shops directory (list, detail, claim, manage)
-- `src/routes/map/` - Map view
+- `src/routes/shops/[id]/` - Shop detail with SSR + OG/Twitter/JSON-LD SEO tags
+- `src/routes/events/[id]/` - Event detail with SSR + OG/Twitter/JSON-LD SEO tags
 - `src/routes/events/submit/` - Public event submission
+- `src/routes/map/` - Map view
 - `src/routes/login/` - Login page
 - `src/routes/invites/` - Staff invite acceptance
+- `src/routes/communication/` - Communication hub (auth required)
+- `src/routes/communication/propose-event/` - Collaborative event proposal
+- `src/routes/communication/proposal/[id]/` - View/approve proposal
 - `src/routes/tools/facebook-scraper/` - Facebook scraper admin tool
 - `src/routes/tools/eventbrite-scraper/` - Eventbrite scraper admin tool
-- `src/routes/admin/` - Admin panel (events, shops, users, scrapers, claims, communication)
+- `src/routes/tools/facebook-browser-scraper/` - Facebook browser scraper tool
+- `src/routes/admin/` - Admin panel (events, shops, users, scrapers, claims, communication, forum, settings, geocode-fix, system-checkup, validate-urls)
 - `src/routes/api/` - REST API endpoints
 
 ## API Endpoints
@@ -115,22 +129,31 @@ pm2 status
 ### Events
 - `GET /api/events` - List events
 - `GET /api/events/:id` - Get event
+- `GET /api/events/:id/calendar.ics` - ICS calendar download
+- `GET /api/events/:id/share` - Share metadata
+- `GET /api/events/:id/participants` - Event participants
 - `GET /api/events/today` - Today's events
-- `GET /api/events/nearby` - Events near location
+- `GET /api/events/nearby` - Events near location (params: `latitude`, `longitude`, `radius`)
 - `GET /api/events/categories` - Categories
+- `POST /api/events/propose` - Propose collaborative event
 
 ### Shops
 - `GET /api/shops` - List shops
 - `GET /api/shops/:id` - Get shop
-- `GET /api/shops/nearby` - Shops near location
+- `GET /api/shops/:id/share` - Share metadata
+- `GET /api/shops/:id/events` - Shop events (staff only)
+- `GET /api/shops/nearby` - Shops near location (params: `latitude`, `longitude`, `radius`)
 - `GET /api/shops/categories` - Categories
 
 ### Scraper
 - `GET /api/sources` - List sources
+- `GET /api/sources/:id` - Get source
+- `POST /api/sources/:id/test` - Test source
 - `POST /api/scrape/:id` - Run scraper
 - `POST /api/scraper/intelligent` - AI scraper
 - `POST /api/scraper/facebook` - Facebook event scraper
 - `POST /api/scraper/eventbrite` - Eventbrite event scraper
+- `POST /api/scraper/facebook-browser` - Facebook browser scraper
 
 ### Shop Collaboration
 - `POST /api/shops/:id/claim` - Submit shop claim request
@@ -142,17 +165,24 @@ pm2 status
 - `DELETE /api/shops/:id/invites/:inviteId` - Revoke invite
 
 ### Communication
-- `GET /api/communication/channels` - List channels
+- `GET /api/communication/channels` - List channels (public without auth)
 - `POST /api/communication/channels` - Create channel
 - `GET /api/communication/channels/:id/messages` - Get messages
 - `POST /api/communication/channels/:id/messages` - Post message
 - `GET /api/communication/notifications` - Get notifications
 
-### User
+### User & Auth
+- `GET /api/auth/status` - Authentication status
 - `GET /api/user/shops` - User's managed shops
 - `GET /api/invites/info` - Get invite info by code
 - `POST /api/invites/accept` - Accept invite
-- `POST /api/events/propose` - Propose collaborative event
+
+### Admin API
+- `GET /api/admin/claims` - List claims
+- `PUT /api/admin/claims/:id` - Update claim
+- `GET /api/admin/forum` - Forum stats and management
+- `GET /api/admin/system-checkup` - System health check
+- `POST /api/admin/validate-url` - Validate URL
 
 ## Common Tasks
 
