@@ -19,6 +19,8 @@
         <ul class="space-y-2.5 text-sm">
           <li><a href="https://yakimafinds.com" target="_blank" rel="noopener" class="hover:text-amber-400 transition-colors">Yakima Finds</a></li>
           <li><a href="/extension" class="hover:text-amber-400 transition-colors">Browser Extension</a></li>
+          <li><a href="/feed" class="hover:text-amber-400 transition-colors">JSON Feed</a></li>
+          <li><a href="/feed/rss" class="hover:text-amber-400 transition-colors">RSS Feed</a></li>
           <li><a href="https://github.com/r0bug/yakima-events" target="_blank" rel="noopener" class="hover:text-amber-400 transition-colors">GitHub</a></li>
         </ul>
       </div>
