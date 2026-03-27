@@ -153,9 +153,11 @@ function convertCaptureToScrapedEvent(raw: any): ScrapedEvent | null {
 		externalUrl: raw.url || undefined,
 		externalEventId: raw.facebookId
 			? `fb_${raw.facebookId}`
-			: raw.url && raw.title
-				? `ext_${hashCode(raw.title + (raw.startDate || ''))}`
-				: undefined,
+			: raw.url?.includes('eventbrite.com/e/')
+				? `eb_${raw.url.split('/e/')[1]?.split(/[?/]/)[0] || hashCode(raw.title)}`
+				: raw.url && raw.title
+					? `ext_${hashCode(raw.title + (raw.startDate || ''))}`
+					: undefined,
 	};
 }
 
@@ -249,8 +251,8 @@ function parseFacebookDate(text: string): Date | null {
 		return applyTimeFromText(new Date(now), text);
 	}
 
-	// "This Saturday at 11 AM"
-	const thisDayMatch = lower.match(/this\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+at\s+(\d{1,2}(?::\d{2})?)\s*(am|pm)/i);
+	// "This Saturday at 11 AM" or bare "Wednesday at 4:00 PM"
+	const thisDayMatch = lower.match(/(?:this\s+)?(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+at\s+(\d{1,2}(?::\d{2})?)\s*(am|pm)/i);
 	if (thisDayMatch) {
 		const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 		const target = days.indexOf(thisDayMatch[1]);

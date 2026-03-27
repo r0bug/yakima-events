@@ -23,7 +23,7 @@
           </div>
           <div>
             <h1 class="text-2xl font-display font-bold">YFEvents Page Capture</h1>
-            <p class="text-stone-300 text-sm">Browser Extension v1.2.0</p>
+            <p class="text-stone-300 text-sm">Browser Extension v1.3.0</p>
           </div>
         </div>
         <p class="text-stone-200 leading-relaxed">
@@ -31,7 +31,7 @@
         </p>
         <a
           href="/extension.zip"
-          download="yfevents-extension-v1.2.0.zip"
+          download="yfevents-extension-v1.3.0.zip"
           class="inline-flex items-center gap-2 mt-6 px-6 py-3 bg-amber-500 hover:bg-amber-400 text-stone-900 font-bold rounded-xl transition-colors shadow-lg"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

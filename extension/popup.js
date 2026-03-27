@@ -351,6 +351,52 @@ document.getElementById('btn-capture-events').addEventListener('click', function
       }
     }
 
+    // Strategy 5: Eventbrite-style — event links with sibling date text
+    // Eventbrite uses: <a href="/e/..."><h3>Title</h3></a> with a <p>Date</p> nearby
+    var ebDatePattern = /^(?:(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\w*(?:day)?,?\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}|(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\w*(?:day)?)\s*[•·]/i;
+    var eventLinks = document.querySelectorAll('a[href*="/e/"], a[href*="eventbrite.com/e/"]');
+    eventLinks.forEach(function(link) {
+      var titleEl = link.querySelector('h1, h2, h3, h4, [role="heading"]') || link;
+      var title = titleEl.textContent.trim();
+      if (!title || title.length < 5 || title.length > 200) return;
+
+      // Look for date text in siblings or parent container
+      var container = link.closest('li, article, div[class], section') || link.parentElement;
+      if (!container) return;
+      var dateStr = null;
+      var locationStr = null;
+      var paras = container.querySelectorAll('p, span, div');
+      for (var pi = 0; pi < paras.length; pi++) {
+        var pText = paras[pi].textContent.trim();
+        if (!dateStr && ebDatePattern.test(pText)) {
+          // Clean the bullet separator: "Sat, Apr 4 •  7:00 PM" -> "Sat, Apr 4 at 7:00 PM"
+          dateStr = pText.replace(/\s*[•·]\s*/, ' at ').replace(/\s+/g, ' ').trim();
+          // Remove timezone suffix
+          dateStr = dateStr.replace(/\s+(?:PDT|PST|EDT|EST|CDT|CST|MDT|MST|UTC)$/i, '');
+        }
+        // Location often contains city/venue names after the date
+        if (dateStr && !locationStr && pText.length > 5 && pText.length < 100 &&
+            !ebDatePattern.test(pText) && pText !== title &&
+            !/^(free|from|starts)/i.test(pText)) {
+          locationStr = pText;
+        }
+      }
+
+      if (dateStr) {
+        var imgEl = container.querySelector('img[src]');
+        events.push({
+          source: 'eventbrite',
+          title: title,
+          startDate: dateStr,
+          location: locationStr,
+          url: link.href.split('?')[0],
+          image: imgEl ? imgEl.src : null,
+          description: null,
+          element: { tag: 'A', classes: String(link.className).substring(0, 100) }
+        });
+      }
+    });
+
     // Deduplicate by title
     var seen = {};
     events = events.filter(function(e) {
