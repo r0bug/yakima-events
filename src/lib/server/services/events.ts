@@ -1,4 +1,4 @@
-import { db, events, eventCategories, eventCategoryMapping, eventImages, calendarSources } from '$server/db';
+import { db, events, eventCategories, eventCategoryMapping, eventImages, calendarSources, eventShopParticipants, localShops } from '$server/db';
 import { eq, and, gte, lte, sql, desc, asc, like, or, inArray } from 'drizzle-orm';
 import type { Event, NewEvent } from '$server/db/schema';
 
@@ -17,12 +17,27 @@ export interface EventFilters {
   includeUnapproved?: boolean;
 }
 
+export interface CategoryDetail {
+  name: string;
+  slug: string;
+  color: string | null;
+}
+
+export interface ShopLink {
+  id: number;
+  name: string;
+  slug?: string;
+  imageUrl?: string | null;
+}
+
 export interface EventWithDetails extends Event {
   categories?: string;
+  categoryDetails?: CategoryDetail[];
   sourceName?: string;
   sourceUrl?: string;
   primaryImageUrl?: string;
   distance?: number;
+  linkedShop?: ShopLink;
 }
 
 /**
@@ -93,6 +108,69 @@ export async function getEvents(filters: EventFilters = {}): Promise<EventWithDe
   }
 
   const results = await query;
+
+  // Enrich with category details (colors) via batch query
+  if (results.length > 0) {
+    const eventIds = results.map((r: any) => r.id);
+    const categoryRows = await db
+      .select({
+        eventId: eventCategoryMapping.eventId,
+        name: eventCategories.name,
+        slug: eventCategories.slug,
+        color: eventCategories.color,
+      })
+      .from(eventCategoryMapping)
+      .innerJoin(eventCategories, eq(eventCategoryMapping.categoryId, eventCategories.id))
+      .where(inArray(eventCategoryMapping.eventId, eventIds));
+
+    // Group by event ID
+    const catsByEvent = new Map<number, CategoryDetail[]>();
+    for (const row of categoryRows) {
+      if (!catsByEvent.has(row.eventId)) catsByEvent.set(row.eventId, []);
+      catsByEvent.get(row.eventId)!.push({ name: row.name, slug: row.slug, color: row.color });
+    }
+
+    // Attach to results
+    for (const event of results as any[]) {
+      const cats = catsByEvent.get(event.id);
+      if (cats) {
+        event.categoryDetails = cats;
+        event.categories = cats.map((c: CategoryDetail) => c.name).join(', ');
+      }
+    }
+
+    // Enrich with linked shop data
+    const shopLinks = await db
+      .select({
+        eventId: eventShopParticipants.eventId,
+        shopId: localShops.id,
+        shopName: localShops.name,
+        shopImage: localShops.imageUrl,
+      })
+      .from(eventShopParticipants)
+      .innerJoin(localShops, eq(eventShopParticipants.shopId, localShops.id))
+      .where(and(
+        inArray(eventShopParticipants.eventId, eventIds),
+        eq(eventShopParticipants.approvalStatus, 'approved')
+      ));
+
+    if (shopLinks.length > 0) {
+      const shopByEvent = new Map<number, ShopLink>();
+      for (const row of shopLinks) {
+        if (!shopByEvent.has(row.eventId)) {
+          shopByEvent.set(row.eventId, {
+            id: row.shopId,
+            name: row.shopName,
+            imageUrl: row.shopImage,
+          });
+        }
+      }
+      for (const event of results as any[]) {
+        const shop = shopByEvent.get(event.id);
+        if (shop) event.linkedShop = shop;
+      }
+    }
+  }
 
   return results as EventWithDetails[];
 }

@@ -354,7 +354,8 @@ async function scrapeEventbriteSource(source: CalendarSource): Promise<ScrapedEv
  */
 export async function processEvent(
   eventData: ScrapedEvent,
-  sourceId: number
+  sourceId: number,
+  status: 'pending' | 'approved' = 'pending'
 ): Promise<'added' | 'duplicate' | 'invalid'> {
   // Validate required fields
   if (!eventData.title || !eventData.startDatetime) {
@@ -383,7 +384,7 @@ export async function processEvent(
 
   // Insert new event
   try {
-    await db.insert(events).values({
+    const result = await db.insert(events).values({
       title: eventData.title,
       description: eventData.description || null,
       startDatetime: eventData.startDatetime,
@@ -396,8 +397,27 @@ export async function processEvent(
       externalUrl: eventData.externalUrl || null,
       externalEventId: eventData.externalEventId || null,
       sourceId,
-      status: 'pending', // Scraped events require approval
+      status, // 'approved' for browser extension, 'pending' for scrapers
     });
+
+    // Auto-categorize the new event
+    try {
+      const { categorizeEvent } = await import('$lib/server/services/categorize');
+      const newId = Number(result[0].insertId);
+      await categorizeEvent(newId, eventData.title, eventData.location);
+    } catch (catErr) {
+      // Non-fatal — event is saved even if categorization fails
+      console.warn('[Scraper] Auto-categorize failed:', catErr);
+    }
+
+    // Auto-link to matching local shop
+    try {
+      const { matchAndLinkEvent } = await import('$lib/server/services/shopMatch');
+      const newId = Number(result[0].insertId);
+      await matchAndLinkEvent(newId, eventData.title, eventData.location);
+    } catch (shopErr) {
+      console.warn('[Scraper] Shop match failed:', shopErr);
+    }
 
     return 'added';
   } catch (error) {

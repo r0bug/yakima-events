@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yakima Finds Junk Run - Yakima Valley Antique & Vintage Shop Guide</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700&family=Permanent+Marker&display=swap');
+
+  :root {
+    --rust: #b7410e;
+    --cream: #faf6f0;
+    --dark: #1a1a1a;
+    --gold: #c8a951;
+    --gold-light: #e8d48b;
+    --steel: #4a5568;
+    --green: #2d6a4f;
+    --purple: #7b2d8e;
+    --blue: #2b6cb0;
+    --teal: #0d9488;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--dark); }
+
+  /* ===== HERO ===== */
+  .hero {
+    background: linear-gradient(135deg, var(--dark) 0%, #2d2318 50%, var(--rust) 100%);
+    color: white; text-align: center; padding: 2.5rem 1rem 2rem;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; }
+  .hero-badge {
+    display: inline-block; background: var(--gold); color: var(--dark);
+    font-weight: 700; font-size: 0.75rem; letter-spacing: 0.15em;
+    text-transform: uppercase; padding: 0.35rem 1.2rem; border-radius: 2px; margin-bottom: 1rem;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif; font-weight: 900; font-size: 3.2rem;
+    line-height: 1.1; margin-bottom: 0.3rem; text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+  }
+  .hero h1 .accent { color: var(--gold); }
+  .hero .subtitle { font-family: 'Permanent Marker', cursive; font-size: 1.3rem; color: var(--gold-light); margin-bottom: 0.8rem; }
+  .hero .tagline { font-size: 0.95rem; opacity: 0.85; max-width: 550px; margin: 0 auto; line-height: 1.5; }
+  .hero .event-details { margin-top: 1.2rem; display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; }
+  .hero .event-details .detail { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
+  .hero .event-details .detail svg { width: 18px; height: 18px; fill: var(--gold); }
+
+  /* ===== CONTROLS ===== */
+  .controls {
+    background: white; border-bottom: 2px solid #e8e0d4; padding: 0.6rem 1rem;
+    display: flex; justify-content: center; gap: 0.4rem; flex-wrap: wrap;
+    position: sticky; top: 0; z-index: 1000;
+  }
+  .filter-row { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center; align-items: center; }
+  .filter-label { font-size: 0.7rem; font-weight: 700; color: var(--steel); text-transform: uppercase; letter-spacing: 0.08em; margin-right: 0.2rem; }
+  .controls button {
+    font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.72rem;
+    padding: 0.35rem 0.7rem; border: 2px solid var(--rust); background: transparent;
+    color: var(--rust); border-radius: 4px; cursor: pointer; transition: all 0.2s;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .controls button:hover, .controls button.active { background: var(--rust); color: white; }
+  .controls button.all-btn { border-color: var(--dark); color: var(--dark); }
+  .controls button.all-btn:hover, .controls button.all-btn.active { background: var(--dark); color: white; }
+  .controls button.cat-antique { border-color: var(--rust); color: var(--rust); }
+  .controls button.cat-antique:hover, .controls button.cat-antique.active { background: var(--rust); color: white; }
+  .controls button.cat-killer { border-color: var(--purple); color: var(--purple); }
+  .controls button.cat-killer:hover, .controls button.cat-killer.active { background: var(--purple); color: white; }
+  .controls button.cat-charity { border-color: var(--green); color: var(--green); }
+  .controls button.cat-charity:hover, .controls button.cat-charity.active { background: var(--green); color: white; }
+  .controls button.cat-corporate { border-color: var(--blue); color: var(--blue); }
+  .controls button.cat-corporate:hover, .controls button.cat-corporate.active { background: var(--blue); color: white; }
+  .controls button.cat-specialty { border-color: var(--teal); color: var(--teal); }
+  .controls button.cat-specialty:hover, .controls button.cat-specialty.active { background: var(--teal); color: white; }
+  .controls button.print-btn { border-color: var(--gold); color: var(--gold); }
+  .controls button.print-btn:hover { background: var(--gold); color: var(--dark); }
+  .filter-sep { width: 1px; height: 24px; background: #ddd; margin: 0 0.3rem; }
+
+  /* ===== MAP ===== */
+  .map-container { position: relative; height: 550px; border-bottom: 3px solid var(--rust); }
+  #map { height: 100%; width: 100%; }
+
+  /* ===== LEGEND ===== */
+  .legend {
+    background: white; border: 1px solid #e8e0d4; padding: 0.8rem 1.2rem;
+    max-width: 1100px; margin: 1rem auto 0;
+    display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; font-weight: 600; }
+  .legend-swatch { width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+
+  /* ===== LISTING ===== */
+  .listing { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem 2rem; }
+  .listing h2 { font-family: 'Playfair Display', serif; font-size: 2rem; text-align: center; margin-bottom: 0.3rem; }
+  .listing .list-subtitle { text-align: center; color: var(--steel); margin-bottom: 1.5rem; font-size: 0.9rem; }
+
+  .region-group { margin-bottom: 2rem; }
+  .region-group h3 {
+    font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--rust);
+    border-bottom: 2px solid var(--rust); padding-bottom: 0.3rem; margin-bottom: 0.8rem;
+  }
+  .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 0.8rem; }
+
+  .shop-card {
+    background: white; border: 1px solid #e8e0d4; border-left: 4px solid var(--rust);
+    border-radius: 4px; padding: 0.7rem 0.9rem; cursor: pointer; transition: all 0.2s;
+    display: flex; gap: 0.6rem; align-items: flex-start;
+  }
+  .shop-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-1px); }
+  .shop-card.cat-killer { border-left-color: var(--purple); }
+  .shop-card.cat-charity { border-left-color: var(--green); }
+  .shop-card.cat-corporate { border-left-color: var(--blue); }
+  .shop-card.cat-specialty { border-left-color: var(--teal); }
+
+  .shop-id {
+    flex-shrink: 0; width: 34px; height: 34px; background: var(--rust); color: white;
+    font-weight: 700; font-size: 0.7rem; display: flex; align-items: center;
+    justify-content: center; border-radius: 50%;
+  }
+  .shop-card.cat-killer .shop-id { background: var(--purple); }
+  .shop-card.cat-charity .shop-id { background: var(--green); }
+  .shop-card.cat-corporate .shop-id { background: var(--blue); }
+  .shop-card.cat-specialty .shop-id { background: var(--teal); }
+
+  .shop-info { flex: 1; min-width: 0; }
+  .shop-name { font-weight: 700; font-size: 0.9rem; color: var(--dark); margin-bottom: 0.1rem; }
+  .shop-cat { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem; }
+  .shop-address { font-size: 0.78rem; color: var(--steel); margin-bottom: 0.15rem; }
+  .shop-contact { font-size: 0.75rem; color: var(--steel); margin-bottom: 0.15rem; }
+  .shop-contact a { color: var(--rust); text-decoration: none; }
+  .shop-contact a:hover { text-decoration: underline; }
+  .shop-hours { font-size: 0.72rem; color: var(--green); font-weight: 500; margin-bottom: 0.15rem; }
+  .shop-notes { font-size: 0.75rem; color: #666; font-style: italic; line-height: 1.4; }
+  .shop-links { margin-top: 0.25rem; display: flex; gap: 0.8rem; }
+  .shop-links a { font-size: 0.72rem; color: var(--rust); text-decoration: none; font-weight: 600; }
+  .shop-links a:hover { text-decoration: underline; }
+
+  /* ===== FOOTER ===== */
+  .footer { background: var(--dark); color: white; text-align: center; padding: 1.5rem 1rem; font-size: 0.85rem; line-height: 1.6; }
+  .footer a { color: var(--gold); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+  .footer .credits { margin-top: 0.5rem; opacity: 0.6; font-size: 0.75rem; }
+
+  /* ===== POPUP ===== */
+  .leaflet-popup-content-wrapper { border-radius: 6px; border-left: 4px solid var(--rust); }
+  .popup-title { font-weight: 700; font-size: 13px; margin-bottom: 3px; }
+  .popup-cat { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .popup-addr { font-size: 11px; color: #666; margin-bottom: 3px; }
+  .popup-contact { font-size: 11px; color: #555; margin-bottom: 3px; }
+  .popup-hours { font-size: 11px; color: var(--green); margin-bottom: 3px; }
+  .popup-notes { font-size: 11px; color: #444; font-style: italic; margin-bottom: 6px; }
+  .popup-links { display: flex; gap: 10px; flex-wrap: wrap; }
+  .popup-links a { font-size: 11px; color: var(--rust); font-weight: 600; text-decoration: none; }
+  .popup-links a:hover { text-decoration: underline; }
+
+  /* ===== PRINT ===== */
+  @media print {
+    body { font-size: 8.5pt; }
+    .controls, .map-container, .legend { display: none; }
+    .hero { padding: 0.8rem; background: white !important; color: black !important; border-bottom: 3px double var(--rust); }
+    .hero::before { display: none; }
+    .hero h1 { font-size: 24pt; color: black; text-shadow: none; }
+    .hero h1 .accent { color: var(--rust); }
+    .hero .subtitle { color: var(--rust); }
+    .hero-badge { background: var(--rust); color: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .hero .tagline { color: #333; }
+    .hero .event-details .detail svg { fill: var(--rust); }
+    .listing { padding: 0.3rem; }
+    .listing h2 { font-size: 14pt; margin-bottom: 0.2rem; }
+    .listing .list-subtitle { margin-bottom: 0.5rem; font-size: 8pt; }
+    .region-group { margin-bottom: 0.8rem; }
+    .region-group h3 { font-size: 11pt; margin-bottom: 0.4rem; }
+    .shop-grid { grid-template-columns: repeat(2, 1fr); gap: 0.3rem; }
+    .shop-card {
+      padding: 0.3rem 0.5rem; break-inside: avoid; page-break-inside: avoid;
+      border: 1px solid #ccc; box-shadow: none; border-left-width: 3px;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .shop-id { width: 28px; height: 28px; font-size: 0.6rem; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .shop-name { font-size: 0.82rem; }
+    .shop-links { display: none; }
+    .shop-cat { font-size: 0.6rem; }
+    .footer { background: white !important; color: black; border-top: 2px solid var(--rust); padding: 0.8rem; }
+    .footer a { color: var(--rust); }
+    .footer .credits { display: none; }
+  }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 2rem; }
+    .hero .subtitle { font-size: 1rem; }
+    .hero .event-details { gap: 1rem; }
+    .shop-grid { grid-template-columns: 1fr; }
+    .map-container { height: 400px; }
+    .filter-sep { display: none; }
+  }
+
+  /* ===== ADMIN PANEL ===== */
+  .admin-bar {
+    background: #fef3c7; border-bottom: 2px solid #f59e0b; padding: 0.5rem 1rem;
+    display: flex; align-items: center; justify-content: center; gap: 0.8rem;
+    font-size: 0.85rem; font-weight: 600; color: #92400e;
+  }
+  .admin-bar button {
+    font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.78rem;
+    padding: 0.4rem 0.8rem; border: 2px solid #f59e0b; background: white;
+    color: #92400e; border-radius: 4px; cursor: pointer;
+  }
+  .admin-bar button:hover { background: #f59e0b; color: white; }
+  .admin-bar button.active { background: #f59e0b; color: white; }
+
+  .admin-panel {
+    position: fixed; top: 0; right: 0; width: 420px; height: 100vh;
+    background: white; box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+    z-index: 2000; overflow-y: auto; display: none;
+    font-size: 0.85rem;
+  }
+  .admin-panel.open { display: block; }
+  .admin-panel-header {
+    background: var(--dark); color: white; padding: 1rem;
+    display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0; z-index: 1;
+  }
+  .admin-panel-header h3 { font-size: 1rem; }
+  .admin-panel-close {
+    background: none; border: none; color: white; font-size: 1.5rem;
+    cursor: pointer; line-height: 1;
+  }
+  .admin-form { padding: 1rem; }
+  .admin-form label {
+    display: block; font-weight: 600; margin-top: 0.7rem; margin-bottom: 0.2rem;
+    font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--steel);
+  }
+  .admin-form input, .admin-form select, .admin-form textarea {
+    width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;
+    font-family: 'Inter', sans-serif; font-size: 0.85rem;
+  }
+  .admin-form textarea { height: 60px; resize: vertical; }
+  .admin-form input:focus, .admin-form select:focus, .admin-form textarea:focus {
+    outline: none; border-color: var(--rust); box-shadow: 0 0 0 2px rgba(183,65,14,0.15);
+  }
+  .admin-coords {
+    background: #f7f7f7; padding: 0.6rem; border-radius: 4px; margin-top: 0.5rem;
+    font-size: 0.8rem; color: var(--steel);
+  }
+  .admin-coords strong { color: var(--dark); }
+  .admin-btn-row { display: flex; gap: 0.5rem; margin-top: 1rem; }
+  .admin-btn {
+    flex: 1; padding: 0.6rem; border: none; border-radius: 4px;
+    font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .admin-btn-save { background: var(--green); color: white; }
+  .admin-btn-save:hover { background: #1b5e3c; }
+  .admin-btn-delete { background: #dc2626; color: white; }
+  .admin-btn-delete:hover { background: #b91c1c; }
+  .admin-btn-cancel { background: #e5e7eb; color: var(--dark); }
+  .admin-btn-cancel:hover { background: #d1d5db; }
+
+  .admin-export {
+    margin: 1rem; padding: 0.8rem; background: #f7f7f7; border-radius: 4px;
+    border: 1px solid #ddd;
+  }
+  .admin-export textarea {
+    width: 100%; height: 200px; font-family: monospace; font-size: 0.72rem;
+    border: 1px solid #ccc; border-radius: 4px; padding: 0.5rem;
+  }
+  .admin-export button { margin-top: 0.5rem; }
+
+  .admin-drag-hint {
+    background: #dbeafe; color: #1e40af; padding: 0.4rem 0.8rem;
+    border-radius: 4px; font-size: 0.78rem; text-align: center; margin: 0.5rem 1rem;
+  }
+
+  @media print { .admin-bar, .admin-panel { display: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">Yakima Finds Presents</div>
+    <h1>The <span class="accent">Junk Run</span></h1>
+    <div class="subtitle">Yakima Valley Antique, Vintage &amp; Thrift Guide</div>
+    <p class="tagline">
+      39 antique shops, vintage stores, thrift finds, and collectible dealers across
+      Yakima, Union Gap, Selah &amp; Wapato. Grab your keys and start hunting!
+    </p>
+    <div class="event-details">
+      <div class="detail">
+        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        Yakima Valley, WA
+      </div>
+      <div class="detail">
+        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+        39 Stops
+      </div>
+      <div class="detail">
+        <svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
+        Cruise &amp; Browse
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="admin-bar" id="admin-bar" style="display:none">
+  ADMIN MODE &mdash; Drag stars to reposition. Click to edit.
+  <button id="admin-add-btn">+ Add Shop</button>
+  <button id="admin-export-btn">Export JSON</button>
+</div>
+
+<div class="admin-panel" id="admin-panel">
+  <div class="admin-panel-header">
+    <h3 id="admin-panel-title">Edit Shop</h3>
+    <button class="admin-panel-close" id="admin-panel-close">&times;</button>
+  </div>
+  <div class="admin-drag-hint" id="admin-drag-hint">Drag the star on the map to update coordinates.</div>
+  <div class="admin-form" id="admin-form">
+    <input type="hidden" id="af-idx" />
+    <label>Shop ID</label><input type="text" id="af-id" placeholder="e.g. Y20" />
+    <label>Business Name</label><input type="text" id="af-name" />
+    <label>Street Address</label><input type="text" id="af-address" />
+    <label>Phone</label><input type="text" id="af-phone" placeholder="(509) 000-0000" />
+    <label>Hours</label><input type="text" id="af-hours" placeholder="Mon-Sat 10am-5pm" />
+    <label>Website</label><input type="text" id="af-website" placeholder="https://..." />
+    <label>Facebook</label><input type="text" id="af-facebook" placeholder="https://facebook.com/..." />
+    <label>Category</label>
+    <select id="af-cat">
+      <option value="antique">Antique Store</option>
+      <option value="killer">Killer Thrift</option>
+      <option value="charity">Charity Thrift</option>
+      <option value="corporate">Corporate Thrift</option>
+      <option value="specialty">Specialty</option>
+    </select>
+    <label>Region</label>
+    <select id="af-region">
+      <option value="yakima">Yakima</option>
+      <option value="uniongap">Union Gap</option>
+      <option value="selah">Selah</option>
+      <option value="wapato">Wapato</option>
+    </select>
+    <label>Notes</label><textarea id="af-notes"></textarea>
+    <div class="admin-coords" id="af-coords">Lat: <strong id="af-lat">--</strong> &nbsp; Lng: <strong id="af-lng">--</strong></div>
+    <div class="admin-btn-row">
+      <button class="admin-btn admin-btn-save" id="af-save">Save</button>
+      <button class="admin-btn admin-btn-delete" id="af-delete">Delete</button>
+      <button class="admin-btn admin-btn-cancel" id="af-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="controls" id="controls">
+  <div class="filter-row">
+    <span class="filter-label">Show:</span>
+    <button class="all-btn active" data-filter="all">All 39</button>
+    <div class="filter-sep"></div>
+    <span class="filter-label">Category:</span>
+    <button class="cat-antique" data-filter="cat:antique">Antiques</button>
+    <button class="cat-killer" data-filter="cat:killer">Killer Thrift</button>
+    <button class="cat-charity" data-filter="cat:charity">Charity Thrift</button>
+    <button class="cat-corporate" data-filter="cat:corporate">Corporate Thrift</button>
+    <button class="cat-specialty" data-filter="cat:specialty">Specialty</button>
+    <div class="filter-sep"></div>
+    <span class="filter-label">Area:</span>
+    <button data-filter="region:yakima">Yakima</button>
+    <button data-filter="region:uniongap">Union Gap</button>
+    <button data-filter="region:selah">Selah</button>
+    <button data-filter="region:wapato">Wapato</button>
+    <div class="filter-sep"></div>
+    <button class="print-btn" id="print-btn">Print Flyer</button>
+  </div>
+</div>
+
+<div class="map-container"><div id="map"></div></div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--rust)"></div> Antique Store</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--purple)"></div> Killer Thrift</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--green)"></div> Charity Thrift</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--blue)"></div> Corporate Thrift</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--teal)"></div> Specialty</div>
+</div>
+
+<div class="listing">
+  <h2>Your Treasure Map</h2>
+  <p class="list-subtitle">Tap any shop to see it on the map. Click the address to get directions.</p>
+  <div id="shop-list"></div>
+</div>
+
+<div class="footer">
+  <strong>Yakima Finds - Junk Run</strong><br>
+  Your guide to the best antique, vintage &amp; thrift shopping in the Yakima Valley<br>
+  <a href="https://www.yakimafinds.com">yakimafinds.com</a> | <a href="https://yfevents.yakimafinds.com">Events Calendar</a><br>
+  <span class="credits">Built with Leaflet.js &amp; OpenStreetMap</span>
+</div>
+
+<script>
+var catColors = {
+  antique: '#b7410e',
+  killer: '#7b2d8e',
+  charity: '#2d6a4f',
+  corporate: '#2b6cb0',
+  specialty: '#0d9488'
+};
+var catLabels = {
+  antique: 'Antique Store',
+  killer: 'Killer Thrift',
+  charity: 'Charity Thrift',
+  corporate: 'Corporate Thrift',
+  specialty: 'Specialty'
+};
+var regionLabels = {
+  yakima: 'Yakima',
+  uniongap: 'Union Gap',
+  selah: 'Selah',
+  wapato: 'Wapato'
+};
+
+function mapsUrl(addr) {
+  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
+}
+
+var shops = [
+  // === YAKIMA - ANTIQUES ===
+  { id:"Y1", name:"Yesterday's Village", address:"15 W Yakima Ave, Yakima, WA 98902", lat:46.60185, lng:-120.50809, phone:"(509) 457-4981", hours:"Tue-Sat 10am-5pm", website:null, facebook:"https://www.facebook.com/p/Yesterdays-Village-Antiques-Collectibles-Mall-61554158938645/", notes:"Big multi-floor antique mall.", cat:"antique", region:"yakima" },
+  { id:"Y2", name:"Yakima Finds Antique Mall", address:"111 S 2nd St, Yakima, WA 98901", lat:46.60112, lng:-120.50377, phone:"(509) 969-1111", hours:"Mon-Sat 11am-7pm; Sun 11am-5pm", website:"https://www.yakimafinds.com/", facebook:null, notes:"Curated multi-vendor antique mall.", cat:"antique", region:"yakima" },
+  { id:"Y3", name:"Flippers Antiques & Estate Sales", address:"519 W Yakima Ave, Yakima, WA 98902", lat:46.60002, lng:-120.51604, phone:"(509) 571-3112", hours:null, website:null, facebook:null, notes:"Known for estate furniture finds.", cat:"antique", region:"yakima" },
+  { id:"Y4", name:"Antiques Etc.", address:"5110 Tieton Dr, Yakima, WA", lat:46.59260, lng:-120.57718, phone:null, hours:null, website:null, facebook:null, notes:"Boutique-style shop in Glenwood Square. Needs confirmation.", cat:"antique", region:"yakima" },
+  { id:"Y5", name:"Eclectricities", address:"5110 Tieton Dr Suite 261, Yakima, WA 98908", lat:46.59260, lng:-120.57718, phone:"(509) 728-0248", hours:null, website:"https://eclectricities.com/", facebook:null, notes:"Authentic vintage clothing and accessories.", cat:"antique", region:"yakima" },
+  { id:"Y6", name:"Vintage Me", address:"106 S 3rd St, Yakima, WA 98901", lat:46.60144, lng:-120.50250, phone:"(509) 834-8166", hours:null, website:null, facebook:null, notes:"Vintage-inspired gifts and refurbished goods.", cat:"antique", region:"yakima" },
+  { id:"Y7", name:"Ron's Coin & Collectables", address:"6 N 3rd St, Yakima, WA 98901", lat:46.60306, lng:-120.50326, phone:"(509) 248-1117", hours:null, website:null, facebook:null, notes:"Vintage coins, gold, silver, and paper money.", cat:"antique", region:"yakima" },
+  { id:"Y8", name:"Sideshow Antiques", address:"111 S 2nd St, Yakima, WA", lat:46.60112, lng:-120.50377, phone:"(509) 426-4525", hours:null, website:"https://www.sideshowantiques.com/", facebook:null, notes:"Oddities, taxidermy, and circus pieces in Yakima Finds building.", cat:"antique", region:"yakima" },
+  { id:"Y9", name:"Cobblestone's Gifts", address:"4906 Summitview Ave, Yakima, WA", lat:46.59982, lng:-120.57456, phone:"(509) 457-4540", hours:null, website:null, facebook:null, notes:"Antiques plus vintage-style decor. Possible relocation.", cat:"antique", region:"yakima" },
+  { id:"Y10", name:"Whimsical Details", address:"30 N 2nd St, Yakima, WA", lat:46.60294, lng:-120.50498, phone:null, hours:null, website:null, facebook:null, notes:"Upcycled and restored vintage furniture.", cat:"antique", region:"yakima" },
+  { id:"Y11", name:"Heritage Outfitters", address:"32 N 3rd St, Yakima, WA", lat:46.60335, lng:-120.50340, phone:null, hours:null, website:null, facebook:null, notes:"Industrial vintage, tools, and rustic Americana.", cat:"antique", region:"yakima" },
+  { id:"Y14", name:"One More Time Around", address:"419 W Yakima Ave, Yakima, WA 98902", lat:46.60037, lng:-120.51453, phone:"(509) 571-4413", hours:null, website:null, facebook:null, notes:"Quirky vintage mix and accessories.", cat:"antique", region:"yakima" },
+  { id:"Y15", name:"The Closet Thrift Store", address:"121 S 1st St, Yakima, WA", lat:46.60100, lng:-120.50250, phone:null, hours:null, website:null, facebook:null, notes:"Retro section with genuine 50s-90s finds.", cat:"antique", region:"yakima" },
+  { id:"Y16", name:"Yakima Gaming and Collectibles", address:"910 Summitview Ave Suite 1A, Yakima, WA", lat:46.59977, lng:-120.52228, phone:null, hours:null, website:null, facebook:null, notes:"Retro games, cards, and action figures.", cat:"antique", region:"yakima" },
+  { id:"Y17", name:"Appletown Game & Hobby", address:"1018 W Nob Hill Blvd, Yakima, WA", lat:46.58516, lng:-120.52152, phone:null, hours:null, website:null, facebook:null, notes:"Vintage tabletop and hobby collections.", cat:"antique", region:"yakima" },
+  { id:"Y18", name:"Gretchen", address:"4001 Summitview Ave, Yakima, WA", lat:46.59999, lng:-120.56212, phone:null, hours:null, website:null, facebook:null, notes:"Upscale boutique with some genuine designer vintage.", cat:"antique", region:"yakima" },
+  { id:"Y19", name:"Shopkeeper", address:"3105 Summitview Ave, Yakima, WA", lat:46.60000, lng:-120.55036, phone:null, hours:null, website:null, facebook:null, notes:"Gift shop with antique seasonal decor and glassware.", cat:"antique", region:"yakima" },
+
+  // === UNION GAP - ANTIQUES ===
+  { id:"U1", name:"Farmgirl Pickings", address:"2515 Main St, Union Gap, WA 98903", lat:46.56283, lng:-120.47926, phone:"(509) 225-1477", hours:null, website:null, facebook:null, notes:"Curated farmhouse aesthetic shop.", cat:"antique", region:"uniongap" },
+  { id:"U2", name:"Somewhere in Time / That 70s Shop", address:"3911 1st St, Union Gap, WA 98903", lat:46.54857, lng:-120.47648, phone:"(509) 248-7352", hours:null, website:"http://that70sshopyakima.com/", facebook:null, notes:"1950s-1980s memorabilia, toys, and kitchenware.", cat:"antique", region:"uniongap" },
+  { id:"U3", name:"Gap Treasures", address:"3711 Main St, Union Gap, WA 98903", lat:46.56283, lng:-120.47926, phone:"(509) 249-8656", hours:null, website:null, facebook:null, notes:"Confirmed antique shop on Main St.", cat:"antique", region:"uniongap" },
+  { id:"U4", name:"Granny's Attic", address:"4215 Main St, Union Gap, WA 98903", lat:46.56466, lng:-120.48130, phone:"(509) 594-1665", hours:null, website:null, facebook:null, notes:"Union Gap antique shop.", cat:"antique", region:"uniongap" },
+
+  // === SELAH - ANTIQUES ===
+  { id:"S1", name:"Precision Fruit & Antiques", address:"140 E Selah Rd, Yakima, WA 98901", lat:46.64699, lng:-120.50083, phone:"(509) 457-5963", hours:null, website:"http://precisionfruit.com/", facebook:null, notes:"Half fruit stand, half antique barn.", cat:"antique", region:"selah" },
+  { id:"S2", name:"Trinket Box Antiques", address:"105 E Naches Ave, Selah, WA 98942", lat:46.65413, lng:-120.53025, phone:"(509) 823-9192", hours:null, website:null, facebook:null, notes:"Curated antique shop on Naches Ave.", cat:"antique", region:"selah" },
+
+  // === WAPATO - ANTIQUES ===
+  { id:"W1", name:"Country Garden Antiques", address:"6451 Yakima Valley Hwy, Wapato, WA 98951", lat:46.44763, lng:-120.42034, phone:"(509) 877-4644", hours:null, website:null, facebook:null, notes:"English country furniture, porcelain, and garden pieces.", cat:"antique", region:"wapato" },
+  { id:"W2", name:"Darlenes", address:"2573 Branch Rd, Wapato, WA", lat:46.44763, lng:-120.42034, phone:null, hours:null, website:null, facebook:null, notes:"Project pieces and DIY-friendly antiques.", cat:"antique", region:"wapato" },
+
+  // === KILLER THRIFT ===
+  { id:"K1", name:"Hidden Treasures Thrift Store", address:"415 W Washington Ave A, Yakima, WA 98903", lat:46.57050, lng:-120.51028, phone:"(509) 969-8106", hours:null, website:null, facebook:null, notes:"Includes estate sale services.", cat:"killer", region:"yakima" },
+  { id:"K2", name:"Legacy Thrift & Consignment", address:"11 Pence Rd, Yakima, WA 98908", lat:46.63932, lng:-120.59346, phone:"(509) 795-5732", hours:null, website:null, facebook:null, notes:"Thrift and consignment finds.", cat:"killer", region:"yakima" },
+  { id:"K3", name:"El Mister Deals", address:"2901 W Nob Hill Blvd, Yakima, WA 98902", lat:46.58531, lng:-120.53592, phone:"(509) 426-9403", hours:null, website:null, facebook:null, notes:"Discount and overstock retail.", cat:"killer", region:"yakima" },
+
+  // === CHARITY THRIFT ===
+  { id:"C1", name:"St. Vincent de Paul Thrift", address:"212 S 1st St, Union Gap, WA 98903", lat:46.55318, lng:-120.47658, phone:null, hours:null, website:null, facebook:null, notes:"Well-known charity thrift in Union Gap.", cat:"charity", region:"uniongap" },
+  { id:"C2", name:"St. Vincent Center Thrift", address:"2629 Main St, Union Gap, WA 98903", lat:46.56466, lng:-120.48130, phone:"(509) 457-5111", hours:null, website:"https://catholiccharitiescw.org/st-vincent", facebook:null, notes:"Charity thrift and resource center.", cat:"charity", region:"uniongap" },
+  { id:"C3", name:"YUGM Thrift Store (Selah)", address:"111 Pleasant Ave, Selah, WA 98942", lat:46.64525, lng:-120.53071, phone:"(509) 457-3370", hours:null, website:"https://yugm.org/thrift/", facebook:null, notes:"Newest YUGM location in Selah.", cat:"charity", region:"selah" },
+  { id:"C4", name:"Mission Thrift (YUGM)", address:"2011 W Lincoln Ave, Yakima, WA 98902", lat:46.60354, lng:-120.53604, phone:"(509) 317-2544", hours:null, website:"https://yugm.org/thrift/", facebook:null, notes:"Yakima Union Gospel Mission thrift.", cat:"charity", region:"yakima" },
+  { id:"C5", name:"Summit Thrift (YUGM)", address:"5606 Summitview Ave, Yakima, WA 98908", lat:46.59992, lng:-120.58342, phone:"(509) 248-9207", hours:null, website:"https://yugm.org/thrift/", facebook:null, notes:"YUGM Summitview thrift location.", cat:"charity", region:"yakima" },
+  { id:"C6", name:"Lighthouse Thrift (YUGM Bins)", address:"1606 N 1st St, Yakima, WA 98901", lat:46.60350, lng:-120.50671, phone:"(509) 424-4888", hours:null, website:"https://yugm.org/", facebook:null, notes:"Bins/outlet style YUGM store.", cat:"charity", region:"yakima" },
+
+  // === CORPORATE THRIFT ===
+  { id:"G1", name:"Goodwill Selah", address:"503 S 1st St, Selah, WA 98942", lat:46.64681, lng:-120.53026, phone:"(509) 698-3560", hours:null, website:"https://www.goodwillwa.org/", facebook:null, notes:"One of three local Goodwill stores.", cat:"corporate", region:"selah" },
+  { id:"G2", name:"Goodwill Yakima", address:"3710 Tieton Dr, Yakima, WA 98902", lat:46.59263, lng:-120.55874, phone:"(509) 965-7355", hours:null, website:"https://www.goodwillwa.org/", facebook:null, notes:"Yakima Goodwill retail store.", cat:"corporate", region:"yakima" },
+  { id:"G3", name:"Goodwill Union Gap", address:"1907 S 1st St, Yakima, WA 98903", lat:46.56809, lng:-120.48513, phone:"(509) 452-0207", hours:null, website:"https://www.goodwillwa.org/", facebook:null, notes:"Goodwill Union Gap store.", cat:"corporate", region:"uniongap" },
+
+  // === SPECIALTY ===
+  { id:"P1", name:"Bowlby's Gun and Pawn", address:"129 S 3rd St, Yakima, WA 98901", lat:46.60127, lng:-120.50217, phone:"(509) 248-8280", hours:null, website:"http://bowlbysgunandpawn.com", facebook:null, notes:"Pawn shop with antiques.", cat:"specialty", region:"yakima" },
+  { id:"B1", name:"Churchill Books", address:"10 N 2nd St, Yakima, WA 98901", lat:46.60272, lng:-120.50488, phone:"(509) 453-6522", hours:null, website:"http://www.churchillbooks.com", facebook:null, notes:"Rare, used, and collectible bookstore.", cat:"specialty", region:"yakima" }
+];
+
+// Add mapsUrl to each shop
+shops.forEach(function(s) { s.mapsUrl = mapsUrl(s.address); });
+
+// ===== MAP =====
+var map = L.map('map', { zoomControl: true }).setView([46.585, -120.49], 11);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '\u00a9 OpenStreetMap contributors', maxZoom: 19
+}).addTo(map);
+
+var markers = [];
+
+function createStarIcon(id, color) {
+  return L.divIcon({
+    html: '<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">' +
+      '<polygon points="18,2 22.5,13 34,13 24.8,20.5 28.5,32 18,25 7.5,32 11.2,20.5 2,13 13.5,13"' +
+      ' fill="' + color + '" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"' +
+      ' filter="drop-shadow(0 2px 2px rgba(0,0,0,0.3))"/>' +
+      '<text x="18" y="20" text-anchor="middle" font-family="Inter,sans-serif" font-weight="700"' +
+      ' font-size="8" fill="white" stroke="rgba(0,0,0,0.3)" stroke-width="0.5">' + id + '</text></svg>',
+    className: '', iconSize: [36, 36], iconAnchor: [18, 18], popupAnchor: [0, -18]
+  });
+}
+
+shops.forEach(function(shop) {
+  var color = catColors[shop.cat];
+  var icon = createStarIcon(shop.id, color);
+  var popupEl = document.createElement('div');
+
+  var t = document.createElement('div'); t.className = 'popup-title';
+  t.textContent = shop.id + ' \u2013 ' + shop.name; popupEl.appendChild(t);
+
+  var c = document.createElement('div'); c.className = 'popup-cat';
+  c.style.color = color; c.textContent = catLabels[shop.cat]; popupEl.appendChild(c);
+
+  var a = document.createElement('div'); a.className = 'popup-addr';
+  a.textContent = shop.address; popupEl.appendChild(a);
+
+  if (shop.phone || shop.hours) {
+    var ct = document.createElement('div'); ct.className = 'popup-contact';
+    if (shop.phone) { ct.textContent = shop.phone; }
+    popupEl.appendChild(ct);
+  }
+  if (shop.hours) {
+    var h = document.createElement('div'); h.className = 'popup-hours';
+    h.textContent = shop.hours; popupEl.appendChild(h);
+  }
+
+  var n = document.createElement('div'); n.className = 'popup-notes';
+  n.textContent = shop.notes; popupEl.appendChild(n);
+
+  var links = document.createElement('div'); links.className = 'popup-links';
+  var dirLink = document.createElement('a'); dirLink.href = shop.mapsUrl;
+  dirLink.target = '_blank'; dirLink.rel = 'noopener';
+  dirLink.textContent = 'Directions \u2192'; links.appendChild(dirLink);
+  if (shop.website) {
+    var wl = document.createElement('a'); wl.href = shop.website;
+    wl.target = '_blank'; wl.rel = 'noopener';
+    wl.textContent = 'Website \u2192'; links.appendChild(wl);
+  }
+  if (shop.facebook) {
+    var fl = document.createElement('a'); fl.href = shop.facebook;
+    fl.target = '_blank'; fl.rel = 'noopener';
+    fl.textContent = 'Facebook \u2192'; links.appendChild(fl);
+  }
+  popupEl.appendChild(links);
+
+  var marker = L.marker([shop.lat, shop.lng], { icon: icon }).addTo(map).bindPopup(popupEl);
+  marker._shopData = shop;
+  markers.push(marker);
+});
+
+// ===== FILTERING =====
+var activeFilter = 'all';
+
+document.getElementById('controls').addEventListener('click', function(e) {
+  var btn = e.target;
+  if (btn.tagName !== 'BUTTON') return;
+  if (btn.id === 'print-btn') { window.print(); return; }
+  var filter = btn.getAttribute('data-filter');
+  if (!filter) return;
+
+  activeFilter = filter;
+  var buttons = document.querySelectorAll('.controls button');
+  for (var i = 0; i < buttons.length; i++) buttons[i].classList.remove('active');
+  btn.classList.add('active');
+
+  markers.forEach(function(m) {
+    var s = m._shopData;
+    var show = false;
+    if (filter === 'all') show = true;
+    else if (filter.indexOf('cat:') === 0) show = s.cat === filter.split(':')[1];
+    else if (filter.indexOf('region:') === 0) show = s.region === filter.split(':')[1];
+    if (show) m.addTo(map); else map.removeLayer(m);
+  });
+
+  var visible = markers.filter(function(m) { return map.hasLayer(m); });
+  if (visible.length > 0) {
+    map.fitBounds(L.featureGroup(visible).getBounds().pad(0.1));
+  }
+  renderList(filter);
+});
+
+// ===== RENDER LIST =====
+function matchesFilter(shop, filter) {
+  if (filter === 'all') return true;
+  if (filter.indexOf('cat:') === 0) return shop.cat === filter.split(':')[1];
+  if (filter.indexOf('region:') === 0) return shop.region === filter.split(':')[1];
+  return true;
+}
+
+function renderList(filter) {
+  var container = document.getElementById('shop-list');
+  while (container.firstChild) container.removeChild(container.firstChild);
+
+  var filtered = shops.filter(function(s) { return matchesFilter(s, filter); });
+
+  // Group by region
+  var grouped = {};
+  var regionOrder = ['yakima', 'uniongap', 'selah', 'wapato'];
+  filtered.forEach(function(s) {
+    if (!grouped[s.region]) grouped[s.region] = [];
+    grouped[s.region].push(s);
+  });
+
+  regionOrder.forEach(function(reg) {
+    var items = grouped[reg];
+    if (!items) return;
+
+    var groupDiv = document.createElement('div');
+    groupDiv.className = 'region-group';
+
+    var h3 = document.createElement('h3');
+    h3.textContent = regionLabels[reg] + ' (' + items.length + ' shops)';
+    groupDiv.appendChild(h3);
+
+    var gridDiv = document.createElement('div');
+    gridDiv.className = 'shop-grid';
+
+    items.forEach(function(s) {
+      var card = document.createElement('div');
+      card.className = 'shop-card cat-' + s.cat;
+      card.addEventListener('click', function() { flyToShop(s.id); });
+
+      var idDiv = document.createElement('div');
+      idDiv.className = 'shop-id';
+      idDiv.textContent = s.id;
+      card.appendChild(idDiv);
+
+      var info = document.createElement('div');
+      info.className = 'shop-info';
+
+      var nm = document.createElement('div'); nm.className = 'shop-name';
+      nm.textContent = s.name; info.appendChild(nm);
+
+      var ct = document.createElement('div'); ct.className = 'shop-cat';
+      ct.style.color = catColors[s.cat];
+      ct.textContent = catLabels[s.cat]; info.appendChild(ct);
+
+      var addr = document.createElement('div'); addr.className = 'shop-address';
+      addr.textContent = s.address; info.appendChild(addr);
+
+      if (s.phone) {
+        var ph = document.createElement('div'); ph.className = 'shop-contact';
+        var phoneLink = document.createElement('a');
+        phoneLink.href = 'tel:' + s.phone.replace(/[^+\d]/g, '');
+        phoneLink.textContent = s.phone;
+        phoneLink.addEventListener('click', function(e) { e.stopPropagation(); });
+        ph.appendChild(phoneLink);
+        info.appendChild(ph);
+      }
+
+      if (s.hours) {
+        var hrs = document.createElement('div'); hrs.className = 'shop-hours';
+        hrs.textContent = s.hours; info.appendChild(hrs);
+      }
+
+      var notes = document.createElement('div'); notes.className = 'shop-notes';
+      notes.textContent = s.notes; info.appendChild(notes);
+
+      var links = document.createElement('div'); links.className = 'shop-links';
+      var dl = document.createElement('a'); dl.href = s.mapsUrl;
+      dl.target = '_blank'; dl.rel = 'noopener';
+      dl.textContent = 'Directions \u2192';
+      dl.addEventListener('click', function(e) { e.stopPropagation(); });
+      links.appendChild(dl);
+
+      if (s.website) {
+        var wl = document.createElement('a'); wl.href = s.website;
+        wl.target = '_blank'; wl.rel = 'noopener';
+        wl.textContent = 'Website \u2192';
+        wl.addEventListener('click', function(e) { e.stopPropagation(); });
+        links.appendChild(wl);
+      }
+      if (s.facebook) {
+        var fl = document.createElement('a'); fl.href = s.facebook;
+        fl.target = '_blank'; fl.rel = 'noopener';
+        fl.textContent = 'Facebook \u2192';
+        fl.addEventListener('click', function(e) { e.stopPropagation(); });
+        links.appendChild(fl);
+      }
+      info.appendChild(links);
+      card.appendChild(info);
+      gridDiv.appendChild(card);
+    });
+
+    groupDiv.appendChild(gridDiv);
+    container.appendChild(groupDiv);
+  });
+}
+
+function flyToShop(id) {
+  var marker = markers.find(function(m) { return m._shopData.id === id; });
+  if (marker) {
+    map.flyTo(marker.getLatLng(), 16, { duration: 0.8 });
+    marker.openPopup();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+renderList('all');
+map.fitBounds(L.featureGroup(markers).getBounds().pad(0.1));
+
+// ===== ADMIN MODE =====
+var isAdmin = window.location.search.indexOf('admin') !== -1;
+var editingIdx = -1;
+var editingMarker = null;
+
+if (isAdmin) {
+  document.getElementById('admin-bar').style.display = 'flex';
+
+  // Load any saved overrides from localStorage
+  var saved = localStorage.getItem('vintiques-shops');
+  if (saved) {
+    try {
+      var savedShops = JSON.parse(saved);
+      // Rebuild shops array and markers
+      shops.length = 0;
+      savedShops.forEach(function(s) { shops.push(s); });
+      shops.forEach(function(s) { s.mapsUrl = mapsUrl(s.address); });
+      // Rebuild markers
+      markers.forEach(function(m) { map.removeLayer(m); });
+      markers.length = 0;
+      shops.forEach(function(shop) {
+        var color = catColors[shop.cat];
+        var icon = createStarIcon(shop.id, color);
+        var marker = L.marker([shop.lat, shop.lng], { icon: icon, draggable: true }).addTo(map);
+        marker._shopData = shop;
+        marker._shopIdx = shops.indexOf(shop);
+        setupAdminMarker(marker);
+        markers.push(marker);
+      });
+      renderList('all');
+      map.fitBounds(L.featureGroup(markers).getBounds().pad(0.1));
+    } catch(e) { console.error('Failed to load saved shops', e); }
+  } else {
+    // Make existing markers draggable
+    markers.forEach(function(m, i) {
+      m.dragging.enable();
+      m._shopIdx = i;
+      setupAdminMarker(m);
+    });
+  }
+}
+
+function setupAdminMarker(marker) {
+  marker.on('dragend', function(e) {
+    var ll = e.target.getLatLng();
+    var idx = e.target._shopIdx;
+    shops[idx].lat = parseFloat(ll.lat.toFixed(5));
+    shops[idx].lng = parseFloat(ll.lng.toFixed(5));
+    saveToLocalStorage();
+    // Update coords display if editing this shop
+    if (editingIdx === idx) {
+      document.getElementById('af-lat').textContent = shops[idx].lat;
+      document.getElementById('af-lng').textContent = shops[idx].lng;
+    }
+  });
+  marker.on('click', function(e) {
+    if (isAdmin) {
+      e.originalEvent.stopPropagation();
+      openEditPanel(e.target._shopIdx);
+    }
+  });
+}
+
+function openEditPanel(idx) {
+  editingIdx = idx;
+  editingMarker = markers.find(function(m) { return m._shopIdx === idx; });
+  var s = shops[idx];
+  document.getElementById('af-idx').value = idx;
+  document.getElementById('af-id').value = s.id;
+  document.getElementById('af-name').value = s.name;
+  document.getElementById('af-address').value = s.address;
+  document.getElementById('af-phone').value = s.phone || '';
+  document.getElementById('af-hours').value = s.hours || '';
+  document.getElementById('af-website').value = s.website || '';
+  document.getElementById('af-facebook').value = s.facebook || '';
+  document.getElementById('af-cat').value = s.cat;
+  document.getElementById('af-region').value = s.region;
+  document.getElementById('af-notes').value = s.notes || '';
+  document.getElementById('af-lat').textContent = s.lat;
+  document.getElementById('af-lng').textContent = s.lng;
+  document.getElementById('admin-panel-title').textContent = 'Edit: ' + s.id + ' - ' + s.name;
+  document.getElementById('af-delete').style.display = '';
+  document.getElementById('admin-panel').classList.add('open');
+  map.flyTo([s.lat, s.lng], 16, { duration: 0.5 });
+}
+
+function openAddPanel() {
+  editingIdx = -1;
+  editingMarker = null;
+  document.getElementById('af-idx').value = '';
+  document.getElementById('af-id').value = '';
+  document.getElementById('af-name').value = '';
+  document.getElementById('af-address').value = '';
+  document.getElementById('af-phone').value = '';
+  document.getElementById('af-hours').value = '';
+  document.getElementById('af-website').value = '';
+  document.getElementById('af-facebook').value = '';
+  document.getElementById('af-cat').value = 'antique';
+  document.getElementById('af-region').value = 'yakima';
+  document.getElementById('af-notes').value = '';
+  var center = map.getCenter();
+  document.getElementById('af-lat').textContent = center.lat.toFixed(5);
+  document.getElementById('af-lng').textContent = center.lng.toFixed(5);
+  document.getElementById('admin-panel-title').textContent = 'Add New Shop';
+  document.getElementById('af-delete').style.display = 'none';
+  document.getElementById('admin-panel').classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('admin-panel').classList.remove('open');
+  editingIdx = -1;
+  editingMarker = null;
+}
+
+function saveShop() {
+  var id = document.getElementById('af-id').value.trim();
+  var name = document.getElementById('af-name').value.trim();
+  if (!id || !name) { alert('ID and Name are required.'); return; }
+
+  var shopData = {
+    id: id,
+    name: name,
+    address: document.getElementById('af-address').value.trim(),
+    lat: parseFloat(document.getElementById('af-lat').textContent),
+    lng: parseFloat(document.getElementById('af-lng').textContent),
+    phone: document.getElementById('af-phone').value.trim() || null,
+    hours: document.getElementById('af-hours').value.trim() || null,
+    website: document.getElementById('af-website').value.trim() || null,
+    facebook: document.getElementById('af-facebook').value.trim() || null,
+    notes: document.getElementById('af-notes').value.trim(),
+    cat: document.getElementById('af-cat').value,
+    region: document.getElementById('af-region').value
+  };
+  shopData.mapsUrl = mapsUrl(shopData.address);
+
+  if (editingIdx >= 0) {
+    // Update existing
+    shops[editingIdx] = shopData;
+    var m = markers.find(function(mk) { return mk._shopIdx === editingIdx; });
+    if (m) {
+      map.removeLayer(m);
+      markers.splice(markers.indexOf(m), 1);
+    }
+    var icon = createStarIcon(shopData.id, catColors[shopData.cat]);
+    var newMarker = L.marker([shopData.lat, shopData.lng], { icon: icon, draggable: true }).addTo(map);
+    newMarker._shopData = shopData;
+    newMarker._shopIdx = editingIdx;
+    setupAdminMarker(newMarker);
+    markers.push(newMarker);
+  } else {
+    // Add new
+    shops.push(shopData);
+    var newIdx = shops.length - 1;
+    var icon = createStarIcon(shopData.id, catColors[shopData.cat]);
+    var newMarker = L.marker([shopData.lat, shopData.lng], { icon: icon, draggable: true }).addTo(map);
+    newMarker._shopData = shopData;
+    newMarker._shopIdx = newIdx;
+    setupAdminMarker(newMarker);
+    markers.push(newMarker);
+  }
+
+  saveToLocalStorage();
+  renderList(activeFilter);
+  closePanel();
+}
+
+function deleteShop() {
+  if (editingIdx < 0) return;
+  if (!confirm('Delete ' + shops[editingIdx].name + '?')) return;
+  shops.splice(editingIdx, 1);
+  // Remove marker
+  var m = markers.find(function(mk) { return mk._shopIdx === editingIdx; });
+  if (m) { map.removeLayer(m); markers.splice(markers.indexOf(m), 1); }
+  // Reindex
+  markers.forEach(function(mk, i) { mk._shopIdx = shops.indexOf(mk._shopData); });
+  saveToLocalStorage();
+  renderList(activeFilter);
+  closePanel();
+}
+
+function saveToLocalStorage() {
+  var data = shops.map(function(s) {
+    return { id:s.id, name:s.name, address:s.address, lat:s.lat, lng:s.lng,
+      phone:s.phone, hours:s.hours, website:s.website, facebook:s.facebook,
+      notes:s.notes, cat:s.cat, region:s.region };
+  });
+  localStorage.setItem('vintiques-shops', JSON.stringify(data));
+}
+
+function exportJSON() {
+  var data = shops.map(function(s) {
+    return { id:s.id, name:s.name, address:s.address, lat:s.lat, lng:s.lng,
+      phone:s.phone, hours:s.hours, website:s.website, facebook:s.facebook,
+      notes:s.notes, cat:s.cat, region:s.region };
+  });
+  var json = JSON.stringify(data, null, 2);
+  var panel = document.getElementById('admin-panel');
+  panel.classList.add('open');
+  document.getElementById('admin-panel-title').textContent = 'Export Shop Data';
+  var form = document.getElementById('admin-form');
+  form.style.display = 'none';
+  document.getElementById('admin-drag-hint').style.display = 'none';
+
+  var existing = document.getElementById('admin-export-area');
+  if (existing) existing.remove();
+
+  var exp = document.createElement('div');
+  exp.id = 'admin-export-area';
+  exp.className = 'admin-export';
+
+  var ta = document.createElement('textarea');
+  ta.value = json;
+  ta.readOnly = true;
+  exp.appendChild(ta);
+
+  var copyBtn = document.createElement('button');
+  copyBtn.className = 'admin-btn admin-btn-save';
+  copyBtn.textContent = 'Copy to Clipboard';
+  copyBtn.addEventListener('click', function() {
+    ta.select();
+    document.execCommand('copy');
+    copyBtn.textContent = 'Copied!';
+    setTimeout(function() { copyBtn.textContent = 'Copy to Clipboard'; }, 2000);
+  });
+  exp.appendChild(copyBtn);
+
+  var resetBtn = document.createElement('button');
+  resetBtn.className = 'admin-btn admin-btn-delete';
+  resetBtn.style.marginTop = '0.5rem';
+  resetBtn.textContent = 'Reset to Default (clear local edits)';
+  resetBtn.addEventListener('click', function() {
+    if (confirm('Clear all local edits and reload default data?')) {
+      localStorage.removeItem('vintiques-shops');
+      location.reload();
+    }
+  });
+  exp.appendChild(resetBtn);
+
+  panel.appendChild(exp);
+}
+
+// Wire up admin buttons
+if (isAdmin) {
+  document.getElementById('admin-add-btn').addEventListener('click', openAddPanel);
+  document.getElementById('admin-export-btn').addEventListener('click', exportJSON);
+  document.getElementById('admin-panel-close').addEventListener('click', function() {
+    closePanel();
+    var form = document.getElementById('admin-form');
+    form.style.display = '';
+    document.getElementById('admin-drag-hint').style.display = '';
+    var exp = document.getElementById('admin-export-area');
+    if (exp) exp.remove();
+  });
+  document.getElementById('af-save').addEventListener('click', saveShop);
+  document.getElementById('af-delete').addEventListener('click', deleteShop);
+  document.getElementById('af-cancel').addEventListener('click', closePanel);
+}
+</script>
+</body>
+</html>

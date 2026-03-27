@@ -9,8 +9,8 @@
 </script>
 
 {#if $navigating}
-  <div class="fixed top-0 left-0 right-0 z-[100] h-1 bg-primary-200">
-    <div class="h-full bg-primary-600 animate-loading-bar"></div>
+  <div class="fixed top-0 left-0 right-0 z-[100] h-1 bg-amber-200">
+    <div class="h-full bg-gradient-to-r from-amber-500 to-orange-500 animate-loading-bar"></div>
   </div>
 {/if}
 

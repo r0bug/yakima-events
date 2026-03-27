@@ -64,6 +64,8 @@ export const GET: RequestHandler = async ({ url }) => {
       source_url: event.sourceUrl,
       image_url: event.primaryImageUrl,
       is_unapproved: event.status === 'pending',
+      category_details: event.categoryDetails || [],
+      linked_shop: event.linkedShop || null,
     }));
 
     return json({
