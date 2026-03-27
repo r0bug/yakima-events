@@ -17,7 +17,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
   // Build conditions
   const conditions = [];
-  if (status !== 'all') {
+  if (status === 'venues') {
+    conditions.push(eq(localShops.isVenuePlaceholder, true));
+  } else if (status !== 'all') {
     conditions.push(eq(localShops.status, status as 'active' | 'pending' | 'inactive'));
   }
   if (search) {
@@ -58,6 +60,11 @@ export const load: PageServerLoad = async ({ locals, url }) => {
     .from(localShops)
     .where(eq(localShops.verified, true));
 
+  const [venueCount] = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(localShops)
+    .where(eq(localShops.isVenuePlaceholder, true));
+
   // Get categories
   const categories = await db.select().from(shopCategories);
 
@@ -78,6 +85,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
       active: activeCount?.count || 0,
       pending: pendingCount?.count || 0,
       verified: verifiedCount?.count || 0,
+      venues: venueCount?.count || 0,
     },
   };
 };

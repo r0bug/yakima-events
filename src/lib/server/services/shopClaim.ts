@@ -275,6 +275,31 @@ export async function approveClaim(
   // Try to find or create user by email and add as shop admin
   const shopId = claim[0].shopId;
   if (shopId) {
+    // If this is a venue placeholder, promote it to a full shop
+    const shop = await db
+      .select({ isVenuePlaceholder: localShops.isVenuePlaceholder })
+      .from(localShops)
+      .where(eq(localShops.id, shopId))
+      .limit(1);
+
+    if (shop.length > 0 && shop[0].isVenuePlaceholder) {
+      await db
+        .update(localShops)
+        .set({
+          isVenuePlaceholder: false,
+          active: true,
+          status: 'approved',
+          name: claim[0].businessName || undefined,
+        })
+        .where(eq(localShops.id, shopId));
+
+      // Clear shop match cache so the promoted shop is picked up
+      try {
+        const { clearShopCache } = await import('$lib/server/services/shopMatch');
+        clearShopCache();
+      } catch (_) { /* shopMatch may not be available */ }
+    }
+
     const existingUser = await db
       .select()
       .from(users)

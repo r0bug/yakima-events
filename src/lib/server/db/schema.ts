@@ -288,6 +288,9 @@ export const localShops = mysqlTable('local_shops', {
   amenities: json('amenities'),
   featured: boolean('featured').default(false),
   verified: boolean('verified').default(false),
+  isVenuePlaceholder: boolean('is_venue_placeholder').default(false),
+  venueSourceCount: int('venue_source_count').default(0),
+  normalizedName: varchar('normalized_name', { length: 255 }),
   ownerId: int('owner_id'),
   status: mysqlEnum('status', ['active', 'pending', 'inactive']).default('pending'),
   active: boolean('active').default(true),
@@ -297,6 +300,7 @@ export const localShops = mysqlTable('local_shops', {
   statusIdx: index('status_idx').on(table.status),
   categoryIdx: index('category_idx').on(table.categoryId),
   locationIdx: index('location_idx').on(table.latitude, table.longitude),
+  normalizedNameIdx: index('idx_normalized_name').on(table.normalizedName),
 }));
 
 // ============================================================================

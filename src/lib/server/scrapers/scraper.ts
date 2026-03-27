@@ -410,13 +410,25 @@ export async function processEvent(
       console.warn('[Scraper] Auto-categorize failed:', catErr);
     }
 
-    // Auto-link to matching local shop
+    // Auto-link to matching local shop, or create venue placeholder
     try {
-      const { matchAndLinkEvent } = await import('$lib/server/services/shopMatch');
+      const { findMatchingShop, linkEventToShop } = await import('$lib/server/services/shopMatch');
       const newId = Number(result[0].insertId);
-      await matchAndLinkEvent(newId, eventData.title, eventData.location);
+      const shopId = await findMatchingShop(eventData.title, eventData.location);
+      if (shopId) {
+        await linkEventToShop(newId, shopId);
+      } else if (eventData.location) {
+        const { findOrCreateVenuePlaceholder } = await import('$lib/server/services/venueExtract');
+        const venueId = await findOrCreateVenuePlaceholder(
+          eventData.location,
+          eventData.address,
+          eventData.latitude ? String(eventData.latitude) : undefined,
+          eventData.longitude ? String(eventData.longitude) : undefined,
+        );
+        if (venueId) await linkEventToShop(newId, venueId);
+      }
     } catch (shopErr) {
-      console.warn('[Scraper] Shop match failed:', shopErr);
+      console.warn('[Scraper] Shop/venue match failed:', shopErr);
     }
 
     return 'added';

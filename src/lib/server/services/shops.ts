@@ -188,6 +188,8 @@ export async function getShopById(id: number): Promise<ShopWithDetails | null> {
       active: localShops.active,
       createdAt: localShops.createdAt,
       updatedAt: localShops.updatedAt,
+      isVenuePlaceholder: localShops.isVenuePlaceholder,
+      venueSourceCount: localShops.venueSourceCount,
       categoryName: shopCategories.name,
       categoryIcon: shopCategories.icon,
     })

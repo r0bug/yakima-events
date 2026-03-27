@@ -4,7 +4,7 @@
  */
 import { db } from '$lib/server/db';
 import { localShops, eventShopParticipants } from '$lib/server/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, or } from 'drizzle-orm';
 
 interface ShopEntry {
   id: number;
@@ -61,7 +61,7 @@ async function loadShops(): Promise<void> {
   const rows = await db
     .select({ id: localShops.id, name: localShops.name, address: localShops.address })
     .from(localShops)
-    .where(eq(localShops.active, true));
+    .where(or(eq(localShops.active, true), eq(localShops.isVenuePlaceholder, true)));
 
   shopCache = rows.map(r => ({ id: r.id, name: r.name, address: r.address ?? '' }));
   shopByName = new Map(shopCache.map(s => [s.name.toLowerCase(), s.id]));

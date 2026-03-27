@@ -39,6 +39,8 @@ export const load: PageServerLoad = async ({ params }) => {
 		shop: {
 			...shop,
 			images,
+			isVenuePlaceholder: (shop as any).isVenuePlaceholder || false,
+			venueSourceCount: (shop as any).venueSourceCount || 0,
 		},
 		seo: {
 			title: shop.name,

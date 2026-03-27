@@ -98,7 +98,7 @@
   </div>
 
   <!-- Stats -->
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
     <div class="bg-white rounded-lg shadow p-4">
       <div class="text-2xl font-bold text-purple-600">{data.pagination.totalCount}</div>
       <div class="text-gray-500 text-sm">Total Shops</div>
@@ -114,6 +114,10 @@
     <div class="bg-white rounded-lg shadow p-4">
       <div class="text-2xl font-bold text-blue-600">{data.counts.verified}</div>
       <div class="text-gray-500 text-sm">Verified</div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="text-2xl font-bold text-amber-600">{data.counts.venues}</div>
+      <div class="text-gray-500 text-sm">Venue Placeholders</div>
     </div>
   </div>
 
@@ -153,6 +157,12 @@
           class="px-4 py-2 rounded-lg {data.filters.status === 'pending' ? 'bg-yellow-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}"
         >
           Pending
+        </button>
+        <button
+          on:click={() => setStatusFilter('venues')}
+          class="px-4 py-2 rounded-lg {data.filters.status === 'venues' ? 'bg-amber-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}"
+        >
+          Venues
         </button>
       </div>
     </div>
@@ -195,9 +205,17 @@
                       </div>
                     {/if}
                     <div>
-                      <div class="font-medium text-gray-900">{shop.name}</div>
+                      <div class="font-medium text-gray-900">
+                        {shop.name}
+                        {#if shop.isVenuePlaceholder}
+                          <span class="ml-1 px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 rounded">VENUE</span>
+                        {/if}
+                      </div>
                       {#if shop.phone}
                         <div class="text-xs text-gray-500">{shop.phone}</div>
+                      {/if}
+                      {#if shop.isVenuePlaceholder && shop.venueSourceCount}
+                        <div class="text-xs text-amber-600">{shop.venueSourceCount} event{shop.venueSourceCount === 1 ? '' : 's'} linked</div>
                       {/if}
                     </div>
                   </div>

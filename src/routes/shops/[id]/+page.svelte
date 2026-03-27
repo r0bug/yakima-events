@@ -98,6 +98,29 @@
     <span class="text-gray-600">{shop.name}</span>
   </nav>
 
+  <!-- Venue Placeholder Claim Banner -->
+  {#if shop.isVenuePlaceholder}
+    <div class="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+      <div class="flex-shrink-0 bg-amber-100 rounded-full p-3">
+        <svg class="h-6 w-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3 class="font-semibold text-amber-900">Is this your venue?</h3>
+        <p class="text-sm text-amber-700 mt-1">
+          This venue was automatically detected from event listings. Claim it to add your business details, hours, photos, and appear in the shop directory.
+        </p>
+      </div>
+      <a
+        href="/shops/{shop.id}/claim"
+        class="flex-shrink-0 bg-amber-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-amber-700 transition-colors text-sm"
+      >
+        Claim This Venue
+      </a>
+    </div>
+  {/if}
+
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
     <!-- Main Content -->
     <div class="lg:col-span-2 space-y-6">
