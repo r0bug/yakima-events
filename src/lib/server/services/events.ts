@@ -71,6 +71,28 @@ export async function getEvents(filters: EventFilters = {}): Promise<EventWithDe
     conditions.push(eq(events.featured, filters.featured));
   }
 
+  // Search filter
+  if (filters.search) {
+    const searchTerm = `%${filters.search}%`;
+    conditions.push(or(
+      like(events.title, searchTerm),
+      like(events.location, searchTerm)
+    ));
+  }
+
+  // Category filter — match by slug via subquery on mapping table
+  if (filters.category) {
+    conditions.push(
+      inArray(
+        events.id,
+        db.select({ eventId: eventCategoryMapping.eventId })
+          .from(eventCategoryMapping)
+          .innerJoin(eventCategories, eq(eventCategoryMapping.categoryId, eventCategories.id))
+          .where(eq(eventCategories.slug, filters.category))
+      )
+    );
+  }
+
   // Build base query
   let query = db
     .select({

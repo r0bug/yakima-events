@@ -312,6 +312,7 @@ export const shopCategories = mysqlTable('shop_categories', {
   slug: varchar('slug', { length: 255 }).notNull(),
   parentId: int('parent_id'),
   icon: varchar('icon', { length: 100 }),
+  color: varchar('color', { length: 7 }),
   sortOrder: int('sort_order').default(0),
   active: boolean('active').default(true),
   createdAt: timestamp('created_at').defaultNow(),

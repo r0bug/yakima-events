@@ -100,3 +100,37 @@ export const YAKIMA_CENTER = {
 };
 
 export const DEFAULT_ZOOM = 12;
+
+/**
+ * Derive Yakima Valley region from an address string
+ */
+export function getYakimaRegion(address: string): string {
+  const lower = address.toLowerCase();
+  if (lower.includes('union gap')) return 'uniongap';
+  if (lower.includes('selah')) return 'selah';
+  if (lower.includes('wapato')) return 'wapato';
+  if (lower.includes('naches')) return 'naches';
+  if (lower.includes('tieton')) return 'tieton';
+  if (lower.includes('prosser')) return 'prosser';
+  if (lower.includes('toppenish')) return 'toppenish';
+  if (lower.includes('sunnyside')) return 'sunnyside';
+  if (lower.includes('zillah')) return 'zillah';
+  if (lower.includes('benton city')) return 'bentoncity';
+  if (lower.includes('granger')) return 'granger';
+  return 'yakima';
+}
+
+export const REGION_LABELS: Record<string, string> = {
+  yakima: 'Yakima',
+  uniongap: 'Union Gap',
+  selah: 'Selah',
+  wapato: 'Wapato',
+  naches: 'Naches',
+  tieton: 'Tieton',
+  prosser: 'Prosser',
+  toppenish: 'Toppenish',
+  sunnyside: 'Sunnyside',
+  zillah: 'Zillah',
+  bentoncity: 'Benton City',
+  granger: 'Granger',
+};
