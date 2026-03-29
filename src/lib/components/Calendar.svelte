@@ -95,6 +95,28 @@
   let categories: { id: number; name: string; slug: string; color?: string | null }[] = [];
   let showLegend = true;
 
+  // Category filter: hidden set. All shown by default, click to hide.
+  let hiddenCategories: Set<string> = new Set();
+
+  function toggleCategory(slug: string) {
+    if (hiddenCategories.has(slug)) {
+      hiddenCategories.delete(slug);
+    } else {
+      hiddenCategories.add(slug);
+    }
+    hiddenCategories = hiddenCategories; // trigger reactivity
+    selectedCategory = '';
+    loadEvents();
+  }
+
+  function showAllCategories() {
+    hiddenCategories = new Set();
+    selectedCategory = '';
+    loadEvents();
+  }
+
+  $: hasHiddenCategories = hiddenCategories.size > 0;
+
   $: dateRangeText = getDateRangeText(currentDate, currentView);
 
   onMount(async () => {
@@ -112,6 +134,7 @@
 
       if (searchQuery) params.append('search', searchQuery);
       if (selectedCategory) params.append('category', selectedCategory);
+      if (hiddenCategories.size > 0) params.append('exclude_categories', [...hiddenCategories].join(','));
 
       const response = await fetch(`/api/events?${params}`);
       const data = await response.json();
@@ -302,18 +325,6 @@
 
         <!-- Filters -->
         <div class="flex gap-2 w-full lg:w-auto">
-          {#if categories.length > 0}
-            <select
-              bind:value={selectedCategory}
-              on:change={handleCategoryChange}
-              class="px-3 py-2 border border-warm-300 rounded-lg text-sm bg-white text-stone-700"
-            >
-              <option value="">All Categories</option>
-              {#each categories as category}
-                <option value={category.slug}>{category.name}</option>
-              {/each}
-            </select>
-          {/if}
           <div class="relative flex-1 lg:w-48">
             <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -332,32 +343,38 @@
   </nav>
 
   <!-- Main Content -->
-  <!-- Category Legend -->
+  <!-- Category Filter Bar -->
   {#if categories.length > 0 && showLegend}
     <div class="bg-white/60 backdrop-blur-sm border-b border-warm-100">
       <div class="max-w-7xl mx-auto px-4 py-2">
-        <div class="flex items-center gap-1 overflow-x-auto scrollbar-hide">
-          <button
-            on:click={() => { selectedCategory = ''; handleCategoryChange(); }}
-            class="flex-shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all
-              {selectedCategory === '' ? 'bg-stone-800 text-white' : 'bg-warm-100 text-stone-600 hover:bg-warm-200'}"
-          >All</button>
-          {#each categories as cat}
+        <div class="flex flex-wrap items-center gap-1">
+          {#if hasHiddenCategories}
             <button
-              on:click={() => { selectedCategory = cat.slug; handleCategoryChange(); }}
-              class="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all
-                {selectedCategory === cat.slug ? 'text-white shadow-sm' : 'hover:opacity-80'}"
-              style="{selectedCategory === cat.slug
-                ? `background-color: ${cat.color || '#6b7280'}; color: white;`
-                : `background-color: ${cat.color || '#6b7280'}12; color: ${cat.color || '#6b7280'};`}"
+              on:click={showAllCategories}
+              class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-stone-800 text-white hover:bg-stone-700 transition-all"
+              title="Show all categories"
+            >Show All</button>
+          {/if}
+          {#each categories as cat}
+            {@const hidden = hiddenCategories.has(cat.slug)}
+            <button
+              on:click={() => toggleCategory(cat.slug)}
+              class="relative flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all"
+              style="background-color: {cat.color || '#6b7280'}15; color: {cat.color || '#6b7280'};"
+              title="{hidden ? 'Show' : 'Hide'} {cat.name}"
             >
               <span class="w-2 h-2 rounded-full flex-shrink-0" style="background-color: {cat.color || '#6b7280'};"></span>
               {cat.name}
+              {#if hidden}
+                <span class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <span class="block w-[calc(100%-8px)] h-[1.5px] bg-stone-900 rounded-full"></span>
+                </span>
+              {/if}
             </button>
           {/each}
           <button
             on:click={() => showLegend = false}
-            class="flex-shrink-0 p-1 text-stone-400 hover:text-stone-600 ml-auto"
+            class="p-1 text-stone-400 hover:text-stone-600 ml-auto"
             title="Hide legend"
           >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

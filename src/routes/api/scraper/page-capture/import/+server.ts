@@ -43,9 +43,14 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		// Determine source based on content
 		const hasFacebookEvents = eventsToImport.some((e: any) => e.facebookId || e.source === 'facebook');
+		const hasHeraldEvents = eventsToImport.some((e: any) =>
+			e.source === 'herald' || e.url?.includes('yakimaherald.com') || e.url?.includes('cityspark.com')
+		);
 		let sourceId = hasFacebookEvents
 			? await getOrCreateSource('Facebook Browser Extension', 'https://www.facebook.com/events/', 'facebook')
-			: await getOrCreateSource('Browser Extension', body.url || 'browser-extension', 'html');
+			: hasHeraldEvents
+				? await getOrCreateSource('Herald Browser Extension', 'https://www.yakimaherald.com/events/', 'cityspark')
+				: await getOrCreateSource('Browser Extension', body.url || 'browser-extension', 'html');
 
 		const results = { added: 0, duplicate: 0, invalid: 0, errors: [] as string[] };
 
@@ -110,6 +115,12 @@ function convertCaptureToScrapedEvent(raw: any): ScrapedEvent | null {
 		if (parsed) startDatetime = parsed;
 	}
 
+	// Try extracting date from Herald/CitySpark URL pattern: /details/slug/id/YYYY-MM-DDTHH
+	if (!startDatetime && raw.url) {
+		const heraldDate = parseHeraldUrlDate(raw.url);
+		if (heraldDate) startDatetime = heraldDate;
+	}
+
 	if (!startDatetime) return null;
 
 	// Build location string from available fields
@@ -126,6 +137,16 @@ function convertCaptureToScrapedEvent(raw: any): ScrapedEvent | null {
 
 	// Clean up title - remove trailing whitespace, partial words
 	let title = raw.title.trim();
+
+	// Try Herald link text format: "Event TitleVenue | City, ST time"
+	const heraldParsed = parseHeraldLinkText(title);
+	if (heraldParsed) {
+		title = heraldParsed.title;
+		if (heraldParsed.city && !location) {
+			location = heraldParsed.city;
+		}
+	}
+
 	// Remove trailing "with" or similar incomplete phrases
 	title = title.replace(/\s+(?:with|at|in|on|for|and|the|a|an)\s*$/i, '').trim();
 
@@ -143,6 +164,19 @@ function convertCaptureToScrapedEvent(raw: any): ScrapedEvent | null {
 		}
 	}
 
+	// Generate external event ID — CitySpark IDs from Herald URLs
+	let externalEventId: string | undefined;
+	if (raw.facebookId) {
+		externalEventId = `fb_${raw.facebookId}`;
+	} else if (raw.url?.includes('cityspark.com') || raw.url?.includes('yakimaherald.com/events/')) {
+		const csMatch = raw.url.match(/\/details\/[^/]+\/(\d+)\//);
+		externalEventId = csMatch ? `cityspark_${csMatch[1]}` : `ext_${hashCode(raw.title + (raw.startDate || ''))}`;
+	} else if (raw.url?.includes('eventbrite.com/e/')) {
+		externalEventId = `eb_${raw.url.split('/e/')[1]?.split(/[?/]/)[0] || hashCode(raw.title)}`;
+	} else if (raw.url && raw.title) {
+		externalEventId = `ext_${hashCode(raw.title + (raw.startDate || ''))}`;
+	}
+
 	return {
 		title,
 		description: raw.description || null,
@@ -151,13 +185,7 @@ function convertCaptureToScrapedEvent(raw: any): ScrapedEvent | null {
 		location: location || undefined,
 		address: address || undefined,
 		externalUrl: raw.url || undefined,
-		externalEventId: raw.facebookId
-			? `fb_${raw.facebookId}`
-			: raw.url?.includes('eventbrite.com/e/')
-				? `eb_${raw.url.split('/e/')[1]?.split(/[?/]/)[0] || hashCode(raw.title)}`
-				: raw.url && raw.title
-					? `ext_${hashCode(raw.title + (raw.startDate || ''))}`
-					: undefined,
+		externalEventId,
 	};
 }
 
@@ -347,6 +375,46 @@ function applyTime(d: Date, timeStr: string, ampm: string): Date {
 	if (ampm.toLowerCase() === 'am' && hours === 12) hours = 0;
 	d.setHours(hours, mins, 0, 0);
 	return d;
+}
+
+/**
+ * Parse date from Herald/CitySpark URL pattern.
+ * URLs like: /details/some-event-slug/12345/2026-03-29T19
+ * or: /details/some-event-slug/12345/2026-03-29T19:00:00
+ */
+function parseHeraldUrlDate(url: string): Date | null {
+	// Match ISO date pattern in URL path segments
+	const match = url.match(/\/(\d{4}-\d{2}-\d{2}T\d{2}(?::\d{2}(?::\d{2})?)?)/);
+	if (!match) return null;
+
+	let dateStr = match[1];
+	// Pad incomplete ISO strings: "2026-03-29T19" -> "2026-03-29T19:00:00"
+	if (dateStr.length === 13) dateStr += ':00:00'; // YYYY-MM-DDTHH
+	else if (dateStr.length === 16) dateStr += ':00'; // YYYY-MM-DDTHH:MM
+
+	const parsed = new Date(dateStr);
+	return isNaN(parsed.getTime()) ? null : parsed;
+}
+
+/**
+ * Parse Herald link text format where title and venue are concatenated.
+ * Example: "Live Music NightCapitol Theatre | Yakima, WA 7:00 PM"
+ * Returns parsed title and location if the pipe separator is found.
+ */
+function parseHeraldLinkText(text: string): { title: string; venue?: string; city?: string } | null {
+	if (!text) return null;
+
+	// Pattern: "Event TitleVenue Name | City, ST time"
+	const pipeIdx = text.indexOf(' | ');
+	if (pipeIdx === -1) return null;
+
+	const beforePipe = text.substring(0, pipeIdx).trim();
+	const afterPipe = text.substring(pipeIdx + 3).trim();
+
+	// After pipe is typically "City, ST time" — extract city
+	const city = afterPipe.replace(/\s+\d{1,2}:\d{2}\s*(am|pm)?\s*$/i, '').trim();
+
+	return { title: beforePipe, city: city || undefined };
 }
 
 /**

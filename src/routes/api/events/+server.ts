@@ -26,6 +26,8 @@ export const GET: RequestHandler = async ({ url }) => {
     const startDate = url.searchParams.get('start_date') || undefined;
     const endDate = url.searchParams.get('end_date') || undefined;
     const category = url.searchParams.get('category') || undefined;
+    const includeCats = url.searchParams.get('include_categories');
+    const excludeCats = url.searchParams.get('exclude_categories');
     const featured = url.searchParams.get('featured');
     const search = url.searchParams.get('search') || undefined;
     const latitude = url.searchParams.get('latitude');
@@ -39,6 +41,8 @@ export const GET: RequestHandler = async ({ url }) => {
       startDate,
       endDate,
       category,
+      includeCategories: includeCats ? includeCats.split(',').filter(Boolean) : undefined,
+      excludeCategories: excludeCats ? excludeCats.split(',').filter(Boolean) : undefined,
       featured: featured === 'true' ? true : featured === 'false' ? false : undefined,
       search,
       latitude: latitude ? parseFloat(latitude) : undefined,

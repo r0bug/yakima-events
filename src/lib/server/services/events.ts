@@ -7,6 +7,8 @@ export interface EventFilters {
   endDate?: string;
   status?: 'pending' | 'approved' | 'rejected';
   category?: string;
+  includeCategories?: string[]; // slugs — only show events in these categories
+  excludeCategories?: string[]; // slugs — hide events in these categories
   featured?: boolean;
   search?: string;
   latitude?: number;
@@ -90,6 +92,30 @@ export async function getEvents(filters: EventFilters = {}): Promise<EventWithDe
           .innerJoin(eventCategories, eq(eventCategoryMapping.categoryId, eventCategories.id))
           .where(eq(eventCategories.slug, filters.category))
       )
+    );
+  }
+
+  // Include categories — event must be in at least one of these
+  if (filters.includeCategories?.length) {
+    conditions.push(
+      inArray(
+        events.id,
+        db.select({ eventId: eventCategoryMapping.eventId })
+          .from(eventCategoryMapping)
+          .innerJoin(eventCategories, eq(eventCategoryMapping.categoryId, eventCategories.id))
+          .where(inArray(eventCategories.slug, filters.includeCategories))
+      )
+    );
+  }
+
+  // Exclude categories — event must NOT be in any of these
+  if (filters.excludeCategories?.length) {
+    conditions.push(
+      sql`${events.id} NOT IN (
+        SELECT ecm.event_id FROM event_category_mapping ecm
+        JOIN event_categories ec ON ecm.category_id = ec.id
+        WHERE ec.slug IN (${sql.join(filters.excludeCategories.map(s => sql`${s}`), sql`,`)})
+      )`
     );
   }
 

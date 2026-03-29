@@ -95,7 +95,7 @@ pm2 status
 ### Scrapers
 - `src/lib/server/scrapers/scraper.ts` - Main scraper orchestration
 - `src/lib/server/scrapers/intelligent.ts` - AI-powered scraping
-- `src/lib/server/scrapers/parsers/` - Format-specific parsers (ical, rss, html, json)
+- `src/lib/server/scrapers/parsers/` - Format-specific parsers (ical, rss, html, json, cityspark)
 
 ### UI Components
 - `src/lib/components/Calendar.svelte` - Calendar view
@@ -110,7 +110,8 @@ pm2 status
 - `src/lib/components/JunkRunFlyer.svelte` - Printable flyer with map, QR codes, area selector
 
 ### Routes
-- `src/routes/+page.svelte` - Homepage
+- `src/routes/+page.svelte` - Homepage with Event Pulse widget (today/tomorrow/week/month counts)
+- `src/routes/+page.server.ts` - Homepage SSR loader (event counts query)
 - `src/routes/+error.svelte` - Error page
 - `src/routes/calendar/` - Calendar page
 - `src/routes/shops/` - Shops directory (list, detail, claim, manage)
@@ -134,7 +135,7 @@ pm2 status
 ## API Endpoints
 
 ### Events
-- `GET /api/events` - List events
+- `GET /api/events` - List events (params: `include_categories`, `exclude_categories` as comma-separated slugs)
 - `GET /api/events/:id` - Get event
 - `GET /api/events/:id/calendar.ics` - ICS calendar download
 - `GET /api/events/:id/share` - Share metadata

@@ -1,6 +1,9 @@
 <script lang="ts">
   import Calendar from '$components/Calendar.svelte';
   import Toast from '$components/Toast.svelte';
+  import type { PageData } from './$types';
+
+  export let data: PageData;
 
   let toastMessage = '';
   let toastType: 'success' | 'error' = 'success';
@@ -12,6 +15,15 @@
     showToast = true;
     setTimeout(() => (showToast = false), 5000);
   }
+
+  $: counts = data.eventCounts;
+  $: blurb = counts.week > 50
+    ? "Still think there's nothing to do?"
+    : counts.week > 20
+      ? "The Valley's got plans. Do you?"
+      : counts.week > 0
+        ? "Something's always happening."
+        : "Stay tuned, big things are coming.";
 </script>
 
 <svelte:head>
@@ -34,6 +46,43 @@
         <p class="text-lg md:text-xl text-stone-300 leading-relaxed max-w-2xl mx-auto">
           Your community calendar for events, markets, live music, and everything happening across the Yakima Valley.
         </p>
+
+        <!-- Event Pulse Widget -->
+        <div class="mt-8 inline-flex flex-col items-center">
+          <div class="flex items-center gap-3 md:gap-5 bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-5 py-3 md:px-8 md:py-4">
+            <a href="/calendar" class="text-center group cursor-pointer">
+              <div class="text-2xl md:text-3xl font-bold text-amber-300 group-hover:text-amber-200 transition-colors">
+                {counts.today}
+              </div>
+              <div class="text-[10px] md:text-xs uppercase tracking-wider text-stone-400 group-hover:text-stone-300">Today</div>
+            </a>
+            <div class="w-px h-10 bg-white/15"></div>
+            <a href="/calendar" class="text-center group cursor-pointer">
+              <div class="text-2xl md:text-3xl font-bold text-orange-300 group-hover:text-orange-200 transition-colors">
+                {counts.tomorrow}
+              </div>
+              <div class="text-[10px] md:text-xs uppercase tracking-wider text-stone-400 group-hover:text-stone-300">Tomorrow</div>
+            </a>
+            <div class="w-px h-10 bg-white/15"></div>
+            <a href="/calendar" class="text-center group cursor-pointer">
+              <div class="text-2xl md:text-3xl font-bold text-white group-hover:text-amber-100 transition-colors">
+                {counts.week}
+              </div>
+              <div class="text-[10px] md:text-xs uppercase tracking-wider text-stone-400 group-hover:text-stone-300">This Week</div>
+            </a>
+            <div class="w-px h-10 bg-white/15"></div>
+            <a href="/calendar" class="text-center group cursor-pointer">
+              <div class="text-2xl md:text-3xl font-bold text-stone-200 group-hover:text-amber-100 transition-colors">
+                {counts.month}
+              </div>
+              <div class="text-[10px] md:text-xs uppercase tracking-wider text-stone-400 group-hover:text-stone-300">30 Days</div>
+            </a>
+          </div>
+          <p class="mt-3 text-sm md:text-base text-amber-200/80 italic font-medium">
+            {blurb}
+          </p>
+        </div>
+
         <div class="flex items-center justify-center gap-4 mt-8">
           <a href="/events/submit" class="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white rounded-xl font-semibold shadow-lg shadow-amber-900/30 transition-all hover:shadow-xl hover:shadow-amber-900/40">
             Submit an Event
