@@ -37,3 +37,11 @@ uploads/*
 # Test coverage
 coverage/
 ecosystem.config.cjs
+
+# Server data
+data/
+
+# Test scripts
+test_*.sh
+test_*.py
+regression_test.sh

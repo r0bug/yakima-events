@@ -84,9 +84,13 @@ pm2 status
 - `src/lib/server/services/collaborativeEvents.ts` - Collaborative events
 - `src/lib/server/services/communication/` - Communication hub (channels, messages, notifications)
 
+### Junk Run Configs
+- `src/lib/config/junk-runs/vintiques.json` - Branded junk run config (name, tagline, theme, map center/zoom)
+
 ### Utilities
 - `src/lib/server/api-utils.ts` - Shared API helper functions
 - `src/lib/types/index.ts` - Shared TypeScript type definitions
+- `src/lib/utils/geo.ts` - Geocoding utils, region detection, distance calculations
 
 ### Scrapers
 - `src/lib/server/scrapers/scraper.ts` - Main scraper orchestration
@@ -103,6 +107,7 @@ pm2 status
 - `src/lib/components/ShareButton.svelte` - Social sharing dropdown
 - `src/lib/components/Toast.svelte` - Toast notifications
 - `src/lib/components/UserMenu.svelte` - Auth user menu dropdown
+- `src/lib/components/JunkRunFlyer.svelte` - Printable flyer with map, QR codes, area selector
 
 ### Routes
 - `src/routes/+page.svelte` - Homepage
@@ -121,6 +126,8 @@ pm2 status
 - `src/routes/tools/facebook-scraper/` - Facebook scraper admin tool
 - `src/routes/tools/eventbrite-scraper/` - Eventbrite scraper admin tool
 - `src/routes/tools/facebook-browser-scraper/` - Facebook browser scraper tool
+- `src/routes/junk-run/` - Redirects to default junk run config
+- `src/routes/junk-run/[slug]/` - Branded junk run map page (Leaflet, category/region filters, route planner, printable flyer)
 - `src/routes/admin/` - Admin panel (events, shops, users, scrapers, claims, communication, forum, settings, geocode-fix, system-checkup, validate-urls)
 - `src/routes/api/` - REST API endpoints
 

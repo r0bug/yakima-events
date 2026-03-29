@@ -40,6 +40,7 @@
     "leaflet": "^1.9.4",
     "leaflet-image": "^0.4.0",
     "mysql2": "^3.9.0",
+    "qrcode-svg": "^1.1.0",
     "zod": "^3.23.0"
   },
   "devDependencies2_note": "jsdom types for HTML parsing",

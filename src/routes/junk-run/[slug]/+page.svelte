@@ -32,6 +32,8 @@
   let showSales = false;
   let selectedShopId: number | null = null;
   let showFlyer = false;
+  let routeMode = false;
+  let routeSelected: Set<number> = new Set();
 
   // Shops with sales today
   $: shopIdsWithSales = new Set(salesToday.map(s => s.shopId));
@@ -165,6 +167,40 @@
     }
   }
 
+  function toggleRouteShop(id: number) {
+    if (routeSelected.has(id)) {
+      routeSelected.delete(id);
+    } else {
+      routeSelected.add(id);
+    }
+    routeSelected = routeSelected; // trigger reactivity
+  }
+
+  function selectAllForRoute() {
+    routeSelected = new Set(filteredShops.filter(s => s.latitude && s.longitude).map(s => s.id));
+  }
+
+  function clearRouteSelection() {
+    routeSelected = new Set();
+  }
+
+  function buildRouteUrl(): string | null {
+    const selected = filteredShops.filter(s => routeSelected.has(s.id) && s.latitude && s.longitude);
+    if (selected.length === 0) return null;
+    // Google Maps multi-stop: /dir/lat,lng/lat,lng/lat,lng
+    const stops = selected.map(s => `${s.latitude},${s.longitude}`);
+    return `https://www.google.com/maps/dir/${stops.join('/')}`;
+  }
+
+  function launchRoute() {
+    const url = buildRouteUrl();
+    if (url) window.open(url, '_blank');
+  }
+
+  function navigateToShop(lat: number, lng: number) {
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+  }
+
   function getOperatingHoursText(hours: any): string | null {
     if (!hours) return null;
     if (typeof hours === 'string') {
@@ -268,9 +304,19 @@
           </button>
         {/each}
 
-        <div class="ml-auto">
+        <div class="ml-auto flex items-center gap-2">
           <button
-            on:click={() => showFlyer = !showFlyer}
+            on:click={() => { routeMode = !routeMode; if (!routeMode) clearRouteSelection(); showFlyer = false; }}
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+            style="{routeMode ? `background: var(--jr-primary); color: white;` : `background: color-mix(in srgb, var(--jr-primary) 15%, transparent); color: var(--jr-primary);`}"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            {routeMode ? 'Cancel Route' : 'Plan Route'}
+          </button>
+          <button
+            on:click={() => { showFlyer = !showFlyer; routeMode = false; clearRouteSelection(); }}
             class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
             style="background: var(--jr-accent); color: var(--jr-header-bg);"
           >
@@ -283,6 +329,33 @@
       </div>
     </div>
   </div>
+
+  <!-- Route Action Bar -->
+  {#if routeMode}
+    <div class="sticky top-12 z-20 border-b shadow-sm" style="background: color-mix(in srgb, var(--jr-primary) 5%, white); border-color: var(--jr-primary);">
+      <div class="max-w-6xl mx-auto px-4 py-2.5 flex items-center gap-3 flex-wrap">
+        <span class="text-sm font-semibold" style="color: var(--jr-primary);">
+          {routeSelected.size} shop{routeSelected.size !== 1 ? 's' : ''} selected
+        </span>
+        <button on:click={selectAllForRoute} class="text-xs underline" style="color: var(--jr-primary);">Select All</button>
+        <button on:click={clearRouteSelection} class="text-xs underline text-gray-500">Clear</button>
+        <div class="ml-auto">
+          <button
+            on:click={launchRoute}
+            disabled={routeSelected.size === 0}
+            class="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-white text-sm transition-all disabled:opacity-40"
+            style="background: var(--jr-primary);"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Open in Google Maps
+          </button>
+        </div>
+      </div>
+    </div>
+  {/if}
 
   <!-- Main Content -->
   {#if showFlyer}
@@ -335,22 +408,38 @@
                   {@const num = filteredShops.indexOf(shop) + 1}
                   {@const cat = shop.category}
                   {@const hasSale = shopIdsWithSales.has(shop.id)}
-                  <button
+                  <div
                     id="shop-{shop.id}"
-                    on:click={() => selectShop(shop.id)}
                     class="w-full text-left p-3 rounded-lg border transition-all hover:shadow-md group"
-                    style="border-color: {selectedShopId === shop.id ? (cat?.color || 'var(--jr-primary)') : 'transparent'};
-                           background: {selectedShopId === shop.id ? `${cat?.color || 'var(--jr-primary)'}08` : 'white'};"
+                    style="border-color: {selectedShopId === shop.id ? (cat?.color || 'var(--jr-primary)') : routeSelected.has(shop.id) ? 'var(--jr-primary)' : 'transparent'};
+                           background: {selectedShopId === shop.id ? `${cat?.color || 'var(--jr-primary)'}08` : routeSelected.has(shop.id) ? 'color-mix(in srgb, var(--jr-primary) 5%, white)' : 'white'};"
                   >
                     <div class="flex items-start gap-3">
+                      <!-- Route checkbox (shown in route mode) -->
+                      {#if routeMode}
+                        <button
+                          on:click|stopPropagation={() => toggleRouteShop(shop.id)}
+                          class="flex-shrink-0 w-6 h-6 mt-1 rounded border-2 flex items-center justify-center transition-all"
+                          style="border-color: {routeSelected.has(shop.id) ? 'var(--jr-primary)' : '#d1d5db'};
+                                 background: {routeSelected.has(shop.id) ? 'var(--jr-primary)' : 'white'};"
+                          aria-label="Select {shop.name} for route"
+                        >
+                          {#if routeSelected.has(shop.id)}
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                            </svg>
+                          {/if}
+                        </button>
+                      {/if}
                       <!-- Number badge -->
-                      <div
+                      <button
+                        on:click={() => selectShop(shop.id)}
                         class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
                         style="background: {cat?.color || '#6b7280'};"
                       >
                         {num}
-                      </div>
-                      <div class="flex-1 min-w-0">
+                      </button>
+                      <button on:click={() => selectShop(shop.id)} class="flex-1 min-w-0 text-left">
                         <div class="flex items-center gap-2">
                           <span class="font-semibold text-sm truncate" style="color: var(--jr-text);">{shop.name}</span>
                           {#if hasSale}
@@ -371,9 +460,22 @@
                         {#if shop.description && selectedShopId === shop.id}
                           <p class="text-xs text-gray-600 mt-2 leading-relaxed">{shop.description}</p>
                         {/if}
-                      </div>
+                      </button>
+                      <!-- Navigate button -->
+                      {#if shop.latitude && shop.longitude}
+                        <button
+                          on:click|stopPropagation={() => navigateToShop(shop.latitude, shop.longitude)}
+                          class="flex-shrink-0 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100"
+                          title="Navigate to {shop.name}"
+                        >
+                          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        </button>
+                      {/if}
                     </div>
-                  </button>
+                  </div>
                 {/each}
               </div>
             </div>

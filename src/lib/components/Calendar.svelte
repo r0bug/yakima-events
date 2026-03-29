@@ -392,9 +392,10 @@
             {@const isToday = isSameDay(day, new Date())}
             {@const isCurrentMonth = isSameMonth(day, currentDate)}
             <div
-              class="min-h-[110px] p-1.5 border-b border-r border-warm-100 transition-colors
+              class="p-1.5 border-b border-r border-warm-100 transition-colors
                 {isCurrentMonth ? 'bg-white hover:bg-warm-50' : 'bg-warm-50/50'}
                 {isToday ? 'ring-2 ring-inset ring-amber-400 bg-amber-50/50' : ''}"
+              style="min-height: {dayEvents.length > 3 ? '220px' : '140px'};"
             >
               <div class="flex items-center justify-between mb-1">
                 <span class="text-sm font-medium {isCurrentMonth ? (isToday ? 'text-amber-700 font-bold' : 'text-stone-700') : 'text-stone-400'}">
@@ -404,25 +405,30 @@
                   <span class="text-[10px] font-semibold text-stone-400 bg-stone-100 rounded-full px-1.5">{dayEvents.length}</span>
                 {/if}
               </div>
-              <div class="space-y-0.5">
-                {#each dayEvents.slice(0, 3) as event}
+              <div class="space-y-1">
+                {#each dayEvents.slice(0, 6) as event}
                   {@const color = getEventColor(event)}
                   <button
                     on:click={() => openEventModal(event)}
-                    class="w-full text-left px-1.5 py-0.5 text-[11px] rounded-md truncate font-medium transition-all hover:scale-[1.02] hover:shadow-sm"
+                    class="w-full text-left px-1.5 py-1 text-[11px] rounded-md font-medium transition-all hover:scale-[1.02] hover:shadow-sm"
                     style="background-color: {color.light}; color: {color.text}; border-left: 3px solid {color.bg};"
                   >
-                    {#if event.featured}
-                      <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 mr-0.5 align-middle"></span>
-                    {/if}
-                    {event.title}
+                    <div class="truncate leading-tight">
+                      {#if event.featured}
+                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 mr-0.5 align-middle"></span>
+                      {/if}
+                      {event.title}
+                    </div>
+                    <div class="text-[10px] opacity-70 leading-tight mt-0.5 truncate">
+                      {format(parseISO(event.start_datetime), 'h:mm a')}{event.location ? ` · ${event.location}` : ''}
+                    </div>
                   </button>
                 {/each}
-                {#if dayEvents.length > 3}
+                {#if dayEvents.length > 6}
                   <button
                     on:click={() => { currentDate = day; setView('day'); }}
                     class="text-[10px] text-amber-700 font-semibold px-1.5 hover:text-amber-900 cursor-pointer"
-                  >+{dayEvents.length - 3} more</button>
+                  >+{dayEvents.length - 6} more</button>
                 {/if}
               </div>
             </div>

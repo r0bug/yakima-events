@@ -10,6 +10,7 @@ import {
   timestamp,
   mysqlEnum,
   index,
+  primaryKey,
 } from 'drizzle-orm/mysql-core';
 import { relations } from 'drizzle-orm';
 
@@ -66,12 +67,10 @@ export const eventCategories = mysqlTable('event_categories', {
 // Event Category Mapping (Many-to-Many)
 // ============================================================================
 export const eventCategoryMapping = mysqlTable('event_category_mapping', {
-  id: int('id').primaryKey().autoincrement(),
   eventId: int('event_id').notNull(),
   categoryId: int('category_id').notNull(),
 }, (table) => ({
-  eventIdx: index('event_idx').on(table.eventId),
-  categoryIdx: index('category_idx').on(table.categoryId),
+  pk: primaryKey({ columns: [table.eventId, table.categoryId] }),
 }));
 
 // ============================================================================
