@@ -290,14 +290,20 @@
    */
   function cleanSocialText(text) {
     if (!text) return text;
-    // "12 interested · 3 going", "1 going", "2 interested"
+    // IMPORTANT: Do NOT use /i flag on patterns with [A-Z][a-z]+ (proper name match)
+    // because /i makes [a-z] match uppercase, turning "Name" into "any word"
+
+    // "12 interested · 3 going", "1 going", "2 interested" (safe to use /i)
     text = text.replace(/\d+\s+interested(?:\s*·\s*\d+\s+going)?.*$/i, '').trim();
     text = text.replace(/\d+\s+going.*$/i, '').trim();
-    // "Breaunna is interested", "Heather and Kevin are interested"
-    text = text.replace(/[A-Z][a-z]+(?:(?:,\s*[A-Z][a-z]+)*\s+and\s+(?:[A-Z][a-z]+|\d+\s+friends?))\s+(?:is|are)\s+interested.*$/i, '').trim();
-    text = text.replace(/[A-Z][a-z]+\s+is\s+interested.*$/i, '').trim();
-    text = text.replace(/[A-Z][a-z]+\s+and\s+[A-Z][a-z]+\s+are\s+interested.*$/i, '').trim();
-    text = text.replace(/[A-Z][a-z]+(?:,\s*[A-Z][a-z]+)*\s+and\s+\d+\s+friends?\s+interested.*$/i, '').trim();
+    // Names glued without space first: "WAErik" or "YakimaTraci, Connor and 5 friends"
+    text = text.replace(/([a-z.,])([A-Z][a-z]+(?:,\s*[A-Z][a-z]+)*(?:\s+and\s+(?:[A-Z][a-z]+|\d+\s+friends?))?(?:\s+(?:is|are)\s+(?:interested|going))?\s*$)/, '$1').trim();
+    // "Name(s) and Name is/are interested/going" (NO /i flag)
+    text = text.replace(/[A-Z][a-z]+(?:(?:,\s*[A-Z][a-z]+)*\s+and\s+(?:[A-Z][a-z]+|\d+\s+friends?))\s+(?:is|are)\s+(?:interested|going).*$/, '').trim();
+    text = text.replace(/[A-Z][a-z]+\s+(?:is|are)\s+(?:interested|going).*$/, '').trim();
+    text = text.replace(/[A-Z][a-z]+\s+and\s+[A-Z][a-z]+\s+(?:is|are)\s+(?:interested|going).*$/, '').trim();
+    // "Name, Name and N friends [interested]" (with or without action word)
+    text = text.replace(/[A-Z][a-z]+(?:,\s*[A-Z][a-z]+)*\s+and\s+\d+\s+friends?(?:\s+interested)?.*$/, '').trim();
     // Clean trailing commas/spaces
     text = text.replace(/[,\s]+$/, '').trim();
     return text;

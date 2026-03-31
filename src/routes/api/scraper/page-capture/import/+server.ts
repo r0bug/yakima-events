@@ -233,23 +233,26 @@ function splitVenueFromTitle(title: string): { title: string; venue: string } | 
 function cleanFacebookSocialText(text: string): string {
 	if (!text) return text;
 
-	// Pattern 1: "N interested" / "N going" / "N interested · N going" (with optional preceding names)
-	// This catches: "12 interested · 3 going", "1 going", "2 interested"
+	// IMPORTANT: Do NOT use /i flag on patterns starting with [A-Z][a-z]+
+	// because /i makes [a-z] match uppercase too, turning "proper name" into "any word"
+
+	// Pattern 1: "N interested" / "N going" (safe to use /i since starts with \d)
 	text = text.replace(/\d+\s+interested(?:\s*·\s*\d+\s+going)?.*$/i, '').trim();
 	text = text.replace(/\d+\s+going.*$/i, '').trim();
 
-	// Pattern 2: "Name is interested" / "Name and Name are interested" / "Name, Name and N friends interested"
-	// Catches: "Breaunna is interested", "Rob, Roger and 2 friends interested", "Heather and Kevin are interested"
-	text = text.replace(/[A-Z][a-z]+(?:(?:,\s*[A-Z][a-z]+)*\s+and\s+(?:[A-Z][a-z]+|\d+\s+friends?))\s+(?:is|are)\s+interested.*$/i, '').trim();
-	text = text.replace(/[A-Z][a-z]+\s+is\s+interested.*$/i, '').trim();
-	text = text.replace(/[A-Z][a-z]+\s+and\s+[A-Z][a-z]+\s+are\s+interested.*$/i, '').trim();
-	// "Rob, Roger and 2 friends interested" (without is/are)
-	text = text.replace(/[A-Z][a-z]+(?:,\s*[A-Z][a-z]+)*\s+and\s+\d+\s+friends?\s+interested.*$/i, '').trim();
+	// Pattern 2: Names glued without space (e.g. "WAErik, Connor and 10 friends")
+	// Must run before name patterns since it splits at the boundary
+	text = text.replace(/([a-z.,])([A-Z][a-z]+(?:,\s*[A-Z][a-z]+)*(?:\s+and\s+(?:[A-Z][a-z]+|\d+\s+friends?))?(?:\s+(?:is|are)\s+(?:interested|going))?\s*$)/, '$1').trim();
 
-	// Pattern 3: "— Game Day!" type separators with venue info that got stuck
-	// Keep this for now, may need more specific patterns
+	// Pattern 3: "Name is/are interested/going" (NO /i flag)
+	text = text.replace(/[A-Z][a-z]+(?:(?:,\s*[A-Z][a-z]+)*\s+and\s+(?:[A-Z][a-z]+|\d+\s+friends?))\s+(?:is|are)\s+(?:interested|going).*$/, '').trim();
+	text = text.replace(/[A-Z][a-z]+\s+(?:is|are)\s+(?:interested|going).*$/, '').trim();
+	text = text.replace(/[A-Z][a-z]+\s+and\s+[A-Z][a-z]+\s+(?:is|are)\s+(?:interested|going).*$/, '').trim();
 
-	// Pattern 4: Clean up any trailing punctuation artifacts
+	// Pattern 4: "Name, Name and N friends [interested]" (with or without action word)
+	text = text.replace(/[A-Z][a-z]+(?:,\s*[A-Z][a-z]+)*\s+and\s+\d+\s+friends?(?:\s+interested)?.*$/, '').trim();
+
+	// Pattern 5: Clean up any trailing punctuation artifacts
 	text = text.replace(/[,\s]+$/, '').trim();
 
 	return text;
