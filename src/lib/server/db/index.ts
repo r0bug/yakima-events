@@ -12,7 +12,7 @@ const poolConnection = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  timezone: '-08:00', // Pacific Standard Time - dates stored as local Yakima time
+  timezone: '-08:00', // Pacific Standard Time - dates stored as local Yakima time (note: off by 1hr during PDT)
 });
 
 export const db = drizzle(poolConnection, { schema, mode: 'default' });

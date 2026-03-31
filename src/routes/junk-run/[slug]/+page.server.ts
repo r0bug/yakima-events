@@ -5,6 +5,7 @@ import { resolve } from 'path';
 import { db } from '$lib/server/db';
 import { localShops, shopCategories, events, eventShopParticipants } from '$lib/server/db/schema';
 import { eq, and, gte, lte, inArray, sql } from 'drizzle-orm';
+import { pacificToday } from '$lib/server/datetime';
 
 export interface JunkRunConfig {
 	slug: string;
@@ -83,9 +84,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	// Load today's sales (events happening today linked to shops)
 	let salesToday: { eventId: number; title: string; shopId: number; location: string | null; startDatetime: string | null }[] = [];
 	if (config.showSalesToday) {
-		const today = new Date();
-		const todayStart = today.toISOString().slice(0, 10) + ' 00:00:00';
-		const todayEnd = today.toISOString().slice(0, 10) + ' 23:59:59';
+		const { start: todayStart, end: todayEnd } = pacificToday();
 
 		salesToday = await db
 			.select({

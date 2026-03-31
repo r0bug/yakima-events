@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getEvents } from '$lib/server/services/events';
+import { toPacificDatetime } from '$lib/server/datetime';
 
 /**
  * Rate limit: 1 request per hour per client IP.
@@ -60,8 +61,8 @@ export const GET: RequestHandler = async ({ request, getClientAddress }) => {
 	sixMonthsOut.setMonth(sixMonthsOut.getMonth() + 6);
 
 	const events = await getEvents({
-		startDate: now.toISOString(),
-		endDate: sixMonthsOut.toISOString(),
+		startDate: toPacificDatetime(now),
+		endDate: toPacificDatetime(sixMonthsOut),
 		status: 'approved',
 	});
 

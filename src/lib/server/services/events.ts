@@ -1,6 +1,7 @@
 import { db, events, eventCategories, eventCategoryMapping, eventImages, calendarSources, eventShopParticipants, localShops } from '$server/db';
 import { eq, and, gte, lte, sql, desc, asc, like, or, inArray } from 'drizzle-orm';
 import type { Event, NewEvent } from '$server/db/schema';
+import { toPacificDatetime, pacificToday } from '$server/datetime';
 
 export interface EventFilters {
   startDate?: string;
@@ -57,14 +58,13 @@ export async function getEvents(filters: EventFilters = {}): Promise<EventWithDe
     conditions.push(eq(events.status, 'approved'));
   }
 
-  // Date range filter - dates stored as strings in YYYY-MM-DD HH:MM:SS format
+  // Date range filter - dates stored as Pacific time strings (YYYY-MM-DD HH:MM:SS)
   if (filters.startDate) {
-    // Convert to string format for comparison
-    const startDateStr = new Date(filters.startDate).toISOString().slice(0, 19).replace('T', ' ');
+    const startDateStr = toPacificDatetime(new Date(filters.startDate));
     conditions.push(gte(events.startDatetime, startDateStr));
   }
   if (filters.endDate) {
-    const endDateStr = new Date(filters.endDate).toISOString().slice(0, 19).replace('T', ' ');
+    const endDateStr = toPacificDatetime(new Date(filters.endDate));
     conditions.push(lte(events.startDatetime, endDateStr));
   }
 
@@ -224,18 +224,95 @@ export async function getEvents(filters: EventFilters = {}): Promise<EventWithDe
 }
 
 /**
- * Get today's events
+ * Get today's events (Pacific time)
  */
 export async function getTodaysEvents(): Promise<EventWithDetails[]> {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  const { start, end } = pacificToday();
 
   return getEvents({
-    startDate: today.toISOString(),
-    endDate: tomorrow.toISOString(),
+    startDate: start,
+    endDate: end,
     status: 'approved',
+  });
+}
+
+export interface TonightFilters {
+  latitude?: number;
+  longitude?: number;
+  radius?: number; // miles, default 50
+  limit?: number; // default 20
+  category?: string;
+}
+
+/**
+ * Get tonight's events, optionally sorted by proximity.
+ *
+ * "Tonight" in Pacific time:
+ *   After 5am: now through 23:59 today
+ *   Before 5am: 00:00 through 23:59 today (late-night use)
+ */
+export async function getTonightEvents(filters: TonightFilters = {}): Promise<EventWithDetails[]> {
+  const now = new Date();
+  const nowPacific = toPacificDatetime(now);
+  const todayDate = nowPacific.slice(0, 10);
+  const hour = parseInt(nowPacific.slice(11, 13), 10);
+
+  // After 5am: from now to end of day. Before 5am: from midnight to end of day.
+  const startStr = hour >= 5 ? nowPacific : `${todayDate} 00:00:00`;
+  const endStr = `${todayDate} 23:59:59`;
+
+  const limit = filters.limit || 20;
+  const hasGeo = filters.latitude != null && filters.longitude != null;
+  const radiusKm = (filters.radius || 50) * 1.60934;
+
+  if (hasGeo) {
+    // Proximity-sorted query with Haversine
+    const results = await db.execute(sql`
+      SELECT
+        e.*,
+        cs.name as source_name,
+        cs.url as source_url,
+        (6371 * acos(
+          cos(radians(${filters.latitude!})) * cos(radians(e.latitude)) *
+          cos(radians(e.longitude) - radians(${filters.longitude!})) +
+          sin(radians(${filters.latitude!})) * sin(radians(e.latitude))
+        )) AS distance
+      FROM events e
+      LEFT JOIN calendar_sources cs ON e.source_id = cs.id
+      WHERE e.status = 'approved'
+        AND e.start_datetime >= ${startStr}
+        AND e.start_datetime <= ${endStr}
+        ${filters.category ? sql`AND e.id IN (
+          SELECT ecm.event_id FROM event_category_mapping ecm
+          JOIN event_categories ec ON ecm.category_id = ec.id
+          WHERE ec.slug = ${filters.category}
+        )` : sql``}
+      HAVING distance <= ${radiusKm} OR e.latitude IS NULL
+      ORDER BY distance ASC, e.start_datetime ASC
+      LIMIT ${limit}
+    `);
+
+    return (results[0] as any[]).map(r => ({
+      ...r,
+      startDatetime: r.start_datetime,
+      endDatetime: r.end_datetime,
+      contactInfo: r.contact_info,
+      externalUrl: r.external_url,
+      sourceId: r.source_id,
+      externalEventId: r.external_event_id,
+      sourceName: r.source_name,
+      sourceUrl: r.source_url,
+      distance: r.distance,
+    })) as EventWithDetails[];
+  }
+
+  // No geo: time-sorted via getEvents
+  return getEvents({
+    startDate: startStr,
+    endDate: endStr,
+    status: 'approved',
+    category: filters.category,
+    limit,
   });
 }
 
@@ -265,7 +342,7 @@ export async function getNearbyEvents(
     WHERE e.status = 'approved'
       AND e.latitude IS NOT NULL
       AND e.longitude IS NOT NULL
-      AND e.start_datetime >= NOW()
+      AND e.start_datetime >= ${toPacificDatetime(new Date())}
     HAVING distance <= ${radiusKm}
     ORDER BY distance ASC, e.start_datetime ASC
   `);
@@ -395,10 +472,9 @@ export async function findDuplicates(
   latitude?: number,
   longitude?: number
 ): Promise<Event[]> {
-  // Convert Date to string format for comparison
   const dateStr = typeof startDatetime === 'string'
     ? startDatetime
-    : startDatetime.toISOString().slice(0, 19).replace('T', ' ');
+    : toPacificDatetime(startDatetime);
 
   const results = await db
     .select()

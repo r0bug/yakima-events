@@ -1,5 +1,6 @@
 import type { RequestHandler } from './$types';
 import { getEvents } from '$lib/server/services/events';
+import { toPacificDatetime } from '$lib/server/datetime';
 
 /**
  * Rate limit: shared with JSON feed — 1 request per hour per client IP.
@@ -38,8 +39,8 @@ export const GET: RequestHandler = async ({ getClientAddress }) => {
 	sixMonthsOut.setMonth(sixMonthsOut.getMonth() + 6);
 
 	const events = await getEvents({
-		startDate: today.toISOString(),
-		endDate: sixMonthsOut.toISOString(),
+		startDate: toPacificDatetime(today),
+		endDate: toPacificDatetime(sixMonthsOut),
 		status: 'approved',
 	});
 

@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import { z } from 'zod';
 import type { RequestHandler } from './$types';
 import { getEvents, createEvent, getEventCategories } from '$server/services/events';
+import { formatEventResponse } from '$server/api-format';
 
 const createEventSchema = z.object({
   title: z.string().min(1, 'Title is required').max(500),
@@ -55,22 +56,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
     const events = await getEvents(filters);
 
-    // Process events for API response - dates are stored as Pacific time strings
-    const processedEvents = events.map(event => ({
-      ...event,
-      start_datetime: event.startDatetime,
-      end_datetime: event.endDatetime,
-      start_datetime_formatted: event.startDatetime,
-      end_datetime_formatted: event.endDatetime,
-      contact_info: event.contactInfo,
-      external_url: event.externalUrl,
-      source_name: event.sourceName,
-      source_url: event.sourceUrl,
-      image_url: event.primaryImageUrl,
-      is_unapproved: event.status === 'pending',
-      category_details: event.categoryDetails || [],
-      linked_shop: event.linkedShop || null,
-    }));
+    const processedEvents = events.map(formatEventResponse);
 
     return json({
       success: true,
