@@ -66,6 +66,33 @@
     }
   }
 
+  async function updateEventCategory(eventId: number, e: Event) {
+    const select = e.target as HTMLSelectElement;
+    const categoryId = parseInt(select.value);
+    if (isNaN(categoryId)) return;
+
+    processingIds.add(eventId);
+    processingIds = processingIds;
+
+    try {
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category_id: categoryId }),
+      });
+
+      if (!response.ok) {
+        alert('Failed to update category');
+      }
+    } catch (err) {
+      console.error('Failed to update category:', err);
+      alert('Failed to update category');
+    } finally {
+      processingIds.delete(eventId);
+      processingIds = processingIds;
+    }
+  }
+
   function formatDate(dateStr: string): string {
     return new Date(dateStr).toLocaleDateString('en-US', {
       month: 'short',
@@ -167,6 +194,7 @@
               <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">Event</th>
               <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">Date</th>
               <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">Location</th>
+              <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">Category</th>
               <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">Status</th>
               <th class="px-4 py-3 text-right text-sm font-medium text-gray-500">Actions</th>
             </tr>
@@ -185,6 +213,19 @@
                 </td>
                 <td class="px-4 py-3 text-sm text-gray-600">
                   {event.location || 'TBD'}
+                </td>
+                <td class="px-4 py-3">
+                  <select
+                    value={event.categoryId ?? ''}
+                    on:change={(e) => updateEventCategory(event.id, e)}
+                    disabled={processingIds.has(event.id)}
+                    class="text-xs border rounded-lg px-2 py-1.5 bg-white text-gray-700 focus:ring-2 focus:ring-purple-500 disabled:opacity-50 max-w-[140px]"
+                  >
+                    <option value="" disabled>—</option>
+                    {#each data.categories as cat}
+                      <option value={cat.id}>{cat.name}</option>
+                    {/each}
+                  </select>
                 </td>
                 <td class="px-4 py-3">
                   <span class="px-2 py-1 rounded-full text-xs font-medium

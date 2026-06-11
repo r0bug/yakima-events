@@ -1,17 +1,18 @@
 /**
  * LLM Service
- * Segmind API integration for intelligent event scraping
+ * DeepSeek API (Anthropic-compatible endpoint) for intelligent event scraping.
+ * Same key/endpoint as the cyoa-saas host key — see fleet docs.
  */
 
-import { SEGMIND_API_KEY } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 
-const SEGMIND_BASE_URL = 'https://api.segmind.com/v1/';
-
-// Model endpoints - Kimi K2 as primary (Claude-like capabilities)
-const MODEL_KIMI_K2 = 'kimi-k2-instruct-0905';
+const DEEPSEEK_ENDPOINT = 'https://api.deepseek.com/anthropic/v1/messages';
+const MODEL = 'deepseek-v4-flash';
 
 interface LLMResponse {
-  content?: Array<{ text: string }>;
+  // Anthropic message format; deepseek-v4-flash returns a thinking block
+  // followed by a text block
+  content?: Array<{ type?: string; text?: string; thinking?: string }>;
   choices?: Array<{ message: { content: string } }>;
   generated_text?: string;
   text?: string;
@@ -55,20 +56,25 @@ export interface ExtractionMethod {
 }
 
 /**
- * Make request to Segmind API
+ * Make request to the DeepSeek Anthropic-compatible messages API
  */
-async function makeRequest(endpoint: string, data: Record<string, unknown>): Promise<LLMResponse> {
-  if (!SEGMIND_API_KEY) {
-    throw new Error('Segmind API key not configured');
+async function makeRequest(data: { system?: string; temperature?: number; messages: Array<{ role: string; content: string }> }): Promise<LLMResponse> {
+  if (!env.DEEPSEEK_API_KEY) {
+    throw new Error('DeepSeek API key not configured');
   }
 
-  const response = await fetch(endpoint, {
+  const response = await fetch(DEEPSEEK_ENDPOINT, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': SEGMIND_API_KEY,
+      'x-api-key': env.DEEPSEEK_API_KEY,
+      'anthropic-version': '2023-06-01',
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: 8000,
+      ...data,
+    }),
   });
 
   if (!response.ok) {
@@ -85,9 +91,13 @@ async function makeRequest(endpoint: string, data: Record<string, unknown>): Pro
  * Extract text content from LLM response
  */
 function extractContent(response: LLMResponse): string | null {
-  // Handle various response formats
-  if (response.content?.[0]?.text) {
-    return response.content[0].text;
+  // Anthropic format: pick the text block (deepseek-v4-flash puts a
+  // thinking block first)
+  if (Array.isArray(response.content)) {
+    const textBlock = response.content.find((b) => b.type === 'text' && b.text);
+    if (textBlock?.text) {
+      return textBlock.text;
+    }
   }
   if (response.choices?.[0]?.message?.content) {
     return response.choices[0].message.content;
@@ -153,8 +163,6 @@ export async function findEventPatterns(
   htmlContent: string,
   url: string
 ): Promise<EventAnalysis | null> {
-  const endpoint = SEGMIND_BASE_URL + MODEL_KIMI_K2;
-
   const prompt = `Analyze this webpage to find events or event information. Be very thorough and look for ANY type of event content.
 
 URL: ${url}
@@ -212,7 +220,7 @@ HTML Content:
 ${htmlContent.substring(0, 30000)}`;
 
   const data = {
-    instruction: 'You are an expert at finding event information in HTML. Always return valid JSON.',
+    system: 'You are an expert at finding event information in HTML. Always return valid JSON.',
     temperature: 0.3,
     messages: [
       {
@@ -223,7 +231,7 @@ ${htmlContent.substring(0, 30000)}`;
   };
 
   try {
-    const response = await makeRequest(endpoint, data);
+    const response = await makeRequest(data);
     const result = parseJSONResponse<{
       has_events?: boolean;
       hasEvents?: boolean;
@@ -264,8 +272,6 @@ export async function generateExtractionMethod(
   foundEvents: EventAnalysis['eventsFound'],
   url: string
 ): Promise<ExtractionMethod | null> {
-  const endpoint = SEGMIND_BASE_URL + MODEL_KIMI_K2;
-
   const prompt = `Based on the following HTML content and successfully extracted events, generate a reusable extraction method.
 
 URL: ${url}
@@ -301,7 +307,7 @@ HTML Sample:
 ${htmlContent.substring(0, 20000)}`;
 
   const data = {
-    instruction: 'You are an expert at creating reusable web scraping methods. Always return valid JSON.',
+    system: 'You are an expert at creating reusable web scraping methods. Always return valid JSON.',
     temperature: 0.2,
     messages: [
       {
@@ -312,7 +318,7 @@ ${htmlContent.substring(0, 20000)}`;
   };
 
   try {
-    const response = await makeRequest(endpoint, data);
+    const response = await makeRequest(data);
     const result = parseJSONResponse<{
       domain?: string;
       url_pattern?: string;
@@ -351,8 +357,6 @@ export async function analyzeEventPage(
   htmlContent: string,
   url: string
 ): Promise<EventAnalysis['eventsFound'][0] | null> {
-  const endpoint = SEGMIND_BASE_URL + MODEL_KIMI_K2;
-
   const prompt = `Extract event details from this event page. Return JSON with: title, date, start_time, end_time, location, address, description, contact_info, ticket_url
 
 URL: ${url}
@@ -361,7 +365,7 @@ HTML Content:
 ${htmlContent.substring(0, 25000)}`;
 
   const data = {
-    instruction: 'You are an expert at extracting event information. Return valid JSON with event details.',
+    system: 'You are an expert at extracting event information. Return valid JSON with event details.',
     temperature: 0.3,
     messages: [
       {
@@ -372,7 +376,7 @@ ${htmlContent.substring(0, 25000)}`;
   };
 
   try {
-    const response = await makeRequest(endpoint, data);
+    const response = await makeRequest(data);
     return parseJSONResponse<EventAnalysis['eventsFound'][0]>(response);
   } catch (error) {
     console.error('[LLM] analyzeEventPage error:', error);
@@ -404,5 +408,5 @@ function generateUrlPattern(url: string): string {
  * Check if LLM service is available
  */
 export function isAvailable(): boolean {
-  return !!SEGMIND_API_KEY;
+  return !!env.DEEPSEEK_API_KEY;
 }

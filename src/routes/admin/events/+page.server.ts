@@ -1,8 +1,8 @@
 import type { PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { events, eventCategories } from '$lib/server/db/schema';
-import { desc, eq, sql, and, like } from 'drizzle-orm';
+import { events, eventCategories, eventCategoryMapping } from '$lib/server/db/schema';
+import { desc, eq, sql, and, like, inArray } from 'drizzle-orm';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
   if (!locals.user) {
@@ -56,9 +56,22 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   // Get categories
   const categories = await db.select().from(eventCategories);
 
+  // Current category per listed event (first mapping wins for display)
+  const eventIds = eventList.map((e) => e.id);
+  const mappings = eventIds.length
+    ? await db
+        .select()
+        .from(eventCategoryMapping)
+        .where(inArray(eventCategoryMapping.eventId, eventIds))
+    : [];
+  const categoryByEvent: Record<number, number> = {};
+  for (const m of mappings) {
+    if (!(m.eventId in categoryByEvent)) categoryByEvent[m.eventId] = m.categoryId;
+  }
+
   return {
     user: locals.user,
-    events: eventList,
+    events: eventList.map((e) => ({ ...e, categoryId: categoryByEvent[e.id] ?? null })),
     categories,
     pagination: {
       page,

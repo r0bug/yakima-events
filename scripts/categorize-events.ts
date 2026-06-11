@@ -1,17 +1,23 @@
 /**
  * Auto-categorize events using LLM.
  *
- * Creates categories if they don't exist, then batch-classifies all uncategorized events.
- * Uses Segmind API with Kimi K2 model.
+ * Creates categories if they don't exist, then batch-classifies:
+ *  - all uncategorized events
+ *  - events whose only category is 'other' (keyword matcher gave up) — the
+ *    LLM gets a second look and the 'other' mapping is replaced if it finds
+ *    a better fit
  *
- * Run with: npx tsx scripts/categorize-events.ts
+ * By default only events starting within the last 30 days or in the future
+ * are processed. Pass --all to re-process the entire history.
+ *
+ * Run with: npx tsx scripts/categorize-events.ts [--all]
  */
 import 'dotenv/config';
 import mysql from 'mysql2/promise';
 
-const SEGMIND_API_KEY = process.env.SEGMIND_API_KEY;
-const SEGMIND_BASE_URL = 'https://api.segmind.com/v1/';
-const MODEL = 'kimi-k2-instruct-0905';
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+const DEEPSEEK_ENDPOINT = 'https://api.deepseek.com/anthropic/v1/messages';
+const MODEL = 'deepseek-v4-flash';
 
 // Categories with colors that match our warm design system
 const CATEGORIES = [
@@ -26,43 +32,44 @@ const CATEGORIES = [
   { name: 'Nightlife', slug: 'nightlife', color: '#c2410c', icon: 'moon' },
   { name: 'Outdoors', slug: 'outdoors', color: '#16a34a', icon: 'tree' },
   { name: 'Holiday', slug: 'holiday', color: '#dc2626', icon: 'star' },
+  { name: 'Killer Pick', slug: 'killer-pick', color: '#b45309', icon: 'gem' },
+  { name: 'Fundraiser', slug: 'fundraiser', color: '#e11d48', icon: 'gift' },
   { name: 'Other', slug: 'other', color: '#6b7280', icon: 'calendar' },
 ];
 
 async function callLLM(prompt: string): Promise<string> {
-  const response = await fetch(`${SEGMIND_BASE_URL}${MODEL}`, {
+  const response = await fetch(DEEPSEEK_ENDPOINT, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': SEGMIND_API_KEY!,
+      'x-api-key': DEEPSEEK_API_KEY!,
+      'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      messages: [
-        { role: 'system', content: 'You categorize events. Reply ONLY with the JSON array requested, no other text.' },
-        { role: 'user', content: prompt }
-      ],
-      max_tokens: 4000,
+      model: MODEL,
+      system: 'You categorize events. Reply ONLY with the JSON array requested, no other text.',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 8000,
       temperature: 0.1,
     }),
   });
 
   const data = await response.json() as any;
 
-  // Handle various response formats
+  // Anthropic format: text block (after an optional thinking block)
+  if (Array.isArray(data.content)) {
+    const textBlock = data.content.find((b: any) => b.type === 'text' && b.text);
+    if (textBlock) return textBlock.text;
+  }
   if (data.choices?.[0]?.message?.content) return data.choices[0].message.content;
-  if (data.content?.[0]?.text) return data.content[0].text;
-  if (data.generated_text) return data.generated_text;
-  if (data.text) return data.text;
-  if (data.output) return data.output;
-  if (data.response) return data.response;
 
   console.error('Unexpected LLM response:', JSON.stringify(data).substring(0, 500));
   throw new Error('Could not parse LLM response');
 }
 
 async function main() {
-  if (!SEGMIND_API_KEY) {
-    console.error('SEGMIND_API_KEY not set in .env');
+  if (!DEEPSEEK_API_KEY) {
+    console.error('DEEPSEEK_API_KEY not set in .env');
     process.exit(1);
   }
 
@@ -94,16 +101,26 @@ async function main() {
   const catMap: Record<string, number> = {};
   catRows.forEach((c: any) => { catMap[c.slug] = c.id; });
 
-  // Step 2: Get uncategorized events
+  const otherId = catMap['other'];
+  const processAll = process.argv.includes('--all');
+
+  // Step 2: Get events needing categorization — never categorized, or
+  // parked in 'other' by the keyword matcher (single mapping only, so we
+  // don't disturb manually multi-categorized events)
+  const dateFilter = processAll ? '' : "AND e.start_datetime >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
   const [events] = await conn.execute(`
-    SELECT e.id, e.title, e.location, e.description
+    SELECT e.id, e.title, e.location, e.description,
+           COUNT(ecm.category_id) AS cat_count,
+           MAX(ecm.category_id) AS only_cat
     FROM events e
     LEFT JOIN event_category_mapping ecm ON e.id = ecm.event_id
-    WHERE ecm.event_id IS NULL AND e.status = 'approved'
+    WHERE e.status = 'approved' ${dateFilter}
+    GROUP BY e.id, e.title, e.location, e.description
+    HAVING cat_count = 0 OR (cat_count = 1 AND only_cat = ?)
     ORDER BY e.id
-  `) as any;
+  `, [otherId]) as any;
 
-  console.log(`Found ${events.length} uncategorized events`);
+  console.log(`Found ${events.length} events to categorize (uncategorized or 'other'${processAll ? ', full history' : ', recent/upcoming only'})`);
 
   if (events.length === 0) {
     console.log('Nothing to categorize!');
@@ -116,18 +133,26 @@ async function main() {
   let totalCategorized = 0;
   const slugList = CATEGORIES.map(c => c.slug).join(', ');
 
+  // Events that currently sit in 'other' — their mapping gets replaced
+  const hadOther = new Set<number>(
+    events.filter((e: any) => Number(e.cat_count) === 1).map((e: any) => e.id)
+  );
+
   for (let i = 0; i < events.length; i += BATCH_SIZE) {
     const batch = events.slice(i, i + BATCH_SIZE);
 
-    // Build a compact prompt — just ID:title pairs
+    // Compact prompt: id|title @ location | description snippet
     const lines = batch.map((e: any) => {
       const loc = e.location ? ` @ ${e.location}` : '';
-      return `${e.id}|${(e.title || '').substring(0, 80)}${loc.substring(0, 40)}`;
+      const desc = e.description ? ` | ${String(e.description).replace(/\s+/g, ' ').substring(0, 100)}` : '';
+      return `${e.id}|${(e.title || '').substring(0, 80)}${loc.substring(0, 40)}${desc}`;
     }).join('\n');
 
     const prompt = `Categorize each event into exactly ONE category. Categories: ${slugList}
 
-Events (id|title):
+Notes: killer-pick = estate/yard/rummage sales, thrift, antiques. fundraiser = benefit/charity events. Use other ONLY if nothing fits.
+
+Events (id|title @ location | description):
 ${lines}
 
 Reply with a JSON array of [id, "slug"] pairs. Example: [[123,"live-music"],[456,"food-drink"]]
@@ -149,18 +174,16 @@ Only output the JSON array, nothing else.`;
 
       let batchCount = 0;
       for (const [eventId, slug] of pairs) {
-        const catId = catMap[slug];
-        if (!catId) {
-          // Fallback to 'other'
-          const otherId = catMap['other'];
-          if (otherId) {
-            await conn.execute(
-              'INSERT IGNORE INTO event_category_mapping (event_id, category_id) VALUES (?, ?)',
-              [eventId, otherId]
-            );
-            batchCount++;
-          }
-          continue;
+        const catId = catMap[slug] || otherId;
+        if (!catId) continue;
+
+        // If the event was parked in 'other' and the LLM found a real
+        // category, swap the mapping instead of adding a second one
+        if (hadOther.has(eventId) && catId !== otherId) {
+          await conn.execute(
+            'DELETE FROM event_category_mapping WHERE event_id = ? AND category_id = ?',
+            [eventId, otherId]
+          );
         }
         await conn.execute(
           'INSERT IGNORE INTO event_category_mapping (event_id, category_id) VALUES (?, ?)',

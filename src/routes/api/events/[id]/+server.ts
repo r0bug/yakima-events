@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getEventById, updateEvent, deleteEvent } from '$server/services/events';
+import { setEventCategory } from '$server/services/categorize';
 
 /**
  * GET /api/events/[id]
@@ -58,8 +59,12 @@ export const GET: RequestHandler = async ({ params }) => {
  * PUT /api/events/[id]
  * Update an event
  */
-export const PUT: RequestHandler = async ({ params, request }) => {
+export const PUT: RequestHandler = async ({ params, request, locals }) => {
   try {
+    if (!locals.user) {
+      return json({ success: false, error: 'Authentication required' }, { status: 401 });
+    }
+
     const id = parseInt(params.id);
 
     if (isNaN(id)) {
@@ -86,7 +91,19 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     if (data.status !== undefined) updateData.status = data.status;
     if (data.featured !== undefined) updateData.featured = data.featured;
 
-    const success = await updateEvent(id, updateData);
+    let categoryChanged = false;
+    if (data.category_id !== undefined) {
+      const categoryId = parseInt(data.category_id);
+      if (isNaN(categoryId)) {
+        return json({ success: false, error: 'Invalid category ID' }, { status: 400 });
+      }
+      await setEventCategory(id, categoryId);
+      categoryChanged = true;
+    }
+
+    const success = Object.keys(updateData).length > 0
+      ? await updateEvent(id, updateData)
+      : categoryChanged;
 
     if (!success) {
       return json(
@@ -112,8 +129,12 @@ export const PUT: RequestHandler = async ({ params, request }) => {
  * DELETE /api/events/[id]
  * Delete an event
  */
-export const DELETE: RequestHandler = async ({ params }) => {
+export const DELETE: RequestHandler = async ({ params, locals }) => {
   try {
+    if (!locals.user) {
+      return json({ success: false, error: 'Authentication required' }, { status: 401 });
+    }
+
     const id = parseInt(params.id);
 
     if (isNaN(id)) {
