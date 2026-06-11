@@ -55,6 +55,7 @@ export interface CalendarSource {
   scrapeConfig: ScrapeConfig | null;
   intelligentMethodId?: number | null;
   active: boolean;
+  autoApprove?: boolean | null;
   lastScraped: Date | null;
   createdBy?: number | null;
 }

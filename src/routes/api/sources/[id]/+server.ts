@@ -55,7 +55,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     if (data.type !== undefined) updateData.type = data.type;
     if (data.configuration !== undefined) updateData.configuration = data.configuration;
     if (data.active !== undefined) updateData.active = data.active;
-    if (data.scrape_frequency !== undefined) updateData.scrapeFrequency = data.scrape_frequency;
+    if (data.auto_approve !== undefined) updateData.autoApprove = data.auto_approve;
 
     const success = await updateSource(id, updateData);
     if (!success) {

@@ -109,14 +109,19 @@ export async function scrapeCitySpark(url: string): Promise<ScrapedEvent[]> {
 function mapCitySparkEvent(raw: CitySparkEvent): ScrapedEvent | null {
 	if (!raw.Name) return null;
 
+	// CitySpark returns Pacific wall-clock times but mislabels them with a Z (UTC)
+	// suffix. Strip the trailing Z/offset so `new Date()` treats them as local; the
+	// process runs in America/Los_Angeles so the parsed moment matches Pacific.
+	const stripTz = (s: string) => s.replace(/(?:Z|[+-]\d{2}:?\d{2})$/, '');
+
 	// Parse start date — try StartLocal first, then DateStart
 	let startDatetime: Date | null = null;
 
 	if (raw.StartLocal) {
-		startDatetime = new Date(raw.StartLocal);
+		startDatetime = new Date(stripTz(raw.StartLocal));
 	}
 	if ((!startDatetime || isNaN(startDatetime.getTime())) && raw.DateStart) {
-		startDatetime = new Date(raw.DateStart);
+		startDatetime = new Date(stripTz(raw.DateStart));
 	}
 	if (!startDatetime || isNaN(startDatetime.getTime())) return null;
 
@@ -129,10 +134,10 @@ function mapCitySparkEvent(raw: CitySparkEvent): ScrapedEvent | null {
 	// Parse end date
 	let endDatetime: Date | undefined;
 	if (raw.EndLocal) {
-		const end = new Date(raw.EndLocal);
+		const end = new Date(stripTz(raw.EndLocal));
 		if (!isNaN(end.getTime()) && end.getFullYear() > 2020) endDatetime = end;
 	} else if (raw.DateEnd) {
-		const end = new Date(raw.DateEnd);
+		const end = new Date(stripTz(raw.DateEnd));
 		if (!isNaN(end.getTime()) && end.getFullYear() > 2020) endDatetime = end;
 	}
 

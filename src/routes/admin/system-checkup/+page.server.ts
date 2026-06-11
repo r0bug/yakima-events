@@ -46,7 +46,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const activeSources = await db
 		.select({ id: calendarSources.id, name: calendarSources.name, url: calendarSources.url })
 		.from(calendarSources)
-		.where(eq(calendarSources.isActive, true));
+		.where(eq(calendarSources.active, true));
 
 	// Database connection test
 	let dbConnected = true;

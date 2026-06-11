@@ -14,7 +14,8 @@ const PACIFIC = 'America/Los_Angeles';
  * Returns "YYYY-MM-DD HH:MM:SS" in America/Los_Angeles.
  */
 export function toPacificDatetime(date: Date): string {
-  // Intl.DateTimeFormat gives us Pacific-local parts regardless of server TZ
+  // Intl.DateTimeFormat gives us Pacific-local parts regardless of server TZ.
+  // hourCycle: 'h23' yields 00-23; hour12: false yields 24:xx at midnight in en-CA.
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: PACIFIC,
     year: 'numeric',
@@ -23,7 +24,7 @@ export function toPacificDatetime(date: Date): string {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: false,
+    hourCycle: 'h23',
   }).formatToParts(date);
 
   const get = (type: Intl.DateTimeFormatPartTypes) =>

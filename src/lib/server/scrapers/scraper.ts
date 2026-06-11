@@ -18,11 +18,38 @@ import * as eventbriteService from '$server/services/eventbrite';
 import { scrapeCitySpark } from './parsers/cityspark';
 import { geocodeYakimaArea } from '$server/services/geocode';
 import { notifyScraperError } from '$server/services/email';
+import { pacificToday, toPacificDatetime } from '$server/datetime';
+import { titlesMatch, pickMergeUpdates } from '$server/services/eventMerge';
+
+/**
+ * Auto-reject pending events that are already over (Pacific time).
+ * There's nothing for a moderator to approve once the event has passed.
+ */
+export async function rejectPastPendingEvents(): Promise<number> {
+  const { start: todayStart } = pacificToday();
+  const result = await db
+    .update(events)
+    .set({ status: 'rejected' })
+    .where(
+      and(
+        eq(events.status, 'pending'),
+        sql`COALESCE(${events.endDatetime}, ${events.startDatetime}) < ${todayStart}`
+      )
+    );
+
+  const rejected = result[0].affectedRows;
+  if (rejected > 0) {
+    console.log(`[Scraper] Auto-rejected ${rejected} past pending events`);
+  }
+  return rejected;
+}
 
 /**
  * Scrape all active sources
  */
 export async function scrapeAllSources(): Promise<ScrapeResult[]> {
+  await rejectPastPendingEvents();
+
   const sources = await getActiveSources();
   const results: ScrapeResult[] = [];
 
@@ -133,9 +160,10 @@ export async function scrapeSource(source: CalendarSource): Promise<ScrapeResult
     eventsFound = scrapedEvents.length;
     console.log(`[Scraper] Found ${eventsFound} events from ${source.name}`);
 
-    // Process and save each event
+    // Process and save each event; trusted sources publish immediately
+    const status = source.autoApprove ? 'approved' : 'pending';
     for (const eventData of scrapedEvents) {
-      const result = await processEvent(eventData, source.id);
+      const result = await processEvent(eventData, source.id, status);
       if (result === 'added') {
         eventsAdded++;
       } else if (result === 'duplicate') {
@@ -367,7 +395,16 @@ export async function processEvent(
     return 'invalid';
   }
 
-  // Check for duplicates (same title and start time)
+  // Skip events that already ended (before today, Pacific) — they'd only
+  // clutter the pending-approval queue
+  const eventEnd = eventData.endDatetime || eventData.startDatetime;
+  if (toPacificDatetime(eventEnd) < pacificToday().start) {
+    return 'invalid';
+  }
+
+  // Check for duplicates (same external ID, or same start + similar title
+  // across sources). When found, enrich the existing event with any fields
+  // this source has that the original lacks.
   const duplicate = await findDuplicate(
     eventData.title,
     eventData.startDatetime,
@@ -375,7 +412,38 @@ export async function processEvent(
   );
 
   if (duplicate) {
+    try {
+      const updates = pickMergeUpdates(duplicate, eventData);
+      if (Object.keys(updates).length > 0) {
+        await db.update(events).set(updates).where(eq(events.id, duplicate.id));
+        console.log(`[Scraper] Merged ${Object.keys(updates).join(', ')} into duplicate event #${duplicate.id}`);
+      }
+    } catch (mergeErr) {
+      console.warn('[Scraper] Duplicate merge failed:', mergeErr);
+    }
     return 'duplicate';
+  }
+
+  // Match the venue to a local shop first — many sources list only a venue
+  // name ("Yakima Finds, Yakima, WA"), and the shop record carries the real
+  // street address and coordinates
+  let matchedShopId: number | null = null;
+  try {
+    const { findMatchingShop, getShopVenueDetails } = await import('$lib/server/services/shopMatch');
+    matchedShopId = await findMatchingShop(eventData.title, eventData.location);
+    if (matchedShopId) {
+      const venue = await getShopVenueDetails(matchedShopId);
+      if (venue) {
+        // Street-address check: placeholder "addresses" can be raw location text
+        if (!eventData.address && venue.address && /^\d+\s/.test(venue.address)) eventData.address = venue.address;
+        if (!eventData.latitude && venue.latitude && venue.longitude) {
+          eventData.latitude = Number(venue.latitude);
+          eventData.longitude = Number(venue.longitude);
+        }
+      }
+    }
+  } catch (shopErr) {
+    console.warn('[Scraper] Shop match failed:', shopErr);
   }
 
   // Geocode address if needed and not already geocoded
@@ -409,19 +477,18 @@ export async function processEvent(
     try {
       const { categorizeEvent } = await import('$lib/server/services/categorize');
       const newId = Number(result[0].insertId);
-      await categorizeEvent(newId, eventData.title, eventData.location);
+      await categorizeEvent(newId, eventData.title, eventData.location, eventData.description);
     } catch (catErr) {
       // Non-fatal — event is saved even if categorization fails
       console.warn('[Scraper] Auto-categorize failed:', catErr);
     }
 
-    // Auto-link to matching local shop, or create venue placeholder
+    // Link to the shop matched above, or create a venue placeholder
     try {
-      const { findMatchingShop, linkEventToShop } = await import('$lib/server/services/shopMatch');
+      const { linkEventToShop } = await import('$lib/server/services/shopMatch');
       const newId = Number(result[0].insertId);
-      const shopId = await findMatchingShop(eventData.title, eventData.location);
-      if (shopId) {
-        await linkEventToShop(newId, shopId);
+      if (matchedShopId) {
+        await linkEventToShop(newId, matchedShopId);
       } else if (eventData.location) {
         const { findOrCreateVenuePlaceholder } = await import('$lib/server/services/venueExtract');
         const venueId = await findOrCreateVenuePlaceholder(
@@ -446,37 +513,57 @@ export async function processEvent(
 /**
  * Find duplicate event
  */
+interface DuplicateRow {
+  id: number;
+  title: string;
+  description: string | null;
+  endDatetime: string | null;
+  location: string | null;
+  address: string | null;
+  latitude: string | null;
+  longitude: string | null;
+  externalUrl: string | null;
+}
+
 export async function findDuplicate(
   title: string,
   startDatetime: Date,
   externalEventId?: string
-): Promise<boolean> {
-  // Check by external event ID first
+): Promise<DuplicateRow | null> {
+  const fields = {
+    id: events.id,
+    title: events.title,
+    description: events.description,
+    endDatetime: events.endDatetime,
+    location: events.location,
+    address: events.address,
+    latitude: events.latitude,
+    longitude: events.longitude,
+    externalUrl: events.externalUrl,
+  };
+
+  // Check by external event ID first (same source re-scraping)
   if (externalEventId) {
     const byExternalId = await db
-      .select({ id: events.id })
+      .select(fields)
       .from(events)
       .where(eq(events.externalEventId, externalEventId))
       .limit(1);
 
     if (byExternalId.length > 0) {
-      return true;
+      return byExternalId[0];
     }
   }
 
-  // Check by title and start time
-  const byTitleTime = await db
-    .select({ id: events.id })
+  // Cross-source check: same start time + matching title (normalized —
+  // sources glue venue names onto titles or truncate them)
+  const sameStart = await db
+    .select(fields)
     .from(events)
-    .where(
-      and(
-        eq(events.title, title),
-        eq(events.startDatetime, startDatetime)
-      )
-    )
-    .limit(1);
+    .where(eq(events.startDatetime, startDatetime))
+    .limit(50);
 
-  return byTitleTime.length > 0;
+  return sameStart.find((row) => titlesMatch(row.title, title)) || null;
 }
 
 /**

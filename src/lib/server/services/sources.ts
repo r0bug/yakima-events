@@ -12,6 +12,10 @@ export interface SourceWithStats extends CalendarSource {
   lastScrapeStatus?: string;
 }
 
+type ScrapeTypeValue =
+  | 'ical' | 'html' | 'json' | 'rss' | 'eventbrite' | 'facebook'
+  | 'yakima_valley' | 'intelligent' | 'firecrawl' | 'cityspark';
+
 /**
  * Get all calendar sources with stats
  */
@@ -55,18 +59,16 @@ export async function getSourceById(id: number): Promise<CalendarSource | null> 
 export async function createSource(data: {
   name: string;
   url: string;
-  type: 'ical' | 'html' | 'json' | 'rss';
+  type: ScrapeTypeValue;
   configuration?: Record<string, unknown>;
   active?: boolean;
-  scrapeFrequency?: number;
 }): Promise<number> {
   const result = await db.insert(calendarSources).values({
     name: data.name,
     url: data.url,
-    type: data.type,
-    configuration: data.configuration || null,
+    scrapeType: data.type,
+    scrapeConfig: data.configuration || null,
     active: data.active ?? true,
-    scrapeFrequency: data.scrapeFrequency || 3600,
   });
 
   return Number(result[0].insertId);
@@ -80,15 +82,27 @@ export async function updateSource(
   data: Partial<{
     name: string;
     url: string;
-    type: 'ical' | 'html' | 'json' | 'rss';
+    type: ScrapeTypeValue;
     configuration: Record<string, unknown>;
     active: boolean;
-    scrapeFrequency: number;
+    autoApprove: boolean;
   }>
 ): Promise<boolean> {
+  // Map API field names to schema column names — passing unknown keys to
+  // drizzle's .set() silently drops them
+  const set: Record<string, unknown> = {};
+  if (data.name !== undefined) set.name = data.name;
+  if (data.url !== undefined) set.url = data.url;
+  if (data.type !== undefined) set.scrapeType = data.type;
+  if (data.configuration !== undefined) set.scrapeConfig = data.configuration;
+  if (data.active !== undefined) set.active = data.active;
+  if (data.autoApprove !== undefined) set.autoApprove = data.autoApprove;
+
+  if (Object.keys(set).length === 0) return false;
+
   const result = await db
     .update(calendarSources)
-    .set(data)
+    .set(set)
     .where(eq(calendarSources.id, id));
 
   return result[0].affectedRows > 0;
