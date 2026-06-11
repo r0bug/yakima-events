@@ -119,6 +119,24 @@ export async function findMatchingShop(title: string, location?: string): Promis
 }
 
 /**
+ * Address/coordinates for a shop, used to backfill events held there.
+ */
+export async function getShopVenueDetails(
+  shopId: number
+): Promise<{ address: string | null; latitude: string | null; longitude: string | null } | null> {
+  const rows = await db
+    .select({
+      address: localShops.address,
+      latitude: localShops.latitude,
+      longitude: localShops.longitude,
+    })
+    .from(localShops)
+    .where(eq(localShops.id, shopId))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+/**
  * Link an event to a shop as venue. Skips if already linked.
  */
 export async function linkEventToShop(eventId: number, shopId: number): Promise<boolean> {

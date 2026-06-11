@@ -8,7 +8,7 @@ import { localShops, eventShopParticipants } from '$lib/server/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 
 // Generic/skip locations that shouldn't become venues
-const SKIP_PATTERNS = /^(?:yakima|selah|union gap|prosser|online|virtual|tbd|zoom|teams|wa|washington|united states|various|multiple|downtown|see description|to be announced)/i;
+const SKIP_PATTERNS = /^(?:yakima|selah|union gap|prosser|naches|zillah|tieton|wapato|toppenish|sunnyside|granger|moxee|grandview|ellensburg|cowiche|outlook|buena|mabton|harrah|white swan|parker|terrace heights|benton city|online|virtual|tbd|zoom|teams|wa|washington|united states|various|multiple|downtown|see description|to be announced)(?:\s*,|\s+wa\b|\s*$)/i;
 const ADDRESS_ONLY = /^\d+\s+(?:N\.?|S\.?|E\.?|W\.?|North|South|East|West)?\s*\w+\s+(?:St|Ave|Blvd|Rd|Dr|Ln|Way|Hwy|Road|Street|Avenue|Drive|Boulevard|Lane|Court|Circle|Place|Trail)/i;
 
 /**
@@ -68,18 +68,30 @@ export async function findOrCreateVenuePlaceholder(
 
 	// Check if a venue placeholder already exists with this normalized name
 	const existing = await db
-		.select({ id: localShops.id })
+		.select({
+			id: localShops.id,
+			address: localShops.address,
+			latitude: localShops.latitude,
+			isVenuePlaceholder: localShops.isVenuePlaceholder,
+		})
 		.from(localShops)
 		.where(eq(localShops.normalizedName, normalized))
 		.limit(1);
 
 	if (existing.length > 0) {
-		// Increment source count
-		await db
-			.update(localShops)
-			.set({ venueSourceCount: sql`venue_source_count + 1` })
-			.where(eq(localShops.id, existing[0].id));
-		return existing[0].id;
+		const found = existing[0];
+		// Increment source count, and enrich the placeholder with any venue
+		// details this event has that the placeholder still lacks
+		const fills: Record<string, unknown> = { venueSourceCount: sql`venue_source_count + 1` };
+		if (found.isVenuePlaceholder) {
+			if (address && (!found.address || found.address === location)) fills.address = address;
+			if (!found.latitude && lat && lng) {
+				fills.latitude = lat;
+				fills.longitude = lng;
+			}
+		}
+		await db.update(localShops).set(fills).where(eq(localShops.id, found.id));
+		return found.id;
 	}
 
 	// Create new venue placeholder

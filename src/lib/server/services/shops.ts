@@ -35,6 +35,9 @@ export async function getShops(filters: ShopFilters = {}): Promise<ShopWithDetai
     conditions.push(eq(localShops.status, 'active'));
   }
 
+  // Soft-delete filter — never expose shops with active=0 via the public service
+  conditions.push(eq(localShops.active, true));
+
   // Category filter
   if (filters.category) {
     const category = await db
