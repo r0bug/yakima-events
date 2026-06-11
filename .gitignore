@@ -45,3 +45,4 @@ data/
 test_*.sh
 test_*.py
 regression_test.sh
+.gstack/

@@ -8,6 +8,7 @@
     { href: '/admin/communication', label: 'Channels', icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
     { href: '/admin/scrapers', label: 'Scrapers', icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z' },
     { href: '/admin/claims', label: 'Shop Claims', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
+    { href: '/admin/junk-runs', label: 'Junk Runs', icon: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7' },
     { href: '/admin/forum', label: 'Forum', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
     { href: '/admin/settings', label: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
     { href: '/admin/geocode-fix', label: 'Geocode Fix', icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z' },
@@ -15,55 +16,117 @@
     { href: '/admin/system-checkup', label: 'System', icon: 'M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z' },
   ];
 
+  let mobileMenuOpen = false;
+
   function isActive(href: string): boolean {
     return $page.url.pathname.startsWith(href);
   }
+
+  $: currentSection = navItems.find(i => isActive(i.href))?.label || 'Admin';
+
+  // Close mobile menu on navigation
+  $: $page.url.pathname, (mobileMenuOpen = false);
 </script>
 
 <div class="flex min-h-[calc(100vh-64px)]">
-  <!-- Sidebar -->
-  <aside class="w-64 bg-gray-900 text-gray-100 hidden md:block">
-    <div class="p-4 border-b border-gray-800">
-      <h2 class="text-lg font-semibold">Admin Panel</h2>
+  <!-- Desktop sidebar (sticky so it stays visible on long pages) -->
+  <aside class="w-64 bg-gray-900 text-gray-100 hidden md:block flex-shrink-0">
+    <div class="sticky top-0 max-h-screen overflow-y-auto">
+      <div class="p-4 border-b border-gray-800">
+        <h2 class="text-lg font-semibold">Admin Panel</h2>
+        <p class="text-xs text-gray-400 mt-0.5">All admin pages</p>
+      </div>
+      <nav class="p-4">
+        <ul class="space-y-1">
+          {#each navItems as item}
+            <li>
+              <a
+                href={item.href}
+                class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors {isActive(item.href) ? 'bg-purple-600 text-white' : 'hover:bg-gray-800'}"
+              >
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={item.icon} />
+                </svg>
+                <span>{item.label}</span>
+              </a>
+            </li>
+          {/each}
+        </ul>
+      </nav>
     </div>
-    <nav class="p-4">
-      <ul class="space-y-2">
-        {#each navItems as item}
-          <li>
-            <a
-              href={item.href}
-              class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors {isActive(item.href) ? 'bg-purple-600 text-white' : 'hover:bg-gray-800'}"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={item.icon} />
-              </svg>
-              {item.label}
-            </a>
-          </li>
-        {/each}
-      </ul>
-    </nav>
   </aside>
 
-  <!-- Mobile nav -->
-  <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t z-40">
-    <nav class="flex justify-around p-2">
+  <!-- Mobile top header bar (sticky) -->
+  <div class="md:hidden fixed top-16 left-0 right-0 bg-gray-900 text-white z-40 border-b border-gray-800">
+    <button
+      on:click={() => mobileMenuOpen = !mobileMenuOpen}
+      class="flex items-center justify-between w-full px-4 py-3"
+      aria-expanded={mobileMenuOpen}
+      aria-label="Admin menu"
+    >
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        <span class="font-semibold text-sm">Admin</span>
+        <span class="text-gray-400 text-sm">› {currentSection}</span>
+      </div>
+      <svg class="w-4 h-4 transition-transform {mobileMenuOpen ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+
+    {#if mobileMenuOpen}
+      <nav class="border-t border-gray-800 max-h-[70vh] overflow-y-auto">
+        <ul class="py-2">
+          {#each navItems as item}
+            <li>
+              <a
+                href={item.href}
+                class="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors {isActive(item.href) ? 'bg-purple-600 text-white' : 'hover:bg-gray-800 text-gray-100'}"
+              >
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={item.icon} />
+                </svg>
+                {item.label}
+              </a>
+            </li>
+          {/each}
+        </ul>
+      </nav>
+    {/if}
+  </div>
+
+  <!-- Mobile horizontal scrolling tab strip (always visible at bottom) -->
+  <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t z-40 shadow-lg">
+    <nav class="flex overflow-x-auto scrollbar-hide">
       {#each navItems as item}
         <a
           href={item.href}
-          class="flex flex-col items-center gap-1 px-4 py-2 rounded-lg {isActive(item.href) ? 'text-purple-600' : 'text-gray-600'}"
+          class="flex flex-col items-center gap-0.5 px-4 py-2 min-w-[64px] flex-shrink-0 {isActive(item.href) ? 'text-purple-600 border-t-2 border-purple-600 -mt-px' : 'text-gray-600'}"
         >
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={item.icon} />
           </svg>
-          <span class="text-xs">{item.label}</span>
+          <span class="text-[10px] whitespace-nowrap">{item.label}</span>
         </a>
       {/each}
     </nav>
   </div>
 
-  <!-- Main content -->
-  <main class="flex-1 p-6 pb-20 md:pb-6">
+  <!-- Main content (mobile gets top padding for the sticky header & bottom padding for tab strip) -->
+  <main class="flex-1 p-6 pt-20 pb-24 md:pt-6 md:pb-6 min-w-0">
     <slot />
   </main>
 </div>
+
+<style>
+  /* Hide scrollbar on mobile tab strip but keep scrollability */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+</style>

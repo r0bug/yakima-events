@@ -1,42 +1,28 @@
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
-import { readFileSync } from 'fs';
+import { readFile } from 'fs/promises';
+import { existsSync } from 'fs';
 import { resolve } from 'path';
 import { db } from '$lib/server/db';
 import { localShops, shopCategories, events, eventShopParticipants } from '$lib/server/db/schema';
-import { eq, and, gte, lte, inArray, sql } from 'drizzle-orm';
+import { eq, and, gte, lte, inArray, sql, notInArray } from 'drizzle-orm';
 import { pacificToday } from '$lib/server/datetime';
+import { applyConfigDefaults } from '$lib/types/junk-run';
+import type { JunkRunConfig } from '$lib/types/junk-run';
 
-export interface JunkRunConfig {
-	slug: string;
-	name: string;
-	tagline: string;
-	headerHtml: string;
-	footerHtml: string;
-	logo: string | null;
-	theme: {
-		primary: string;
-		accent: string;
-		background: string;
-		text: string;
-		headerBg: string;
-		headerText: string;
-	};
-	mapCenter: [number, number];
-	mapZoom: number;
-	defaultTags: string[];
-	showSalesToday: boolean;
-}
+export type { JunkRunConfig };
 
 export const load: PageServerLoad = async ({ params }) => {
 	const { slug } = params;
 
-	// Load config
+	// Load config - try data/ first (admin-managed), fall back to src/lib/config/ (legacy)
 	let config: JunkRunConfig;
 	try {
-		const configPath = resolve('src/lib/config/junk-runs', `${slug}.json`);
-		const raw = readFileSync(configPath, 'utf-8');
-		config = JSON.parse(raw);
+		const dataPath = resolve('data/junk-runs', `${slug}.json`);
+		const legacyPath = resolve('src/lib/config/junk-runs', `${slug}.json`);
+		const configPath = existsSync(dataPath) ? dataPath : legacyPath;
+		const raw = await readFile(configPath, 'utf-8');
+		config = applyConfigDefaults(JSON.parse(raw));
 	} catch {
 		error(404, 'Junk run route not found');
 	}
@@ -59,7 +45,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	const categoryIds = categories.map(c => c.id);
 
 	// Load shops with matching categories that have coordinates
-	const shops = categoryIds.length > 0 ? await db
+	let shops = categoryIds.length > 0 ? await db
 		.select({
 			id: localShops.id,
 			name: localShops.name,
@@ -80,6 +66,11 @@ export const load: PageServerLoad = async ({ params }) => {
 			sql`${localShops.latitude} IS NOT NULL`,
 			sql`${localShops.longitude} IS NOT NULL`,
 		)) : [];
+
+	// Filter out excluded shops
+	if (config.excludedShopIds.length > 0) {
+		shops = shops.filter(s => !config.excludedShopIds.includes(s.id));
+	}
 
 	// Load today's sales (events happening today linked to shops)
 	let salesToday: { eventId: number; title: string; shopId: number; location: string | null; startDatetime: string | null }[] = [];
