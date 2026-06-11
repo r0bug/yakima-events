@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { z } from 'zod';
 import type { RequestHandler } from './$types';
+import { requireAdmin } from '$lib/server/api-utils';
 import * as facebookService from '$lib/server/services/facebook';
 
 const facebookScrapeSchema = z.object({
@@ -20,7 +21,10 @@ export const GET: RequestHandler = async () => {
  * POST /api/scraper/facebook
  * Test Facebook scraper with an event URL or ID
  */
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
+  const authError = requireAdmin(locals);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     const parsed = facebookScrapeSchema.safeParse(body);

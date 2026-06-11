@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { z } from 'zod';
 import type { RequestHandler } from './$types';
+import { requireAdmin } from '$lib/server/api-utils';
 import * as eventbriteService from '$lib/server/services/eventbrite';
 
 const eventbriteScrapeSchema = z.object({
@@ -21,7 +22,10 @@ export const GET: RequestHandler = async () => {
  * POST /api/scraper/eventbrite
  * Test Eventbrite scraper with a URL (event or search)
  */
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
+  const authError = requireAdmin(locals);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     const parsed = eventbriteScrapeSchema.safeParse(body);

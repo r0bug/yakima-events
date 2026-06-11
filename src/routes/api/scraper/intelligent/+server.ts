@@ -6,6 +6,7 @@
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { requireAdmin } from '$lib/server/api-utils';
 import { db, intelligentScraperSessions, intelligentScraperBatches, intelligentScraperBatchItems, intelligentScraperMethods } from '$server/db';
 import { eq, desc, sql, and } from 'drizzle-orm';
 import * as intelligentScraper from '$server/scrapers/intelligent';
@@ -113,7 +114,10 @@ export const GET: RequestHandler = async ({ url }) => {
   }
 };
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
+  const authError = requireAdmin(locals);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     const { action, url: targetUrl, sessionId, urls, filename } = body;

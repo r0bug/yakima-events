@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { requireAdmin } from '$lib/server/api-utils';
 import {
   getSources,
   createSource,
@@ -33,7 +34,10 @@ export const GET: RequestHandler = async ({ url }) => {
  * POST /api/sources
  * Create a new calendar source
  */
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
+  const authError = requireAdmin(locals);
+  if (authError) return authError;
+
   try {
     const data = await request.json();
 

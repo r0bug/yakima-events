@@ -1,12 +1,16 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { requireAdmin } from '$lib/server/api-utils';
 import { scrapeSourceById } from '$server/scrapers/scraper';
 
 /**
  * POST /api/scrape/[id]
  * Scrape a specific source by ID
  */
-export const POST: RequestHandler = async ({ params }) => {
+export const POST: RequestHandler = async ({ params, locals }) => {
+  const authError = requireAdmin(locals);
+  if (authError) return authError;
+
   try {
     const id = parseInt(params.id);
     if (isNaN(id)) {

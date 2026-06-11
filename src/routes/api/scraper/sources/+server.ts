@@ -5,6 +5,7 @@
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { requireAdmin } from '$lib/server/api-utils';
 import { db, calendarSources } from '$server/db';
 import { eq } from 'drizzle-orm';
 
@@ -35,7 +36,10 @@ export const GET: RequestHandler = async ({ url }) => {
   }
 };
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
+  const authError = requireAdmin(locals);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     const { name, url: sourceUrl, scrapeType, scrapeConfig, active } = body;
@@ -73,7 +77,10 @@ export const POST: RequestHandler = async ({ request }) => {
   }
 };
 
-export const PUT: RequestHandler = async ({ request }) => {
+export const PUT: RequestHandler = async ({ request, locals }) => {
+  const authError = requireAdmin(locals);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     const { id, name, url: sourceUrl, scrapeType, scrapeConfig, active } = body;
@@ -105,7 +112,10 @@ export const PUT: RequestHandler = async ({ request }) => {
   }
 };
 
-export const DELETE: RequestHandler = async ({ url }) => {
+export const DELETE: RequestHandler = async ({ url, locals }) => {
+  const authError = requireAdmin(locals);
+  if (authError) return authError;
+
   const id = url.searchParams.get('id');
 
   if (!id) {

@@ -6,6 +6,7 @@
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { requireAdmin } from '$lib/server/api-utils';
 import { db, calendarSources } from '$server/db';
 import { eq, desc } from 'drizzle-orm';
 import { scrapeAllSources, scrapeSourceById, getScrapingStats, getRecentLogs } from '$server/scrapers/scraper';
@@ -51,7 +52,10 @@ export const GET: RequestHandler = async ({ url }) => {
   }
 };
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
+  const authError = requireAdmin(locals);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     const { action, sourceId } = body;

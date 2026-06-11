@@ -6,6 +6,7 @@ import {
   deleteSource,
   testSource,
 } from '$server/services/sources';
+import { requireAdmin } from '$lib/server/api-utils';
 
 /**
  * GET /api/sources/[id]
@@ -40,8 +41,11 @@ export const GET: RequestHandler = async ({ params }) => {
  * PUT /api/sources/[id]
  * Update a source
  */
-export const PUT: RequestHandler = async ({ params, request }) => {
+export const PUT: RequestHandler = async ({ params, request, locals }) => {
   try {
+    const authError = requireAdmin(locals);
+    if (authError) return authError;
+
     const id = parseInt(params.id);
     if (isNaN(id)) {
       return json({ success: false, error: 'Invalid source ID' }, { status: 400 });
@@ -79,8 +83,11 @@ export const PUT: RequestHandler = async ({ params, request }) => {
  * DELETE /api/sources/[id]
  * Delete a source
  */
-export const DELETE: RequestHandler = async ({ params }) => {
+export const DELETE: RequestHandler = async ({ params, locals }) => {
   try {
+    const authError = requireAdmin(locals);
+    if (authError) return authError;
+
     const id = parseInt(params.id);
     if (isNaN(id)) {
       return json({ success: false, error: 'Invalid source ID' }, { status: 400 });

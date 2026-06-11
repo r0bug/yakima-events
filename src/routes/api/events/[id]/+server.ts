@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getEventById, updateEvent, deleteEvent } from '$server/services/events';
 import { setEventCategory } from '$server/services/categorize';
+import { requireAdmin } from '$lib/server/api-utils';
 
 /**
  * GET /api/events/[id]
@@ -61,9 +62,8 @@ export const GET: RequestHandler = async ({ params }) => {
  */
 export const PUT: RequestHandler = async ({ params, request, locals }) => {
   try {
-    if (!locals.user) {
-      return json({ success: false, error: 'Authentication required' }, { status: 401 });
-    }
+    const authError = requireAdmin(locals);
+    if (authError) return authError;
 
     const id = parseInt(params.id);
 
@@ -131,9 +131,8 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
  */
 export const DELETE: RequestHandler = async ({ params, locals }) => {
   try {
-    if (!locals.user) {
-      return json({ success: false, error: 'Authentication required' }, { status: 401 });
-    }
+    const authError = requireAdmin(locals);
+    if (authError) return authError;
 
     const id = parseInt(params.id);
 

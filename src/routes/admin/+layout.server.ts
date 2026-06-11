@@ -12,12 +12,10 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
     redirect(302, `/login?return=${returnUrl}`);
   }
 
-  // TODO: Add admin role check when user roles are fully implemented
-  // For now, any authenticated user can access admin routes
-  // In production, check for admin role:
-  // if (!locals.user.isAdmin) {
-  //   redirect(302, '/');
-  // }
+  // Only admins and moderators may use the admin panel
+  if (locals.user.role !== 'admin' && locals.user.role !== 'moderator') {
+    redirect(302, '/');
+  }
 
   return {
     user: locals.user,
