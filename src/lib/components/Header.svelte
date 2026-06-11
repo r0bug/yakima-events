@@ -1,11 +1,13 @@
 <script lang="ts">
   import { PUBLIC_APP_NAME } from '$env/static/public';
   import UserMenu from './UserMenu.svelte';
+  import SearchBar from './SearchBar.svelte';
   import type { SessionUser } from '$lib/server/auth/session';
 
   export let user: SessionUser | null = null;
 
   let mobileMenuOpen = false;
+  let mobileSearchOpen = false;
 
   function toggleMobileMenu() {
     mobileMenuOpen = !mobileMenuOpen;
@@ -31,6 +33,11 @@
           <div class="text-[10px] uppercase tracking-[0.2em] text-amber-300/80 font-medium hidden sm:block">Yakima Valley Community Calendar</div>
         </div>
       </a>
+
+      <!-- Desktop search bar -->
+      <div class="hidden md:block flex-1 max-w-md mx-6">
+        <SearchBar />
+      </div>
 
       <!-- Desktop nav -->
       <nav class="hidden md:flex items-center gap-2">
@@ -89,8 +96,17 @@
         </div>
       </nav>
 
-      <!-- Mobile: user menu + hamburger -->
+      <!-- Mobile: search + user menu + hamburger -->
       <div class="flex items-center gap-2 md:hidden">
+        <button
+          on:click={() => mobileSearchOpen = true}
+          class="p-2 rounded-lg hover:bg-white/10 transition-colors"
+          aria-label="Search"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 18a7 7 0 110-14 7 7 0 010 14z" />
+          </svg>
+        </button>
         <UserMenu {user} />
         <button
           on:click={toggleMobileMenu}
@@ -167,4 +183,24 @@
       </nav>
     {/if}
   </div>
+
+  <!-- Mobile search overlay -->
+  {#if mobileSearchOpen}
+    <div class="md:hidden fixed inset-0 z-50 bg-stone-900/95 flex flex-col">
+      <div class="flex items-center gap-2 p-4 border-b border-white/10">
+        <div class="flex-1">
+          <SearchBar autofocus={true} />
+        </div>
+        <button
+          on:click={() => mobileSearchOpen = false}
+          class="p-2 rounded-lg hover:bg-white/10 transition-colors text-white"
+          aria-label="Close search"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  {/if}
 </header>

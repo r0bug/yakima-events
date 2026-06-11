@@ -73,12 +73,14 @@ export async function getEvents(filters: EventFilters = {}): Promise<EventWithDe
     conditions.push(eq(events.featured, filters.featured));
   }
 
-  // Search filter
+  // Search filter — title, location, description, address
   if (filters.search) {
     const searchTerm = `%${filters.search}%`;
     conditions.push(or(
       like(events.title, searchTerm),
-      like(events.location, searchTerm)
+      like(events.location, searchTerm),
+      like(events.description, searchTerm),
+      like(events.address, searchTerm)
     ));
   }
 
