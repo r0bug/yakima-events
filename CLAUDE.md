@@ -98,8 +98,8 @@ pm2 status
 - `src/lib/server/scrapers/parsers/` - Format-specific parsers (ical, rss, html, json, cityspark)
 
 ### UI Components
-- `src/lib/components/Calendar.svelte` - Calendar view
-- `src/lib/components/MapView.svelte` - Google Maps
+- `src/lib/components/Calendar.svelte` - Calendar view (agenda/month/week/day/map). ‹ / › arrows step one day at a time in every view; selected day highlighted in month/week grids. Map view plots the selected day's events.
+- `src/lib/components/MapView.svelte` - Google Maps. Event markers show details on hover (time/location/description); click opens the full event.
 - `src/lib/components/Header.svelte` - Navigation
 - `src/lib/components/EventModal.svelte` - Event details modal
 - `src/lib/components/Footer.svelte` - Page footer

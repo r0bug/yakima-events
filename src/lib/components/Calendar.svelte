@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
-  import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameDay, isSameMonth, parseISO } from 'date-fns';
+  import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameDay, isSameMonth, parseISO } from 'date-fns';
   import EventModal from './EventModal.svelte';
   import MapView from './MapView.svelte';
 
@@ -178,6 +178,7 @@
 
     switch (view) {
       case 'day':
+      case 'map':
         start = date;
         end = addDays(date, 1);
         break;
@@ -186,12 +187,12 @@
         end = endOfWeek(date);
         break;
       case 'agenda':
-        // Don't show the past when looking at the current month
-        start = isSameMonth(date, new Date()) ? new Date() : startOfMonth(date);
+        // Day-anchored: list events from the selected day through the end of its month,
+        // so stepping forward/back by a day visibly advances the agenda.
+        start = date;
         end = endOfMonth(date);
         break;
       case 'month':
-      case 'map':
       default:
         start = startOfMonth(date);
         end = endOfMonth(date);
@@ -206,6 +207,7 @@
   function getDateRangeText(date: Date, view: ViewType): string {
     switch (view) {
       case 'day':
+      case 'map':
         return format(date, 'EEEE, MMMM d, yyyy');
       case 'week':
         const weekStart = startOfWeek(date);
@@ -213,7 +215,6 @@
         return `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d, yyyy')}`;
       case 'month':
       case 'agenda':
-      case 'map':
       default:
         return format(date, 'MMMM yyyy');
     }
@@ -300,31 +301,14 @@
     return d === 0 || d === 5 || d === 6;
   }
 
+  // The ‹ / › arrows always step one day at a time, in every view.
   function navigatePrev() {
-    switch (currentView) {
-      case 'day':
-        currentDate = addDays(currentDate, -1);
-        break;
-      case 'week':
-        currentDate = addDays(currentDate, -7);
-        break;
-      default:
-        currentDate = subMonths(currentDate, 1);
-    }
+    currentDate = addDays(currentDate, -1);
     loadEvents();
   }
 
   function navigateNext() {
-    switch (currentView) {
-      case 'day':
-        currentDate = addDays(currentDate, 1);
-        break;
-      case 'week':
-        currentDate = addDays(currentDate, 7);
-        break;
-      default:
-        currentDate = addMonths(currentDate, 1);
-    }
+    currentDate = addDays(currentDate, 1);
     loadEvents();
   }
 
@@ -509,11 +493,12 @@
             })}
             {@const busy = dayEvents.length > 3}
             {@const isToday = isSameDay(day, new Date())}
+            {@const isSelected = isSameDay(day, currentDate)}
             {@const isCurrentMonth = isSameMonth(day, currentDate)}
             <div
               class="p-1.5 border-b border-r border-warm-100 transition-colors
                 {isCurrentMonth ? 'bg-white hover:bg-warm-50' : 'bg-warm-50/50'}
-                {isToday ? 'ring-2 ring-inset ring-amber-400 bg-amber-50/50' : ''}"
+                {isSelected ? 'ring-2 ring-inset ring-orange-500 bg-orange-50/60' : isToday ? 'ring-2 ring-inset ring-amber-400 bg-amber-50/50' : ''}"
               style="min-height: 130px;"
             >
               <div class="flex items-center justify-between mb-1">
@@ -752,8 +737,19 @@
       </div>
 
     {:else if currentView === 'map'}
-      <!-- Map View -->
+      <!-- Map View: events for the selected day -->
+      {@const mappable = events.filter((e) => e.latitude && e.longitude)}
       <div class="animate-fade-in-up">
+        <div class="flex items-center justify-between mb-4 px-1">
+          <h3 class="text-xl font-display font-bold text-stone-800">
+            {events.length} Event{events.length !== 1 ? 's' : ''} — {format(currentDate, 'EEEE, MMMM d')}
+          </h3>
+          {#if events.length > 0}
+            <div class="text-sm text-stone-500 font-medium">
+              {mappable.length} on the map
+            </div>
+          {/if}
+        </div>
         <MapView {events} on:selectEvent={(e) => openEventModal(e.detail)} />
       </div>
 
@@ -764,10 +760,11 @@
           {#each Array(7) as _, i}
             {@const day = addDays(startOfWeek(currentDate), i)}
             {@const isToday = isSameDay(day, new Date())}
-            <div class="min-h-[400px] rounded-xl {isToday ? 'bg-amber-50/50 ring-2 ring-amber-300' : 'bg-warm-50/30'} p-2">
+            {@const isSelected = isSameDay(day, currentDate)}
+            <div class="min-h-[400px] rounded-xl {isSelected ? 'bg-orange-50/60 ring-2 ring-orange-500' : isToday ? 'bg-amber-50/50 ring-2 ring-amber-300' : 'bg-warm-50/30'} p-2">
               <div class="text-center pb-2 border-b border-warm-200 mb-2">
                 <div class="text-xs text-stone-500 font-medium uppercase tracking-wider">{format(day, 'EEE')}</div>
-                <div class="text-xl font-display font-bold {isToday ? 'text-amber-700' : 'text-stone-800'}">{format(day, 'd')}</div>
+                <div class="text-xl font-display font-bold {isSelected ? 'text-orange-700' : isToday ? 'text-amber-700' : 'text-stone-800'}">{format(day, 'd')}</div>
               </div>
               <div class="space-y-1.5">
                 {#each getEventsForDate(day) as event}

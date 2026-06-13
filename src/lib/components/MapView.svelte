@@ -8,7 +8,10 @@
     id: number;
     title: string;
     start_datetime: string;
+    end_datetime?: string;
+    description?: string;
     location?: string;
+    address?: string;
     latitude?: number;
     longitude?: number;
     source_name?: string;
@@ -48,6 +51,15 @@
   function getMarkerColor(event: Event): string {
     const key = event.source_name || event.title || '';
     return MARKER_COLORS[hashString(key) % MARKER_COLORS.length];
+  }
+
+  function escapeHtml(str: string): string {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   let mapContainer: HTMLDivElement;
@@ -192,28 +204,42 @@
       },
     });
 
-    marker.addListener('click', () => {
+    const timeStr = event.start_datetime
+      ? format(parseISO(event.start_datetime), 'h:mm a') +
+        (event.end_datetime ? ` – ${format(parseISO(event.end_datetime), 'h:mm a')}` : '')
+      : '';
+    const place = event.location || event.address || '';
+    const desc = event.description
+      ? event.description.length > 140
+        ? event.description.slice(0, 140) + '…'
+        : event.description
+      : '';
+
+    const content = `
+      <div style="padding: 8px; max-width: 260px; font-family: Inter, sans-serif;">
+        <div style="width: 100%; height: 4px; background: ${color}; border-radius: 4px; margin-bottom: 8px;"></div>
+        <h4 style="font-weight: 600; color: #1c1917; font-size: 14px; margin: 0 0 4px;">${escapeHtml(event.title)}</h4>
+        ${timeStr ? `<p style="font-size: 12px; color: #78716c; margin: 0 0 2px;">🕐 ${escapeHtml(timeStr)}</p>` : ''}
+        ${place ? `<p style="font-size: 12px; color: #78716c; margin: 0 0 6px;">📍 ${escapeHtml(place)}</p>` : ''}
+        ${desc ? `<p style="font-size: 12px; color: #57534e; margin: 0 0 8px; line-height: 1.4;">${escapeHtml(desc)}</p>` : ''}
+        <button
+          onclick="window.dispatchEvent(new CustomEvent('selectEvent', { detail: ${event.id} }))"
+          style="margin-top: 2px; padding: 6px 14px; background: linear-gradient(to right, #f59e0b, #ea580c); color: white; font-size: 12px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer;"
+        >
+          View Details
+        </button>
+      </div>
+    `;
+
+    // Hover shows the details popup; clicking the marker opens the full event.
+    marker.addListener('mouseover', () => {
       if (!infoWindow) return;
-
-      const timeStr = event.start_datetime ? format(parseISO(event.start_datetime), 'MMM d, h:mm a') : '';
-
-      const content = `
-        <div style="padding: 8px; max-width: 260px; font-family: Inter, sans-serif;">
-          <div style="width: 100%; height: 4px; background: ${color}; border-radius: 4px; margin-bottom: 8px;"></div>
-          <h4 style="font-weight: 600; color: #1c1917; font-size: 14px; margin: 0 0 4px;">${event.title}</h4>
-          ${timeStr ? `<p style="font-size: 12px; color: #78716c; margin: 0 0 2px;">${timeStr}</p>` : ''}
-          ${event.location ? `<p style="font-size: 12px; color: #78716c; margin: 0 0 8px;">${event.location}</p>` : ''}
-          <button
-            onclick="window.dispatchEvent(new CustomEvent('selectEvent', { detail: ${event.id} }))"
-            style="margin-top: 6px; padding: 6px 14px; background: linear-gradient(to right, #f59e0b, #ea580c); color: white; font-size: 12px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer;"
-          >
-            View Details
-          </button>
-        </div>
-      `;
-
       infoWindow.setContent(content);
       infoWindow.open(map, marker);
+    });
+
+    marker.addListener('click', () => {
+      dispatch('selectEvent', event);
     });
 
     markers.push(marker);
