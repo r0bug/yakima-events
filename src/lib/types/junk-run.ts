@@ -7,7 +7,7 @@ export interface JunkRunTheme {
 	headerText: string;
 }
 
-export type FlyerTemplate = 'map-focus' | 'directory-focus' | 'postcard';
+export type FlyerTemplate = 'map-focus' | 'directory-focus' | 'postcard' | 'vintage-guide';
 export type QrMode = 'none' | 'route' | 'individual';
 export type FontSize = 'compact' | 'normal' | 'large';
 export type ColumnCount = 2 | 3 | 4 | 'auto';

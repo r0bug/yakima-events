@@ -1,4 +1,5 @@
 import type { FlyerShop, FlyerDisplayOptions } from '$lib/types/junk-run';
+import { REGION_LABELS, REGION_ORDER } from '../../utils/geo';
 
 export function getBounds(shops: FlyerShop[]): { minLat: number; maxLat: number; minLng: number; maxLng: number } {
 	let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
@@ -83,4 +84,26 @@ export function getUniqueCategories(shops: FlyerShop[]): { name: string; color: 
 		}
 	}
 	return [...map.values()];
+}
+
+export function groupShopsByRegion(
+	shops: FlyerShop[],
+): { region: string; label: string; shops: FlyerShop[] }[] {
+	const groups = new Map<string, FlyerShop[]>();
+	for (const s of shops) {
+		const r = s.region || 'yakima';
+		if (!groups.has(r)) groups.set(r, []);
+		groups.get(r)!.push(s);
+	}
+	const ordered: { region: string; label: string; shops: FlyerShop[] }[] = [];
+	for (const r of REGION_ORDER) {
+		if (groups.has(r)) {
+			ordered.push({ region: r, label: REGION_LABELS[r] ?? r, shops: groups.get(r)! });
+			groups.delete(r);
+		}
+	}
+	for (const r of [...groups.keys()].sort()) {
+		ordered.push({ region: r, label: REGION_LABELS[r] ?? r, shops: groups.get(r)! });
+	}
+	return ordered;
 }

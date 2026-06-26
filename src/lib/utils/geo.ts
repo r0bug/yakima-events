@@ -134,3 +134,10 @@ export const REGION_LABELS: Record<string, string> = {
   bentoncity: 'Benton City',
   granger: 'Granger',
 };
+
+/** Display order for region groups (north/central Yakima first, then valley, then wine country) */
+export const REGION_ORDER: string[] = [
+  'yakima', 'uniongap', 'selah', 'naches', 'tieton',
+  'wapato', 'toppenish', 'granger', 'sunnyside', 'zillah',
+  'prosser', 'bentoncity',
+];
