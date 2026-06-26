@@ -13,6 +13,7 @@
     "headerBg": "#1a1a1a",
     "headerText": "#faf6f0"
   },
+  "flyer": { "template": "vintage-guide" },
   "mapCenter": [46.585, -120.49],
   "mapZoom": 11,
   "defaultTags": ["antique", "killer", "charity", "corporate", "specialty"],

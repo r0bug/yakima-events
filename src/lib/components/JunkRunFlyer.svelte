@@ -5,6 +5,7 @@
   import FlyerMapFocus from './flyer/FlyerMapFocus.svelte';
   import FlyerDirectoryFocus from './flyer/FlyerDirectoryFocus.svelte';
   import FlyerPostcard from './flyer/FlyerPostcard.svelte';
+  import FlyerVintageGuide from './flyer/FlyerVintageGuide.svelte';
   import { getBounds, type MarkerPosition } from './flyer/flyer-utils';
 
   export let shops: FlyerShop[] = [];
@@ -167,6 +168,8 @@
       <FlyerDirectoryFocus shops={areaShops} {config} {salesTodayIds} {mapImageUrl} {markerPositions} {areaLabel} />
     {:else if config.flyer.template === 'postcard'}
       <FlyerPostcard shops={areaShops} {config} {salesTodayIds} {mapImageUrl} {markerPositions} {areaLabel} />
+    {:else if config.flyer.template === 'vintage-guide'}
+      <FlyerVintageGuide shops={areaShops} {config} {salesTodayIds} {mapImageUrl} {markerPositions} {areaLabel} />
     {:else}
       <FlyerMapFocus shops={areaShops} {config} {salesTodayIds} {mapImageUrl} {markerPositions} {areaLabel} />
     {/if}
