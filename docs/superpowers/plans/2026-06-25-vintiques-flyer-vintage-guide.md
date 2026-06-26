@@ -293,6 +293,7 @@ git commit -m "feat(flyer): kraft vintage footer with QR slot + wordmark"
 **Files:**
 - Create: `src/lib/components/flyer/FlyerVintageGuide.svelte`
 - Create: `src/routes/dev/flyer-preview/+page.svelte` (dev-only visual harness)
+- Create: `src/qrcode-svg.d.ts` (ambient type declaration — this component imports `qrcode-svg`, which ships no types)
 
 **Interfaces:**
 - Consumes (same prop shape as `FlyerMapFocus.svelte`): `shops: FlyerShop[]`, `config: JunkRunConfig`, `salesTodayIds: Set<number>`, `mapImageUrl: string`, `markerPositions: MarkerPosition[]`, `areaLabel: string`. Uses `pinPath`, `pinLabelY`, `truncate`, `getHoursText`, `buildRouteQrUrl`, `getUniqueCategories`, `groupShopsByRegion` from `./flyer-utils`; `FlyerHeaderVintage`, `FlyerFooterVintage`; `QRCode` from `qrcode-svg`.
@@ -482,10 +483,22 @@ git commit -m "feat(flyer): kraft vintage footer with QR slot + wordmark"
 </div>
 ```
 
-- [ ] **Step 3: Typecheck**
+- [ ] **Step 3: Add the `qrcode-svg` ambient type declaration, then typecheck**
 
-Run: `npm run check`
-Expected: no new errors. (The `FlyerTemplate` union already includes `'vintage-guide'` from Task 1, so the preview route's `template: 'vintage-guide'` typechecks.)
+`FlyerVintageGuide.svelte` imports `qrcode-svg`, which ships no type declarations — without a declaration this adds a new svelte-check error (the 3 existing flyer components already have this exact error). Create `src/qrcode-svg.d.ts`:
+
+```ts
+declare module 'qrcode-svg';
+```
+
+Then run: `npm run check`
+Expected: the repo has ~104 PRE-EXISTING errors unrelated to this feature — that is normal. The bar is **no new errors in this feature's files**. Verify with:
+
+```bash
+npm run check 2>&1 | grep -iE 'FlyerVintageGuide|flyer-preview|qrcode-svg'
+```
+
+Expected: **no output** (your new component/route are clean, and the new declaration resolves the `qrcode-svg` error). As a bonus the total error count should drop (the 3 existing flyer components' `qrcode-svg` errors are now resolved too). The `FlyerTemplate` union already includes `'vintage-guide'` from Task 1, so the preview route's `template: 'vintage-guide'` typechecks.
 
 - [ ] **Step 4: Visual verification via headless render**
 
@@ -512,8 +525,8 @@ Open `/tmp/vg-page-1.png` and `/tmp/vg-page-2.png`. Expected: kraft paper; masth
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/lib/components/flyer/FlyerVintageGuide.svelte src/routes/dev/flyer-preview/+page.svelte
-git commit -m "feat(flyer): vintage-guide template + dev preview route"
+git add src/lib/components/flyer/FlyerVintageGuide.svelte src/routes/dev/flyer-preview/+page.svelte src/qrcode-svg.d.ts
+git commit -m "feat(flyer): vintage-guide template + dev preview route + qrcode-svg types"
 ```
 
 ---
