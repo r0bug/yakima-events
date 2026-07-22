@@ -14,7 +14,7 @@ export interface SourceWithStats extends CalendarSource {
 
 type ScrapeTypeValue =
   | 'ical' | 'html' | 'json' | 'rss' | 'eventbrite' | 'facebook'
-  | 'yakima_valley' | 'intelligent' | 'firecrawl' | 'cityspark';
+  | 'yakima_valley' | 'yakimavalley_events' | 'intelligent' | 'firecrawl' | 'cityspark';
 
 /**
  * Get all calendar sources with stats

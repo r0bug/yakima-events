@@ -14,6 +14,7 @@
     { value: 'json', label: 'JSON Feed', description: 'JSON API or feed endpoints' },
     { value: 'rss', label: 'RSS Feed', description: 'RSS/Atom event feeds' },
     { value: 'yakima_valley', label: 'Yakima Valley Tourism', description: 'Custom parser for visityakima.com' },
+    { value: 'yakimavalley_events', label: 'yakimavalley.events', description: 'JSON-LD parser for www.yakimavalley.events listings' },
     { value: 'intelligent', label: 'AI/Intelligent', description: 'LLM-powered extraction (requires API key)' },
     { value: 'firecrawl', label: 'Firecrawl API', description: 'Advanced web scraping API' },
   ];

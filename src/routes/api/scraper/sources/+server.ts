@@ -51,7 +51,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       );
     }
 
-    const validTypes = ['ical', 'html', 'json', 'rss', 'yakima_valley', 'intelligent', 'firecrawl'];
+    const validTypes = ['ical', 'html', 'json', 'rss', 'yakima_valley', 'yakimavalley_events', 'intelligent', 'firecrawl'];
     if (!validTypes.includes(scrapeType)) {
       return json({ error: 'Invalid scrape type' }, { status: 400 });
     }

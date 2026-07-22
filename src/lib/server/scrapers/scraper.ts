@@ -16,6 +16,7 @@ import * as firecrawlService from '$server/services/firecrawl';
 import * as facebookService from '$server/services/facebook';
 import * as eventbriteService from '$server/services/eventbrite';
 import { scrapeCitySpark } from './parsers/cityspark';
+import { scrapeYakimaValleyEvents } from './parsers/yakimavalley-events';
 import { geocodeYakimaArea } from '$server/services/geocode';
 import { notifyScraperError } from '$server/services/email';
 import { pacificToday, toPacificDatetime } from '$server/datetime';
@@ -151,6 +152,10 @@ export async function scrapeSource(source: CalendarSource): Promise<ScrapeResult
 
       case 'cityspark':
         scrapedEvents = await scrapeCitySpark(source.url);
+        break;
+
+      case 'yakimavalley_events':
+        scrapedEvents = await scrapeYakimaValleyEvents(source.url);
         break;
 
       default:

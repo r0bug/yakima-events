@@ -95,7 +95,7 @@ export const calendarSources = mysqlTable('calendar_sources', {
   id: int('id').primaryKey().autoincrement(),
   name: varchar('name', { length: 255 }).notNull(),
   url: varchar('url', { length: 500 }).notNull(),
-  scrapeType: mysqlEnum('scrape_type', ['ical', 'html', 'json', 'rss', 'eventbrite', 'facebook', 'yakima_valley', 'intelligent', 'firecrawl', 'cityspark']).notNull(),
+  scrapeType: mysqlEnum('scrape_type', ['ical', 'html', 'json', 'rss', 'eventbrite', 'facebook', 'yakima_valley', 'yakimavalley_events', 'intelligent', 'firecrawl', 'cityspark']).notNull(),
   scrapeConfig: json('scrape_config'),
   intelligentMethodId: int('intelligent_method_id'),
   lastScraped: timestamp('last_scraped'),

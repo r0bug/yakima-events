@@ -34,6 +34,7 @@
     { value: 'json', label: 'JSON Feed' },
     { value: 'rss', label: 'RSS Feed' },
     { value: 'yakima_valley', label: 'Yakima Valley Tourism' },
+    { value: 'yakimavalley_events', label: 'yakimavalley.events' },
     { value: 'intelligent', label: 'AI/Intelligent' },
     { value: 'firecrawl', label: 'Firecrawl API' },
   ];

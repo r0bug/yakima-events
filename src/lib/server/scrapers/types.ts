@@ -2,7 +2,7 @@
  * Scraper Types
  */
 
-export type ScrapeType = 'ical' | 'html' | 'json' | 'rss' | 'yakima_valley' | 'intelligent' | 'firecrawl' | 'eventbrite' | 'facebook' | 'cityspark';
+export type ScrapeType = 'ical' | 'html' | 'json' | 'rss' | 'yakima_valley' | 'yakimavalley_events' | 'intelligent' | 'firecrawl' | 'eventbrite' | 'facebook' | 'cityspark';
 
 export interface ScrapedEvent {
   title: string;
