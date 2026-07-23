@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
-  import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameDay, isSameMonth, parseISO } from 'date-fns';
+  import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addWeeks, addMonths, isSameDay, isSameMonth, parseISO } from 'date-fns';
   import EventModal from './EventModal.svelte';
   import MapView from './MapView.svelte';
 
@@ -301,14 +301,27 @@
     return d === 0 || d === 5 || d === 6;
   }
 
-  // The ‹ / › arrows always step one day at a time, in every view.
+  // The ‹ / › arrows step by the unit of the current view, so navigation
+  // visibly advances: month view moves a whole month, week view a week, and
+  // day/map/agenda views (day-anchored) step a single day.
+  function stepDate(date: Date, dir: 1 | -1): Date {
+    switch (currentView) {
+      case 'month':
+        return addMonths(date, dir);
+      case 'week':
+        return addWeeks(date, dir);
+      default:
+        return addDays(date, dir);
+    }
+  }
+
   function navigatePrev() {
-    currentDate = addDays(currentDate, -1);
+    currentDate = stepDate(currentDate, -1);
     loadEvents();
   }
 
   function navigateNext() {
-    currentDate = addDays(currentDate, 1);
+    currentDate = stepDate(currentDate, 1);
     loadEvents();
   }
 
