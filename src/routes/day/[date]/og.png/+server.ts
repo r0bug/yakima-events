@@ -46,7 +46,8 @@ export const GET: RequestHandler = async ({ params }) => {
 			const y = 218 + i * 46;
 			const time = escapeXml(formatEventTime(e.startDatetime));
 			const title = escapeXml(truncate(e.title, 58));
-			const venue = e.location ? escapeXml(truncate(` — ${e.location.split(',')[0]}`, 34)) : '';
+			// leading nbsp (\u00A0): SVG collapses a regular space at the start of a tspan
+			const venue = e.location ? escapeXml(truncate(` — ${e.location.split(',')[0]}`, 34)) : '';
 			return `
 	<text x="80" y="${y}" font-family="DejaVu Sans" font-weight="bold" font-size="24" fill="#d97706">${time}</text>
 	<text x="240" y="${y}" font-family="DejaVu Sans" font-size="24" fill="#1c1917">${title}<tspan fill="#78716c" font-size="20">${venue}</tspan></text>`;
