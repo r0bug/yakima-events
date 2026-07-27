@@ -253,6 +253,37 @@
     </div>
   </header>
 
+  <!-- Optional notice banner (e.g. event schedule flyer) -->
+  {#if config.notice}
+    <div class="max-w-3xl mx-auto px-4 pt-6">
+      <details
+        open
+        class="rounded-lg border shadow-sm overflow-hidden bg-white"
+        style="border-color: color-mix(in srgb, var(--jr-primary) 30%, transparent);"
+      >
+        <summary
+          class="cursor-pointer select-none px-4 py-3 font-bold text-lg"
+          style="color: var(--jr-primary); font-family: 'Playfair Display', Georgia, serif;"
+        >
+          {config.notice.title}
+        </summary>
+        <a href={config.notice.href || config.notice.image} target="_blank" rel="noopener">
+          <img
+            src={config.notice.image}
+            alt={config.notice.title}
+            class="w-full h-auto"
+            loading="lazy"
+          />
+        </a>
+        {#if config.notice.caption}
+          <p class="px-4 py-2 text-sm text-center" style="color: color-mix(in srgb, var(--jr-text) 60%, transparent);">
+            {config.notice.caption}
+          </p>
+        {/if}
+      </details>
+    </div>
+  {/if}
+
   <!-- Filter Bar -->
   <div class="sticky top-0 z-30 border-b shadow-sm" style="background: var(--jr-bg); border-color: color-mix(in srgb, var(--jr-primary) 15%, transparent);">
     <div class="max-w-6xl mx-auto px-4 py-3">

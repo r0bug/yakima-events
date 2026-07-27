@@ -127,14 +127,19 @@ function mapLdEvent(raw: LdEvent): ScrapedEvent | null {
 	if (!raw.name || !raw.startDate) return null;
 	if (raw.eventStatus?.includes('EventCancelled')) return null;
 
-	// startDate carries an explicit UTC offset (e.g. 2026-07-26T12:00:00-07:00),
-	// so Date parsing is unambiguous regardless of server timezone
-	const startDatetime = new Date(raw.startDate);
+	// Timed events carry an explicit UTC offset (2026-07-26T12:00:00-07:00) and
+	// parse unambiguously. All-day events are date-only ("2026-07-30") — JS
+	// parses those as UTC midnight, which lands on the PREVIOUS Pacific
+	// afternoon. Append a time so they parse as server-local (Pacific) midnight,
+	// same convention as the CitySpark parser.
+	const parseWhen = (s: string) => new Date(/^\d{4}-\d{2}-\d{2}$/.test(s) ? `${s}T00:00:00` : s);
+
+	const startDatetime = parseWhen(raw.startDate);
 	if (isNaN(startDatetime.getTime())) return null;
 
 	let endDatetime: Date | undefined;
 	if (raw.endDate) {
-		const end = new Date(raw.endDate);
+		const end = parseWhen(raw.endDate);
 		if (!isNaN(end.getTime())) endDatetime = end;
 	}
 

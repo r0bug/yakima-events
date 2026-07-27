@@ -30,6 +30,13 @@ export interface FlyerCustomContent {
 	announcementText: string;
 }
 
+export interface JunkRunNotice {
+	title: string;
+	image: string;
+	href?: string | null;
+	caption?: string | null;
+}
+
 export interface JunkRunConfig {
 	slug: string;
 	name: string;
@@ -45,6 +52,7 @@ export interface JunkRunConfig {
 	flyer: FlyerDisplayOptions;
 	excludedShopIds: number[];
 	customContent: FlyerCustomContent;
+	notice?: JunkRunNotice | null;
 }
 
 export const DEFAULT_FLYER_OPTIONS: FlyerDisplayOptions = {
@@ -89,6 +97,7 @@ export function applyConfigDefaults(raw: Partial<JunkRunConfig>): JunkRunConfig 
 		flyer: { ...DEFAULT_FLYER_OPTIONS, ...raw.flyer },
 		excludedShopIds: raw.excludedShopIds || [],
 		customContent: { ...DEFAULT_CUSTOM_CONTENT, ...raw.customContent },
+		notice: raw.notice ?? null,
 	};
 }
 
