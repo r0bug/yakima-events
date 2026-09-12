@@ -1,6 +1,15 @@
 /**
  * Facebook Scraper Service
  * Uses RapidAPI facebook-event-scraper to fetch events from Facebook
+ *
+ * LIVE - do not delete. /api/scraper/facebook (admin) uses getStatus(), isAvailable()
+ * and testScraper() here for single-event lookups.
+ *
+ * This is NOT how Facebook events reach the calendar in bulk. That is the YFEvents
+ * Chrome extension (repo: extension/) posting to /api/scraper/facebook-browser, which
+ * is the largest event source we have. There is no page-scraping function in this
+ * module: scrapePageEvents() was removed long ago, and its stale call site in
+ * scrapers/scraper.ts has now been removed too.
  */
 
 import type { ScrapedEvent } from '../scrapers/types';

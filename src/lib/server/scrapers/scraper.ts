@@ -13,7 +13,6 @@ import { parseRssContent } from './parsers/rss';
 import { parseYakimaValleyContent } from './parsers/yakima-valley';
 import * as intelligentScraper from './intelligent';
 import * as firecrawlService from '$server/services/firecrawl';
-import * as facebookService from '$server/services/facebook';
 import * as eventbriteService from '$server/services/eventbrite';
 import { scrapeCitySpark } from './parsers/cityspark';
 import { scrapeYakimaValleyEvents } from './parsers/yakimavalley-events';
@@ -351,21 +350,23 @@ async function scrapeFirecrawl(source: CalendarSource): Promise<ScrapedEvent[]> 
 }
 
 /**
- * Scrape Facebook page events
+ * Facebook events do NOT come from this cron scraper.
+ *
+ * They are captured by the YFEvents Chrome extension (repo: extension/) while a human
+ * browses facebook.com/events. The content script POSTs them to
+ * /api/scraper/facebook-browser, which calls processEvent() below. That endpoint
+ * auto-creates its source with active:false precisely so this scraper never touches it.
+ * It is the single largest event source we have - treat it as load-bearing.
+ *
+ * This function previously called facebookService.scrapePageEvents(), which
+ * services/facebook.ts does not export, so activating a 'facebook' source in the admin
+ * UI threw a TypeError partway through the run. Fail loudly and accurately instead.
  */
-async function scrapeFacebook(source: CalendarSource): Promise<ScrapedEvent[]> {
-  if (!facebookService.isAvailable()) {
-    throw new Error('Facebook scraper not available (RAPIDAPI_KEY not configured)');
-  }
-
-  const config = source.scrapeConfig || {};
-  const facebookConfig = {
-    pageId: config.facebookPageId as string | undefined,
-    includePastEvents: config.includePastEvents as boolean | undefined,
-    maxEvents: config.maxEvents as number | undefined,
-  };
-
-  return facebookService.scrapePageEvents(source.url, facebookConfig);
+async function scrapeFacebook(_source: CalendarSource): Promise<ScrapedEvent[]> {
+  throw new Error(
+    'Facebook sources are not cron-scraped. Events arrive from the YFEvents Chrome ' +
+      'extension via POST /api/scraper/facebook-browser; leave this source inactive.'
+  );
 }
 
 /**
