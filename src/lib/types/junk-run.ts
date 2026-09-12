@@ -7,7 +7,12 @@ export interface JunkRunTheme {
 	headerText: string;
 }
 
-export type FlyerTemplate = 'map-focus' | 'directory-focus' | 'postcard' | 'vintage-guide';
+export type FlyerTemplate =
+	| 'map-focus'
+	| 'directory-focus'
+	| 'postcard'
+	| 'vintage-guide'
+	| 'gazette';
 export type QrMode = 'none' | 'route' | 'individual';
 export type FontSize = 'compact' | 'normal' | 'large';
 export type ColumnCount = 2 | 3 | 4 | 'auto';
@@ -37,6 +42,34 @@ export interface JunkRunNotice {
 	caption?: string | null;
 }
 
+/** One boxed item in the Gazette's right-hand rail (page 2). */
+export interface JunkRunGazetteBox {
+	title: string;
+	body: string;
+	qrUrl?: string | null;
+	qrCaption?: string | null;
+}
+
+/** Editorial content for the landscape newspaper ('gazette') flyer template. */
+export interface JunkRunGazette {
+	/** Masthead kicker, e.g. "Vintiques Weekend Edition". Defaults to the run name. */
+	editionLabel?: string | null;
+	/** Opening paragraph. A sensible one is generated from the data when absent. */
+	lede?: string | null;
+	/** Shop id to feature as "home base" in the rail. */
+	homeBaseShopId?: number | null;
+	/** Extra rail boxes: credits, classifieds, promos. */
+	railBoxes?: JunkRunGazetteBox[];
+}
+
+export interface JunkRunVenue {
+	name: string;
+	lat: number;
+	lng: number;
+	label?: string | null;
+	url?: string | null;
+}
+
 export interface JunkRunConfig {
 	slug: string;
 	name: string;
@@ -53,6 +86,8 @@ export interface JunkRunConfig {
 	excludedShopIds: number[];
 	customContent: FlyerCustomContent;
 	notice?: JunkRunNotice | null;
+	venue?: JunkRunVenue | null;
+	gazette?: JunkRunGazette | null;
 }
 
 export const DEFAULT_FLYER_OPTIONS: FlyerDisplayOptions = {
@@ -98,6 +133,8 @@ export function applyConfigDefaults(raw: Partial<JunkRunConfig>): JunkRunConfig 
 		excludedShopIds: raw.excludedShopIds || [],
 		customContent: { ...DEFAULT_CUSTOM_CONTENT, ...raw.customContent },
 		notice: raw.notice ?? null,
+		venue: raw.venue ?? null,
+		gazette: raw.gazette ?? null,
 	};
 }
 

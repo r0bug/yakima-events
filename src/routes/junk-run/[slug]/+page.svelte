@@ -11,6 +11,7 @@
   $: allShops = data.shops;
   $: categories = data.categories;
   $: salesToday = data.salesToday;
+  $: share = data.share;
 
   // Build category lookup
   $: catById = new Map(categories.map(c => [c.id, c]));
@@ -109,6 +110,24 @@
     return points.join(' ');
   }
 
+  function createVenueIcon() {
+    const size = 48;
+    return L.divIcon({
+      html: `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="46" fill="${config.theme.primary}" stroke="#fff" stroke-width="5"/>
+        <circle cx="50" cy="50" r="41" fill="none" stroke="${config.theme.accent}" stroke-width="2"/>
+        <path d="M20 60c0-8 4-13 10.5-15C34.5 35 41.5 30.5 50.5 30.5c9.5 0 16 4.5 19.5 14C76 46.5 80 51.5 80 60v3H20v-3z" fill="#fff"/>
+        <path d="M37 45c2.3-5.5 6.8-8 11.8-8V45H37z" fill="${config.theme.primary}"/>
+        <path d="M52 37c5 .3 9 3 11.3 8H52v-8z" fill="${config.theme.primary}"/>
+        <circle cx="35" cy="63" r="6.5" fill="${config.theme.primary}" stroke="#fff" stroke-width="2.5"/>
+        <circle cx="66" cy="63" r="6.5" fill="${config.theme.primary}" stroke="#fff" stroke-width="2.5"/>
+      </svg>`,
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size / 2],
+      className: 'junkrun-venue-marker',
+    });
+  }
+
   function updateMarkers() {
     if (!map || !L) return;
     markers.forEach(m => map.removeLayer(m));
@@ -140,6 +159,24 @@
 
       markers.push(marker);
     });
+
+    if (config.venue) {
+      const v = config.venue;
+      const venueMarker = L.marker([v.lat, v.lng], {
+        icon: createVenueIcon(),
+        zIndexOffset: 2000,
+      }).addTo(map);
+
+      venueMarker.bindPopup(`
+        <div style="min-width:180px">
+          <strong>${v.name}</strong><br/>
+          ${v.label ? `<span style="font-size:12px;color:#666">${v.label}</span><br/>` : ''}
+          ${v.url ? `<a href="${v.url}" target="_blank" rel="noopener" style="font-size:12px">More info</a>` : ''}
+        </div>
+      `);
+
+      markers.push(venueMarker);
+    }
 
     if (markers.length > 0 && !selectedShopId) {
       const group = L.featureGroup(markers);
@@ -213,7 +250,26 @@
 
 <svelte:head>
   <title>{config.name} — Yakima Events</title>
-  <meta name="description" content={config.tagline} />
+  <meta name="description" content={share.description} />
+  <link rel="canonical" href={share.url} />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={share.title} />
+  <meta property="og:description" content={share.description} />
+  <meta property="og:url" content={share.url} />
+  <meta property="og:image" content={share.image} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="Yakima Events" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={share.title} />
+  <meta name="twitter:description" content={share.description} />
+  <meta name="twitter:image" content={share.image} />
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </svelte:head>
 
@@ -391,7 +447,7 @@
   <!-- Main Content -->
   {#if showFlyer}
     <!-- Print Flyer Preview -->
-    <div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto px-4 py-8 jr-flyer-host">
       <JunkRunFlyer
         shops={shopsWithRegion}
         {config}

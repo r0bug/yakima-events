@@ -46,7 +46,7 @@
   {#if mapImageUrl}
     <img src={mapImageUrl} alt="Map" style="position:absolute; left:{MAP_X}px; top:{MAP_Y}px; width:{MAP_W}px; height:{MAP_H}px; border:2px solid #8a6a44; border-radius:4px;" />
     <div style="position:absolute; left:{MAP_X}px; top:{MAP_Y + MAP_H - 13}px; width:{MAP_W}px; text-align:right; pointer-events:none;">
-      <span style="font-size:6px; color:#5a3a22; background:rgba(243,230,207,0.85); padding:1px 5px;">&copy; OpenStreetMap contributors &copy; CARTO</span>
+      <span style="font-size:6px; color:#5a3a22; background:rgba(243,230,207,0.85); padding:1px 5px;">&copy; OpenStreetMap contributors</span>
     </div>
   {:else}
     <div style="position:absolute; left:{MAP_X}px; top:{MAP_Y}px; width:{MAP_W}px; height:{MAP_H}px; background:#d8c39a; border:2px solid #8a6a44; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#5a3a22; font:14px 'Special Elite',monospace;">

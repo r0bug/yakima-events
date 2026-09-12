@@ -94,7 +94,9 @@ export const load: PageServerLoad = async ({ params }) => {
 			title: event.title,
 			description,
 			url: eventUrl,
-			image: primaryImage ? `${siteUrl}/uploads/${primaryImage}` : `${siteUrl}/og-default.png`,
+			// Fall back to a generated card rather than the generic default, so a
+			// photo-less event still shares with its name, date and venue visible.
+			image: primaryImage ? `${siteUrl}/uploads/${primaryImage}` : `${eventUrl}/og.png`,
 			startDate: startDate?.toISOString() || null,
 			location: event.location || event.address || 'Yakima, WA',
 		},

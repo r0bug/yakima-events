@@ -195,6 +195,8 @@
 				{ value: 'map-focus', label: 'Map Focus', desc: 'Full-width map with numbered markers. Clean 2-column directory on page 2. Best for spread-out areas.' },
 				{ value: 'directory-focus', label: 'Directory Focus', desc: 'Half-page map with categorized shop list and addresses. Page 2 only if needed. Best for dense areas.' },
 				{ value: 'postcard', label: 'Postcard', desc: 'Single page handout. Compact map, name grid, one route QR. Best for events and farmer\'s markets.' },
+				{ value: 'vintage-guide', label: 'Vintage Guide', desc: 'Kraft-paper guide with a tall map and a region ledger. Page 2 carries the full directory.' },
+				{ value: 'gazette', label: 'Junk Run Gazette', desc: 'Landscape newspaper, double-sided: front-page map and story, classifieds directory with per-shop QR codes on the back. Print 11x8.5 landscape.' },
 			] as tmpl}
 				<button type="button"
 					on:click={() => config.flyer.template = tmpl.value}

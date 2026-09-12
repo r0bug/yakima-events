@@ -1,11 +1,12 @@
 <script lang="ts">
-  import { onMount, tick } from 'svelte';
+  import { onDestroy, tick } from 'svelte';
   import { browser } from '$app/environment';
   import type { JunkRunConfig, FlyerShop } from '$lib/types/junk-run';
   import FlyerMapFocus from './flyer/FlyerMapFocus.svelte';
   import FlyerDirectoryFocus from './flyer/FlyerDirectoryFocus.svelte';
   import FlyerPostcard from './flyer/FlyerPostcard.svelte';
   import FlyerVintageGuide from './flyer/FlyerVintageGuide.svelte';
+  import FlyerGazette from './flyer/FlyerGazette.svelte';
   import { getBounds, type MarkerPosition } from './flyer/flyer-utils';
 
   export let shops: FlyerShop[] = [];
@@ -31,9 +32,23 @@
   // Capture the map at 2x and display at 1x so it stays crisp on paper (~192dpi)
   const SCALE = 2;
 
+  // Print must emit the flyer alone, not the surrounding site. Flag <body> while
+  // this component is mounted and let the print rules below do the hiding.
+  if (browser) document.body.classList.add('jr-flyer-open');
+  onDestroy(() => {
+    if (browser) document.body.classList.remove('jr-flyer-open');
+  });
+
   // Map dimensions depend on template (must match the template's MAP_W/MAP_H)
-  $: mapW = config.flyer.template === 'postcard' ? 816 - 28 * 2 : 816 - 24 * 2;
-  $: mapH = config.flyer.template === 'directory-focus' ? 380 : config.flyer.template === 'postcard' ? 380 : 620;
+  $: isGazette = config.flyer.template === 'gazette';
+  $: mapW = isGazette ? 698 : config.flyer.template === 'postcard' ? 816 - 28 * 2 : 816 - 24 * 2;
+  $: mapH = isGazette
+    ? 648
+    : config.flyer.template === 'directory-focus'
+      ? 380
+      : config.flyer.template === 'postcard'
+        ? 380
+        : 620;
 
   $: areaShops = getAreaShops(selectedArea);
 
@@ -67,8 +82,10 @@
       attributionControl: false,
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
-      subdomains: 'abcd',
+    // Key-free OSM tiles, same source as the live junk-run map. CARTO's basemap now
+    // requires an API key and watermarks every tile with "API KEY REQUIRED".
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      subdomains: 'abc',
       maxZoom: 19,
     }).addTo(offscreenMap);
 
@@ -105,6 +122,11 @@
     window.print();
   }
 </script>
+
+<svelte:head>
+  <!-- One @page rule, driven by the template: the gazette prints landscape. -->
+  {@html `<style>@media print { @page { size: ${isGazette ? 'letter landscape' : 'letter'}; margin: 0; } }</style>`}
+</svelte:head>
 
 <!-- Offscreen map for capture (2x for print sharpness) -->
 <div bind:this={mapContainer} style="position:absolute; left:-9999px; width:{mapW * SCALE}px; height:{mapH * SCALE}px;"></div>
@@ -153,7 +175,11 @@
           </button>
         {/if}
         <span class="text-xs text-gray-400">
-          Best printed on US Letter (8.5" x 11")
+          {#if isGazette}
+            Best printed on US Letter <strong>landscape</strong> (11" x 8.5"), double-sided
+          {:else}
+            Best printed on US Letter (8.5" x 11")
+          {/if}
           {#if config.flyer.template === 'postcard'} &mdash; Single page{/if}
         </span>
         <span class="text-xs px-2 py-1 rounded bg-gray-100 text-gray-500">
@@ -170,6 +196,8 @@
       <FlyerPostcard shops={areaShops} {config} {salesTodayIds} {mapImageUrl} {markerPositions} {areaLabel} />
     {:else if config.flyer.template === 'vintage-guide'}
       <FlyerVintageGuide shops={areaShops} {config} {salesTodayIds} {mapImageUrl} {markerPositions} {areaLabel} />
+    {:else if isGazette}
+      <FlyerGazette shops={areaShops} {config} {salesTodayIds} {mapImageUrl} {markerPositions} {areaLabel} />
     {:else}
       <FlyerMapFocus shops={areaShops} {config} {salesTodayIds} {mapImageUrl} {markerPositions} {areaLabel} />
     {/if}
@@ -189,15 +217,28 @@
   @media print {
     .no-print { display: none !important; }
     .flyer-wrapper { padding: 0; }
+
+    /* Everything on the junk-run page except the flyer subtree, plus the site
+       header and footer, stays off the paper. */
+    :global(body.jr-flyer-open .junkrun-page > *:not(.jr-flyer-host)) {
+      display: none !important;
+    }
+    /* descendant, not child: app.html wraps the body in a display:contents div.
+       Safe because no flyer template uses <header>/<footer> elements. */
+    :global(body.jr-flyer-open header),
+    :global(body.jr-flyer-open footer) {
+      display: none !important;
+    }
+    :global(body.jr-flyer-open .jr-flyer-host) {
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
     :global(.flyer-page) {
       box-shadow: none !important;
       margin: 0 !important;
     }
 
-    @page {
-      size: letter;
-      margin: 0;
-    }
   }
 
   @media screen {
