@@ -88,6 +88,8 @@ export interface JunkRunConfig {
 	notice?: JunkRunNotice | null;
 	venue?: JunkRunVenue | null;
 	gazette?: JunkRunGazette | null;
+	/** Absolute-from-root image used as og:image instead of the generated card. */
+	shareImage?: string | null;
 }
 
 export const DEFAULT_FLYER_OPTIONS: FlyerDisplayOptions = {
@@ -135,6 +137,7 @@ export function applyConfigDefaults(raw: Partial<JunkRunConfig>): JunkRunConfig 
 		notice: raw.notice ?? null,
 		venue: raw.venue ?? null,
 		gazette: raw.gazette ?? null,
+		shareImage: raw.shareImage ?? null,
 	};
 }
 

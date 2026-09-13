@@ -35,7 +35,8 @@ export async function loadJunkRunConfig(slug: string): Promise<JunkRunConfig | n
  */
 export function junkRunShare(config: JunkRunConfig, shopCount: number) {
 	const url = `${SITE_URL}/junk-run/${config.slug}`;
-	const image = `${url}/og.png`;
+	// Real artwork wins over the generated card when a run has some.
+	const image = config.shareImage ? `${SITE_URL}${config.shareImage}` : `${url}/og.png`;
 
 	const bits = [config.tagline];
 	if (config.venue?.label) bits.push(`${config.venue.name} — ${config.venue.label}`);

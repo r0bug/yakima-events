@@ -324,10 +324,12 @@
           {config.notice.title}
         </summary>
         <a href={config.notice.href || config.notice.image} target="_blank" rel="noopener">
+          <!-- cap the height: a portrait flyer at full width pushes the shops
+               and map below the fold -->
           <img
             src={config.notice.image}
             alt={config.notice.title}
-            class="w-full h-auto"
+            class="w-full h-auto max-h-[460px] object-contain bg-black/5"
             loading="lazy"
           />
         </a>
