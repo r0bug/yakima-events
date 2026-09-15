@@ -9,7 +9,14 @@ A modern event calendar and local shops directory for Yakima, WA with Google Map
 - **Event Calendar**: View events by day, week, month, or list
 - **Interactive Map**: See events and shops on a Google Map
 - **Local Shops Directory**: Browse local businesses with categories
+- **Junk Runs**: Branded, config-driven shop-crawl pages (map, filters, route planner)
+- **Printable Flyers**: Five templates per junk run, including a landscape
+  double-sided newspaper ("Junk Run Gazette") with per-shop QR codes
+- **Shareable Cards**: Generated 1200x630 Open Graph images so links posted to
+  Facebook arrive with a real preview
+- **Browser Capture**: Chrome extension that captures Facebook events while you browse
 - **Intelligent Scraping**: AI-powered event extraction using LLM
+- **Feeds**: JSON and RSS feeds, per-event `.ics`, and per-day share pages
 - **Search & Filter**: Find events by keyword, category, or location
 - **Responsive Design**: Works on desktop and mobile devices
 - **API-First**: RESTful API endpoints for all data
@@ -42,9 +49,13 @@ yakima/
 │       │   └── scraper/    # Scraper API
 │       ├── admin/          # Admin interface
 │       └── (app)/          # Page routes
+├── data/
+│   └── junk-runs/          # Junk run configs (runtime-editable, gitignored)
+├── extension/              # Chrome extension (Facebook event capture)
 ├── migrations/             # SQL migrations
-├── static/                 # Static assets
-└── uploads/                # User uploads
+├── static/                 # Static assets (incl. the packaged extension)
+├── tools/                  # Dev/ops scripts (see Tools)
+└── uploads/                # User uploads, served directly by nginx at /uploads
 ```
 
 ## Getting Started
@@ -137,6 +148,15 @@ npm run dev
 - `GET /api/sources` - List event sources
 - `POST /api/scrape/:id` - Trigger scrape for source
 - `POST /api/scraper/intelligent` - Run intelligent scraper
+- `POST /api/scraper/facebook-browser` - Ingest events captured by the Chrome extension
+
+### Share Cards
+
+Open Graph images are rendered server-side (SVG -> PNG) so shared links preview well:
+
+- `GET /day/:date/og.png` - Card listing that day's events
+- `GET /events/:id/og.png` - Card for one event (used when it has no photo)
+- `GET /junk-run/:slug/og.png` - Card for a junk run, themed from its own config
 
 ## Query Parameters
 
@@ -148,6 +168,51 @@ Events and shops endpoints support:
 - `search` - Text search
 - `latitude` / `longitude` / `radius` - Location-based search
 - `limit` / `offset` - Pagination
+
+## Junk Runs
+
+A junk run is a branded shop-crawl page at `/junk-run/<slug>`, driven entirely by one
+JSON config - no code per run. Configs live in `data/junk-runs/<slug>.json` and are read
+**per request**, so content changes need no rebuild or restart. `src/lib/config/junk-runs/`
+is a legacy fallback.
+
+A config carries the name, tagline, theme colours, map centre/zoom, which shop categories
+to include, an optional `notice` banner, an optional `venue` pin, an optional `shareImage`
+override, and a `flyer` block selecting one of five templates:
+
+| Template | Shape |
+|----------|-------|
+| `map-focus` | Full-width map, 2-column directory on page 2 |
+| `directory-focus` | Half-page map, categorised list with addresses |
+| `postcard` | Single-page handout |
+| `vintage-guide` | Kraft-paper guide, tall map + region ledger |
+| `gazette` | Landscape 11x8.5 double-sided newspaper, classifieds with per-shop QR codes |
+
+`/junk-run` redirects to whichever run is currently featured (set in
+`src/routes/junk-run/+page.server.ts`).
+
+## Chrome Extension
+
+`extension/` is a Manifest V3 extension that captures Facebook events while you browse
+and posts them to `/api/scraper/facebook-browser`. This - not the cron scraper - is how
+Facebook events reach the calendar; its `calendar_sources` row is deliberately inactive
+so the scheduler never touches it.
+
+`static/extension.zip` is what `/extension` offers for download. It is a build artifact,
+so `npm run build` refuses to run while it differs from `extension/`. After changing the
+extension, regenerate both archives:
+
+```bash
+python3 tools/pack-extension.py
+```
+
+## Tools
+
+| Script | Purpose |
+|--------|---------|
+| `tools/pack-extension.py` | Rebuild `static/extension.{zip,tar.gz}` from `extension/` |
+| `tools/check-extension-fresh.mjs` | Build guard: fails if the packaged zip is stale (runs as `prebuild`) |
+| `tools/render-flyer.mjs` | Headlessly drive a junk-run flyer and capture PNGs or a print-accurate PDF (needs an ad-hoc `puppeteer-core`) |
 
 ## Development
 

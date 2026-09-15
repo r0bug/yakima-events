@@ -54,6 +54,37 @@ pm2 status
 - `communication_attachments`, `communication_notifications`, `communication_reactions` - Messaging support
 - `communication_email_addresses` - Channel email integration
 
+## Facebook Ingestion
+
+Facebook is the single largest event source, and it does **not** come from the cron
+scraper:
+
+1. `extension/` (Manifest V3) captures events while a human browses facebook.com/events
+2. It POSTs to `/api/scraper/facebook-browser`, which calls `processEvent()`
+3. Events land under the `calendar_sources` row "Facebook Browser Extension"
+   (`scrape_type=facebook`), auto-created with `active: false`
+
+That source showing `active=0` with a NULL `last_scraped` is **correct and deliberate** -
+the scheduler must never pick it up. Do not "fix" it by activating it: `scrapeFacebook()`
+in `scraper.ts` intentionally throws, because no page-scraping implementation exists.
+
+`static/extension.zip` is what `/extension` hands people. It is a build artifact with no
+automatic link to `extension/`, so `npm run build` fails while they diverge
+(`tools/check-extension-fresh.mjs`, wired as `prebuild`). Regenerate with
+`python3 tools/pack-extension.py`.
+
+Health check, non-destructive: `POST /api/scraper/facebook-browser` with `{"events":[]}`
+should return **400**. A 500 means the import chain is broken.
+
+## Tools
+
+- `tools/pack-extension.py` - rebuild `static/extension.{zip,tar.gz}` from `extension/`
+  (python because the prod host has no `zip` binary)
+- `tools/check-extension-fresh.mjs` - `prebuild` guard; compares CRC32+size, not mtimes,
+  because git does not preserve mtimes
+- `tools/render-flyer.mjs` - headlessly drive a junk-run flyer (Print Flyer -> area ->
+  Generate) and capture PNGs or a print-accurate PDF; needs an ad-hoc `puppeteer-core`
+
 ## Key Files
 
 ### Configuration
@@ -76,7 +107,7 @@ pm2 status
 - `src/lib/server/services/email.ts` - Email notifications
 - `src/lib/server/services/llm.ts` - LLM integration
 - `src/lib/server/services/firecrawl.ts` - Firecrawl web scraping
-- `src/lib/server/services/facebook.ts` - Facebook event scraping (RapidAPI)
+- `src/lib/server/services/facebook.ts` - Facebook single-event lookups (RapidAPI). **Not** how Facebook events arrive in bulk - see Facebook Ingestion above. Do not delete.
 - `src/lib/server/services/eventbrite.ts` - Eventbrite event scraping
 - `src/lib/server/services/shopClaim.ts` - Shop claim workflow
 - `src/lib/server/services/shopStaff.ts` - Shop staff management
@@ -85,7 +116,30 @@ pm2 status
 - `src/lib/server/services/communication/` - Communication hub (channels, messages, notifications)
 
 ### Junk Run Configs
-- `src/lib/config/junk-runs/vintiques.json` - Branded junk run config (name, tagline, theme, map center/zoom)
+- `data/junk-runs/<slug>.json` - **The live location.** Read per request by
+  `junk-run/[slug]/+page.server.ts`, so edits need no rebuild or restart. Gitignored
+  (runtime data) - back these up separately. Current runs: `vintiques`, `volksfest`.
+- `src/lib/config/junk-runs/<slug>.json` - Legacy fallback, only used when no `data/` file exists
+- `src/lib/server/junkRuns.ts` - `loadJunkRunConfig(slug)` (the only place that knows
+  where configs live; validates the slug) and `junkRunShare(config, shopCount)`
+- `src/lib/types/junk-run.ts` - `JunkRunConfig` contract: theme, mapCenter/mapZoom,
+  defaultTags, excludedShopIds, `flyer` options, plus optional `notice` (banner image),
+  `venue` (map pin), `gazette` (newspaper copy) and `shareImage` (og:image override)
+- `/junk-run` redirects to the featured run; the slug is hardcoded in
+  `src/routes/junk-run/+page.server.ts` and the nav label in `Header.svelte`
+
+### Flyer Templates
+`JunkRunFlyer.svelte` captures an offscreen Leaflet map via `leaflet-image` at 2x and
+overlays pins projected through that same map, then hands off to one template. **`mapW`/
+`mapH` in `JunkRunFlyer.svelte` must match the chosen template's `MAP_W`/`MAP_H`.**
+- `flyer/FlyerMapFocus.svelte`, `FlyerDirectoryFocus.svelte`, `FlyerPostcard.svelte`,
+  `FlyerVintageGuide.svelte`, `FlyerGazette.svelte`
+- `gazette` is landscape 11x8.5 double-sided; `@page` size is injected from
+  `svelte:head` so it follows the selected template
+- Printing is scoped to the flyer via a `body.jr-flyer-open` flag plus `.jr-flyer-host`;
+  without it the whole site prints ahead of the flyer
+- Map tiles come from OSM. Do **not** switch to CARTO basemaps - they now require an API
+  key and watermark every captured map
 
 ### Utilities
 - `src/lib/server/api-utils.ts` - Shared API helper functions
@@ -127,7 +181,12 @@ pm2 status
 - `src/routes/tools/facebook-scraper/` - Facebook scraper admin tool
 - `src/routes/tools/eventbrite-scraper/` - Eventbrite scraper admin tool
 - `src/routes/tools/facebook-browser-scraper/` - Facebook browser scraper tool
-- `src/routes/junk-run/` - Redirects to default junk run config
+- `src/routes/day/[date]/` - Per-day share page + `og.png` card
+- `src/routes/events/[id]/og.png/` - Generated event share card (fallback when no photo)
+- `src/routes/junk-run/[slug]/og.png/` - Generated junk run share card, themed per config
+- `src/routes/extension/` - Chrome extension download page
+- `src/routes/feed/`, `src/routes/feed/rss/` - JSON and RSS feeds
+- `src/routes/junk-run/` - Redirects to the featured junk run
 - `src/routes/junk-run/[slug]/` - Branded junk run map page (Leaflet, category/region filters, route planner, printable flyer)
 - `src/routes/admin/` - Admin panel (events, shops, users, scrapers, claims, communication, forum, settings, geocode-fix, system-checkup, validate-urls)
 - `src/routes/api/` - REST API endpoints
