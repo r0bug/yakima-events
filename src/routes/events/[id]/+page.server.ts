@@ -94,9 +94,11 @@ export const load: PageServerLoad = async ({ params }) => {
 			title: event.title,
 			description,
 			url: eventUrl,
-			// Fall back to a generated card rather than the generic default, so a
-			// photo-less event still shares with its name, date and venue visible.
-			image: primaryImage ? `${siteUrl}/uploads/${primaryImage}` : `${eventUrl}/og.png`,
+			// Always the generated card: it is a correct 1200x630, carries the name,
+			// date, venue and a line of detail, and draws the event's own artwork
+			// whole. Using an uploaded portrait flyer directly gets it cropped to a
+			// middle slice by Facebook.
+			image: `${eventUrl}/og.png`,
 			startDate: startDate?.toISOString() || null,
 			location: event.location || event.address || 'Yakima, WA',
 		},
