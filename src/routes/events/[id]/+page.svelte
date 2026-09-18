@@ -170,12 +170,13 @@
 	<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 		<!-- Main Content -->
 		<div class="lg:col-span-2 space-y-6">
-			<!-- Header Image -->
+			<!-- Header Image. object-contain, not cover: event art is often a
+			     portrait flyer and cover crops the poster's title straight off -->
 			{#if event.primaryImage}
 				<img
 					src="/uploads/{event.primaryImage}"
 					alt={event.title}
-					class="w-full h-64 md:h-96 object-cover rounded-lg"
+					class="w-full h-64 md:h-96 object-contain bg-stone-100 rounded-lg"
 				/>
 			{/if}
 
