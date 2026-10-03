@@ -23,16 +23,26 @@ export interface FreshHopSong {
 	lyrics: string;
 }
 
+/** Song Factory lore entries ("seed data") the lyrics were generated from. */
+export interface FreshHopLore {
+	slug: string;
+	title: string;
+	content: string;
+}
+
 export interface FreshHopConfig {
 	title: string;
 	intro?: string;
 	songs: FreshHopSong[];
+	loreIntro?: string;
+	lore?: FreshHopLore[];
 }
 
 export interface FreshHopFeedback {
 	at: string;
 	song: string;
-	kind: 'request' | 'criticism' | 'general';
+	section?: 'song' | 'lore';
+	kind: 'request' | 'criticism' | 'general' | 'correction';
 	name: string;
 	message: string;
 	ip?: string;

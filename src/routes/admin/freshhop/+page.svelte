@@ -7,6 +7,7 @@
     request: 'bg-blue-100 text-blue-800',
     criticism: 'bg-red-100 text-red-800',
     general: 'bg-gray-100 text-gray-700',
+    correction: 'bg-amber-100 text-amber-800',
   };
 </script>
 
@@ -23,6 +24,7 @@
     {#each data.feedback as f}
       <div class="bg-white rounded-lg border p-4">
         <div class="flex flex-wrap items-center gap-2 text-sm">
+          {#if f.section === 'lore'}<span class="text-xs text-gray-500">Lore:</span>{/if}
           <span class="font-semibold">{f.song}</span>
           <span class="px-2 py-0.5 rounded-full text-xs {KIND_STYLE[f.kind] || KIND_STYLE.general}">{f.kind}</span>
           <span class="text-gray-500">{f.name || 'Anonymous'}</span>

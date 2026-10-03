@@ -7,6 +7,17 @@
 
   $: config = data.config;
 
+  // Lore entries use light markdown (**bold**, "- " bullets). Escape first, then
+  // re-add bold only, so nothing in the content can inject markup.
+  function loreHtml(text: string): string {
+    const esc = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+    return esc.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  }
+
   // Only one track plays at a time across the page
   function onPlay(e: Event) {
     for (const a of document.querySelectorAll<HTMLAudioElement>('audio.fh-audio')) {
@@ -33,6 +44,9 @@
         {#each config.songs as s}
           <a href="#{s.slug}" class="px-3 py-1 rounded-full bg-white/15 hover:bg-white/25">{s.title}</a>
         {/each}
+        {#if config.lore?.length}
+          <a href="#lore" class="px-3 py-1 rounded-full bg-amber-300/30 hover:bg-amber-300/40">Lyric seed data</a>
+        {/if}
       </nav>
     </div>
   </header>
@@ -91,5 +105,49 @@
         </div>
       </section>
     {/each}
+
+    {#if config.lore?.length}
+      <section id="lore" class="scroll-mt-4 space-y-4">
+        <div>
+          <h2 class="text-2xl font-bold text-green-900">Lyric seed data</h2>
+          <p class="mt-1 text-gray-700 max-w-3xl">
+            {config.loreIntro ||
+              'These are the background notes ("lore") our songwriting tool feeds to the AI when it writes the lyrics. Every fact, name and number in the songs comes from here, so a correction here fixes the next round of songs. Please flag anything wrong, outdated or missing.'}
+          </p>
+        </div>
+
+        {#each config.lore as entry (entry.slug)}
+          <details id={entry.slug} class="bg-white rounded-xl border shadow-sm overflow-hidden scroll-mt-4">
+            <summary class="cursor-pointer select-none px-5 py-3 font-semibold text-gray-800 bg-amber-50">{entry.title}</summary>
+            <div class="grid md:grid-cols-2">
+              <div class="p-5 md:border-r text-sm leading-relaxed text-gray-800 whitespace-pre-wrap max-h-[36rem] overflow-y-auto">{@html loreHtml(entry.content)}</div>
+              <div class="p-5">
+                <h3 class="font-semibold text-gray-800 mb-2">Notes or corrections</h3>
+                {#if form?.song === entry.slug && form?.success}
+                  <div class="p-3 rounded-lg bg-green-50 text-green-800 text-sm">Thanks! Your note was sent.</div>
+                {:else}
+                  {#if form?.song === entry.slug && form?.error}
+                    <div class="mb-2 p-3 rounded-lg bg-red-50 text-red-700 text-sm">{form.error}</div>
+                  {/if}
+                  <form method="POST" action="?/feedback" use:enhance={() => async ({ update }) => update({ reset: true, invalidateAll: false })} class="space-y-2">
+                    <input type="hidden" name="song" value={entry.slug} />
+                    <input type="hidden" name="kind" value="correction" />
+                    <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true" />
+                    <input type="text" name="name" maxlength="100" placeholder="Your name (optional)"
+                      class="w-full rounded-lg border px-3 py-2 text-sm" />
+                    <textarea name="message" rows="5" maxlength="4000" required
+                      placeholder="What's wrong or missing? Quote the line and give the correct version if you can."
+                      class="w-full rounded-lg border px-3 py-2 text-sm"></textarea>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-green-800 hover:bg-green-900 text-white text-sm font-semibold">
+                      Send note
+                    </button>
+                  </form>
+                {/if}
+              </div>
+            </div>
+          </details>
+        {/each}
+      </section>
+    {/if}
   </div>
 </main>

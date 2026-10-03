@@ -2,7 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { error, fail } from '@sveltejs/kit';
 import { loadFreshHop, saveFeedback } from '$lib/server/freshhop';
 
-const KINDS = ['request', 'criticism', 'general'] as const;
+const KINDS = ['request', 'criticism', 'general', 'correction'] as const;
 const MAX_MESSAGE = 4000;
 
 // Light per-IP throttle: the form is public and unauthenticated.
@@ -33,7 +33,9 @@ export const actions: Actions = {
 		if (form.get('website')) return { success: true, song };
 
 		const config = await loadFreshHop();
-		const match = config?.songs.find((s) => s.slug === song);
+		const songMatch = config?.songs.find((s) => s.slug === song);
+		const loreMatch = config?.lore?.find((l) => l.slug === song);
+		const match = songMatch || loreMatch;
 		if (!match) return fail(400, { song, error: 'Unknown song.' });
 
 		const kindRaw = String(form.get('kind') || 'general');
@@ -56,6 +58,7 @@ export const actions: Actions = {
 		await saveFeedback({
 			at: new Date().toISOString(),
 			song: match.title,
+			section: songMatch ? 'song' : 'lore',
 			kind,
 			name,
 			message,
