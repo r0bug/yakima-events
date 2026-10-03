@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { loadFeedback, loadFreshHop, favoriteSummary } from '$lib/server/freshhop';
+import { loadFeedback, loadFreshHop, favoriteSummary, recordingIds } from '$lib/server/freshhop';
 
 // Auth is enforced by admin/+layout.server.ts
 export const load: PageServerLoad = async () => {
@@ -8,8 +8,9 @@ export const load: PageServerLoad = async () => {
 		loadFreshHop(),
 		favoriteSummary(),
 	]);
-	const ranking = (config?.songs ?? [])
-		.map((s) => ({ title: s.title, count: favorites.counts[s.slug] || 0 }))
+	const ids = config ? recordingIds(config) : new Map<string, string>();
+	const ranking = [...ids]
+		.map(([id, title]) => ({ title, count: favorites.counts[id] || 0 }))
 		.sort((a, b) => b.count - a.count);
 	return { feedback, ranking, voters: favorites.voters };
 };

@@ -44,7 +44,7 @@
         <p class="mt-3 text-lg opacity-90 max-w-2xl mx-auto">{config.intro}</p>
       {/if}
       <p class="mt-3 text-sm font-semibold text-amber-200">
-        ★ Pick up to {data.maxFavorites} favorites to help choose the final song
+        ★ Pick up to {data.maxFavorites} favorite recordings to help choose the final song
         {#if myFavs.size > 0}· {picksLeft} pick{picksLeft === 1 ? '' : 's'} left (click again to un-pick){/if}
       </p>
       <nav class="mt-5 flex flex-wrap justify-center gap-2 text-sm">
@@ -61,34 +61,39 @@
   <div class="max-w-6xl mx-auto px-4 py-8 space-y-10">
     {#each config.songs as song (song.slug)}
       <section id={song.slug} class="bg-white rounded-xl border shadow-sm overflow-hidden scroll-mt-4">
-        <div class="px-5 py-4 border-b bg-green-50 flex flex-wrap items-start gap-3">
-          <div class="flex-1 min-w-0">
-            <h2 class="text-2xl font-bold text-green-900">{song.title}</h2>
-            {#if song.genre}<p class="text-sm text-gray-600 mt-0.5">{song.genre}</p>{/if}
-          </div>
-          <form method="POST" action="?/favorite" use:enhance class="text-right">
-            <input type="hidden" name="song" value={song.slug} />
-            <button type="submit"
-              aria-pressed={myFavs.has(song.slug)}
-              class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-colors
-                {myFavs.has(song.slug)
-                  ? 'bg-amber-400 border-amber-500 text-amber-950 hover:bg-amber-300'
-                  : 'bg-white border-gray-300 text-gray-700 hover:border-amber-400'}">
-              <span aria-hidden="true">{myFavs.has(song.slug) ? '★' : '☆'}</span>
-              {myFavs.has(song.slug) ? 'Your favorite' : 'Pick as favorite'}
-              <span class="ml-1 px-2 py-0.5 rounded-full text-xs bg-black/10" title="Times picked as a favorite">{favCounts[song.slug] || 0}</span>
-            </button>
-            {#if form?.favSong === song.slug && form?.favError}
-              <p class="mt-1 text-xs text-red-700">{form.favError}</p>
-            {/if}
-          </form>
+        <div class="px-5 py-4 border-b bg-green-50">
+          <h2 class="text-2xl font-bold text-green-900">{song.title}</h2>
+          {#if song.genre}<p class="text-sm text-gray-600 mt-0.5">{song.genre}</p>{/if}
+          {#if song.versions.length > 2}
+            <p class="text-xs text-gray-500 mt-1">{song.versions.length} recordings of these lyrics. Vote for the one you like best.</p>
+          {/if}
         </div>
 
         <div class="grid md:grid-cols-2 gap-0">
           <div class="p-5 space-y-5 md:border-r">
-            {#each song.versions as v}
+            {#each song.versions as v, i}
+              {@const rid = v.id || `${song.slug}-${i + 1}`}
+              {@const mine = myFavs.has(rid)}
               <div>
-                <div class="text-sm font-semibold text-gray-700 mb-1">{v.label}</div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-sm font-semibold text-gray-700 flex-1">{v.label}</span>
+                  <form method="POST" action="?/favorite" use:enhance>
+                    <input type="hidden" name="recording" value={rid} />
+                    <button type="submit" aria-pressed={mine}
+                      title={mine ? 'Click to un-pick' : 'Pick this recording as a favorite'}
+                      class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-colors
+                        {mine
+                          ? 'bg-amber-400 border-amber-500 text-amber-950 hover:bg-amber-300'
+                          : 'bg-white border-gray-300 text-gray-700 hover:border-amber-400'}">
+                      <span aria-hidden="true">{mine ? '★' : '☆'}</span>
+                      {mine ? 'Your favorite' : 'Favorite'}
+                      <span class="px-1.5 rounded-full bg-black/10" title="Times picked as a favorite">{favCounts[rid] || 0}</span>
+                    </button>
+                  </form>
+                </div>
+                {#if form?.favRecording === rid && form?.favError}
+                  <p class="mb-1 text-xs text-red-700">{form.favError}</p>
+                {/if}
                 <audio class="fh-audio w-full" controls preload="none" src={v.src} on:play={onPlay}></audio>
                 <a href={v.src} download class="text-xs text-green-800 underline">Download MP3</a>
               </div>

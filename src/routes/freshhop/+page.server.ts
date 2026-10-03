@@ -7,6 +7,7 @@ import {
 	saveFeedback,
 	toggleFavorite,
 	favoriteSummary,
+	recordingIds,
 	MAX_FAVORITES,
 } from '$lib/server/freshhop';
 
@@ -53,20 +54,20 @@ export const load: PageServerLoad = async ({ cookies }) => {
 export const actions: Actions = {
 	favorite: async ({ request, cookies, getClientAddress }) => {
 		const form = await request.formData();
-		const song = String(form.get('song') || '');
+		const recording = String(form.get('recording') || '');
 		const config = await loadFreshHop();
-		if (!config?.songs.some((s) => s.slug === song)) {
-			return fail(400, { favSong: song, favError: 'Unknown song.' });
+		if (!config || !recordingIds(config).has(recording)) {
+			return fail(400, { favRecording: recording, favError: 'Unknown recording.' });
 		}
 		const ip = request.headers.get('x-real-ip') || getClientAddress();
-		const picks = await toggleFavorite(visitorId(cookies), song, ip);
+		const picks = await toggleFavorite(visitorId(cookies), recording, ip);
 		if (!picks) {
 			return fail(400, {
-				favSong: song,
+				favRecording: recording,
 				favError: `You can pick up to ${MAX_FAVORITES} favorites. Un-pick one first.`,
 			});
 		}
-		return { favSong: song };
+		return { favRecording: recording };
 	},
 
 	feedback: async ({ request, getClientAddress }) => {

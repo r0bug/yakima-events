@@ -11,8 +11,20 @@ import { resolve, dirname } from 'path';
  */
 
 export interface FreshHopVersion {
+	/** Stable id favorites are keyed on; defaults to `${song.slug}-${n}` */
+	id?: string;
 	label: string;
 	src: string;
+}
+
+export function recordingIds(config: FreshHopConfig): Map<string, string> {
+	const ids = new Map<string, string>();
+	for (const song of config.songs) {
+		song.versions.forEach((v, i) => {
+			ids.set(v.id || `${song.slug}-${i + 1}`, `${song.title} — ${v.label}`);
+		});
+	}
+	return ids;
 }
 
 export interface FreshHopSong {
@@ -85,7 +97,7 @@ export async function loadFeedback(): Promise<FreshHopFeedback[]> {
 
 // ---------------------------------------------------------------------------
 // Favorites: each visitor (anonymous cookie id) may pick up to MAX_FAVORITES
-// songs. Stored as { visitorId: { songs, ip, at } } so picks can be changed.
+// recordings (keyed by recording id, not song). Stored as { visitorId: { songs, ip, at } } so picks can be changed.
 // ---------------------------------------------------------------------------
 
 export const MAX_FAVORITES = 2;
@@ -105,17 +117,17 @@ async function readFavorites(): Promise<FavoritesStore> {
 let favLock: Promise<unknown> = Promise.resolve();
 
 /** Toggle a favorite. Returns the visitor's picks, or null if at the limit. */
-export function toggleFavorite(visitor: string, song: string, ip?: string): Promise<string[] | null> {
+export function toggleFavorite(visitor: string, recording: string, ip?: string): Promise<string[] | null> {
 	const run = favLock.then(async () => {
 		const store = await readFavorites();
 		const mine = store[visitor]?.songs ?? [];
 		let next: string[];
-		if (mine.includes(song)) {
-			next = mine.filter((s) => s !== song);
+		if (mine.includes(recording)) {
+			next = mine.filter((s) => s !== recording);
 		} else if (mine.length >= MAX_FAVORITES) {
 			return null;
 		} else {
-			next = [...mine, song];
+			next = [...mine, recording];
 		}
 		store[visitor] = { songs: next, ip, at: new Date().toISOString() };
 		await mkdir(dirname(FAVORITES_PATH), { recursive: true });
