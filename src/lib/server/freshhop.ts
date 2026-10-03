@@ -1,4 +1,4 @@
-import { readFile, appendFile, mkdir } from 'fs/promises';
+import { readFile, appendFile, mkdir, writeFile, rename } from 'fs/promises';
 import { resolve, dirname } from 'path';
 
 /**
@@ -81,4 +81,59 @@ export async function loadFeedback(): Promise<FreshHopFeedback[]> {
 		}
 	}
 	return out.reverse();
+}
+
+// ---------------------------------------------------------------------------
+// Favorites: each visitor (anonymous cookie id) may pick up to MAX_FAVORITES
+// songs. Stored as { visitorId: { songs, ip, at } } so picks can be changed.
+// ---------------------------------------------------------------------------
+
+export const MAX_FAVORITES = 2;
+const FAVORITES_PATH = resolve('data/freshhop-favorites.json');
+
+type FavoritesStore = Record<string, { songs: string[]; ip?: string; at: string }>;
+
+async function readFavorites(): Promise<FavoritesStore> {
+	try {
+		return JSON.parse(await readFile(FAVORITES_PATH, 'utf-8'));
+	} catch {
+		return {};
+	}
+}
+
+// Serialize read-modify-write so two clicks at once can't drop a vote.
+let favLock: Promise<unknown> = Promise.resolve();
+
+/** Toggle a favorite. Returns the visitor's picks, or null if at the limit. */
+export function toggleFavorite(visitor: string, song: string, ip?: string): Promise<string[] | null> {
+	const run = favLock.then(async () => {
+		const store = await readFavorites();
+		const mine = store[visitor]?.songs ?? [];
+		let next: string[];
+		if (mine.includes(song)) {
+			next = mine.filter((s) => s !== song);
+		} else if (mine.length >= MAX_FAVORITES) {
+			return null;
+		} else {
+			next = [...mine, song];
+		}
+		store[visitor] = { songs: next, ip, at: new Date().toISOString() };
+		await mkdir(dirname(FAVORITES_PATH), { recursive: true });
+		const tmp = `${FAVORITES_PATH}.tmp`;
+		await writeFile(tmp, JSON.stringify(store), 'utf-8');
+		await rename(tmp, FAVORITES_PATH);
+		return next;
+	});
+	favLock = run.catch(() => {});
+	return run;
+}
+
+export async function favoriteSummary(visitor?: string) {
+	const store = await readFavorites();
+	const counts: Record<string, number> = {};
+	for (const v of Object.values(store)) {
+		for (const s of v.songs) counts[s] = (counts[s] || 0) + 1;
+	}
+	const voters = Object.values(store).filter((v) => v.songs.length > 0).length;
+	return { counts, voters, mine: (visitor && store[visitor]?.songs) || [] };
 }

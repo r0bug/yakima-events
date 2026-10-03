@@ -17,6 +17,15 @@
     <a href="/freshhop" class="text-sm underline">View page</a>
   </div>
 
+  <div class="bg-white rounded-lg border p-4">
+    <h2 class="font-semibold mb-2">Favorites <span class="text-sm font-normal text-gray-500">({data.voters} voter{data.voters === 1 ? '' : 's'})</span></h2>
+    <table class="text-sm">
+      {#each data.ranking as r}
+        <tr><td class="pr-6 py-0.5">{r.title}</td><td class="text-right font-semibold">★ {r.count}</td></tr>
+      {/each}
+    </table>
+  </div>
+
   {#if data.feedback.length === 0}
     <p class="text-gray-500">No feedback yet.</p>
   {:else}

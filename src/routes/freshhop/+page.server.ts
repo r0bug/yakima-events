@@ -1,6 +1,31 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error, fail } from '@sveltejs/kit';
-import { loadFreshHop, saveFeedback } from '$lib/server/freshhop';
+import { randomUUID } from 'crypto';
+import type { Cookies } from '@sveltejs/kit';
+import {
+	loadFreshHop,
+	saveFeedback,
+	toggleFavorite,
+	favoriteSummary,
+	MAX_FAVORITES,
+} from '$lib/server/freshhop';
+
+const VISITOR_COOKIE = 'fh_vid';
+
+function visitorId(cookies: Cookies): string {
+	let id = cookies.get(VISITOR_COOKIE);
+	if (!id || !/^[0-9a-f-]{36}$/.test(id)) {
+		id = randomUUID();
+		cookies.set(VISITOR_COOKIE, id, {
+			path: '/freshhop',
+			httpOnly: true,
+			sameSite: 'lax',
+			secure: true,
+			maxAge: 60 * 60 * 24 * 365,
+		});
+	}
+	return id;
+}
 
 const KINDS = ['request', 'criticism', 'general', 'correction'] as const;
 const MAX_MESSAGE = 4000;
@@ -18,13 +43,32 @@ function throttled(ip: string): boolean {
 	return hits.length > MAX_PER_WINDOW;
 }
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ cookies }) => {
 	const config = await loadFreshHop();
 	if (!config) error(404, 'Not found');
-	return { config };
+	const favorites = await favoriteSummary(visitorId(cookies));
+	return { config, favorites, maxFavorites: MAX_FAVORITES };
 };
 
 export const actions: Actions = {
+	favorite: async ({ request, cookies, getClientAddress }) => {
+		const form = await request.formData();
+		const song = String(form.get('song') || '');
+		const config = await loadFreshHop();
+		if (!config?.songs.some((s) => s.slug === song)) {
+			return fail(400, { favSong: song, favError: 'Unknown song.' });
+		}
+		const ip = request.headers.get('x-real-ip') || getClientAddress();
+		const picks = await toggleFavorite(visitorId(cookies), song, ip);
+		if (!picks) {
+			return fail(400, {
+				favSong: song,
+				favError: `You can pick up to ${MAX_FAVORITES} favorites. Un-pick one first.`,
+			});
+		}
+		return { favSong: song };
+	},
+
 	feedback: async ({ request, getClientAddress }) => {
 		const form = await request.formData();
 		const song = String(form.get('song') || '');
