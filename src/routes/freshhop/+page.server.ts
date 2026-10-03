@@ -50,7 +50,9 @@ export const actions: Actions = {
 			return fail(400, { song, error: `Please keep comments under ${MAX_MESSAGE} characters.` });
 		}
 
-		const ip = getClientAddress();
+		// Behind nginx getClientAddress() is always 127.0.0.1; nginx sets X-Real-IP
+		// to the real client, so prefer it or the throttle would be site-wide.
+		const ip = request.headers.get('x-real-ip') || getClientAddress();
 		if (throttled(ip)) {
 			return fail(429, { song, error: 'Too many comments in a short time. Please try again later.' });
 		}
