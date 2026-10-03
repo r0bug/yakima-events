@@ -7,8 +7,7 @@ import {
 	saveFeedback,
 	toggleFavorite,
 	favoriteSummary,
-	recordingIds,
-	MAX_FAVORITES,
+	cardRecordingIds,
 } from '$lib/server/freshhop';
 
 const VISITOR_COOKIE = 'fh_vid';
@@ -48,7 +47,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 	const config = await loadFreshHop();
 	if (!config) error(404, 'Not found');
 	const favorites = await favoriteSummary(visitorId(cookies));
-	return { config, favorites, maxFavorites: MAX_FAVORITES };
+	return { config, favorites };
 };
 
 export const actions: Actions = {
@@ -56,17 +55,12 @@ export const actions: Actions = {
 		const form = await request.formData();
 		const recording = String(form.get('recording') || '');
 		const config = await loadFreshHop();
-		if (!config || !recordingIds(config).has(recording)) {
+		const card = config?.songs.find((s) => cardRecordingIds(s).includes(recording));
+		if (!card) {
 			return fail(400, { favRecording: recording, favError: 'Unknown recording.' });
 		}
 		const ip = request.headers.get('x-real-ip') || getClientAddress();
-		const picks = await toggleFavorite(visitorId(cookies), recording, ip);
-		if (!picks) {
-			return fail(400, {
-				favRecording: recording,
-				favError: `You can pick up to ${MAX_FAVORITES} favorites. Un-pick one first.`,
-			});
-		}
+		await toggleFavorite(visitorId(cookies), recording, cardRecordingIds(card), ip);
 		return { favRecording: recording };
 	},
 

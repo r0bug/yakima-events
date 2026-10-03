@@ -17,6 +17,11 @@ export interface FreshHopVersion {
 	src: string;
 }
 
+/** Recording ids on one card, in display order. */
+export function cardRecordingIds(song: FreshHopSong): string[] {
+	return song.versions.map((v, i) => v.id || `${song.slug}-${i + 1}`);
+}
+
 export function recordingIds(config: FreshHopConfig): Map<string, string> {
 	const ids = new Map<string, string>();
 	for (const song of config.songs) {
@@ -96,11 +101,11 @@ export async function loadFeedback(): Promise<FreshHopFeedback[]> {
 }
 
 // ---------------------------------------------------------------------------
-// Favorites: each visitor (anonymous cookie id) may pick up to MAX_FAVORITES
-// recordings (keyed by recording id, not song). Stored as { visitorId: { songs, ip, at } } so picks can be changed.
+// Favorites: each visitor (anonymous cookie id) may pick one favorite
+// recording per card. Stored as { visitorId: { songs: [recordingId...], ip, at } }
+// so picks can be changed.
 // ---------------------------------------------------------------------------
 
-export const MAX_FAVORITES = 2;
 const FAVORITES_PATH = resolve('data/freshhop-favorites.json');
 
 type FavoritesStore = Record<string, { songs: string[]; ip?: string; at: string }>;
@@ -116,19 +121,21 @@ async function readFavorites(): Promise<FavoritesStore> {
 // Serialize read-modify-write so two clicks at once can't drop a vote.
 let favLock: Promise<unknown> = Promise.resolve();
 
-/** Toggle a favorite. Returns the visitor's picks, or null if at the limit. */
-export function toggleFavorite(visitor: string, recording: string, ip?: string): Promise<string[] | null> {
+/**
+ * Toggle a favorite. Picking a recording replaces any other pick on the same
+ * card (`cardRecordings`); picking the current one again clears it.
+ */
+export function toggleFavorite(
+	visitor: string,
+	recording: string,
+	cardRecordings: string[],
+	ip?: string,
+): Promise<string[]> {
 	const run = favLock.then(async () => {
 		const store = await readFavorites();
 		const mine = store[visitor]?.songs ?? [];
-		let next: string[];
-		if (mine.includes(recording)) {
-			next = mine.filter((s) => s !== recording);
-		} else if (mine.length >= MAX_FAVORITES) {
-			return null;
-		} else {
-			next = [...mine, recording];
-		}
+		const others = mine.filter((r) => !cardRecordings.includes(r));
+		const next = mine.includes(recording) ? others : [...others, recording];
 		store[visitor] = { songs: next, ip, at: new Date().toISOString() };
 		await mkdir(dirname(FAVORITES_PATH), { recursive: true });
 		const tmp = `${FAVORITES_PATH}.tmp`;

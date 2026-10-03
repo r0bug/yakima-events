@@ -8,7 +8,6 @@
   $: config = data.config;
   $: favCounts = data.favorites.counts as Record<string, number>;
   $: myFavs = new Set<string>(data.favorites.mine);
-  $: picksLeft = data.maxFavorites - myFavs.size;
 
   // Lore entries use light markdown (**bold**, "- " bullets). Escape first, then
   // re-add bold only, so nothing in the content can inject markup.
@@ -44,9 +43,16 @@
         <p class="mt-3 text-lg opacity-90 max-w-2xl mx-auto">{config.intro}</p>
       {/if}
       <p class="mt-3 text-sm font-semibold text-amber-200">
-        ★ Pick up to {data.maxFavorites} favorite recordings to help choose the final song
-        {#if myFavs.size > 0}· {picksLeft} pick{picksLeft === 1 ? '' : 's'} left (click again to un-pick){/if}
+        ★ On each song, star your favorite recording to help choose the final versions. Click it again to clear it.
       </p>
+      <div class="mt-5 mx-auto max-w-2xl rounded-xl bg-white/10 border border-white/20 px-5 py-4 text-left text-sm leading-relaxed">
+        <p class="font-semibold text-amber-200 text-base">These songs are yours to use</p>
+        <p class="mt-1 opacity-95">
+          Use any and all of these songs, as much or as little as you like. Cut short clips for Reels,
+          TikToks and Stories, put a chorus under a promo video, play them at the festival or in your
+          taproom, and share them anywhere. Every recording can be downloaded as an MP3. No need to ask first.
+        </p>
+      </div>
       <nav class="mt-5 flex flex-wrap justify-center gap-2 text-sm">
         {#each config.songs as s}
           <a href="#{s.slug}" class="px-3 py-1 rounded-full bg-white/15 hover:bg-white/25">{s.title}</a>
@@ -65,7 +71,7 @@
           <h2 class="text-2xl font-bold text-green-900">{song.title}</h2>
           {#if song.genre}<p class="text-sm text-gray-600 mt-0.5">{song.genre}</p>{/if}
           {#if song.versions.length > 2}
-            <p class="text-xs text-gray-500 mt-1">{song.versions.length} recordings of these lyrics. Vote for the one you like best.</p>
+            <p class="text-xs text-gray-500 mt-1">{song.versions.length} recordings of these lyrics. Star the one you like best.</p>
           {/if}
         </div>
 
@@ -80,7 +86,7 @@
                   <form method="POST" action="?/favorite" use:enhance>
                     <input type="hidden" name="recording" value={rid} />
                     <button type="submit" aria-pressed={mine}
-                      title={mine ? 'Click to un-pick' : 'Pick this recording as a favorite'}
+                      title={mine ? 'Click to clear your pick' : 'Make this your favorite recording of this song'}
                       class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-colors
                         {mine
                           ? 'bg-amber-400 border-amber-500 text-amber-950 hover:bg-amber-300'
