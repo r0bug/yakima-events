@@ -4,6 +4,17 @@
   import type { PageData } from './$types';
   import { getYakimaRegion, REGION_LABELS } from '$lib/utils/geo';
   import JunkRunFlyer from '$lib/components/JunkRunFlyer.svelte';
+  import { safeHref } from '$lib/utils/safe-url';
+
+  // Leaflet popups are built as HTML strings, so every stored value is escaped
+  function esc(value: unknown): string {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
 
   export let data: PageData;
 
@@ -149,10 +160,10 @@
 
       marker.bindPopup(`
         <div style="min-width:180px">
-          <strong>${shop.name}</strong><br/>
-          <span style="color:${color};font-size:11px">${cat?.name || 'Shop'}</span><br/>
-          ${shop.address ? `<span style="font-size:12px;color:#666">${shop.address}</span><br/>` : ''}
-          ${shop.phone ? `<a href="tel:${shop.phone}" style="font-size:12px">${shop.phone}</a><br/>` : ''}
+          <strong>${esc(shop.name)}</strong><br/>
+          <span style="color:${esc(color)};font-size:11px">${esc(cat?.name || 'Shop')}</span><br/>
+          ${shop.address ? `<span style="font-size:12px;color:#666">${esc(shop.address)}</span><br/>` : ''}
+          ${shop.phone ? `<a href="tel:${esc(shop.phone)}" style="font-size:12px">${esc(shop.phone)}</a><br/>` : ''}
           ${hasSale ? '<span style="color:#ef4444;font-weight:bold;font-size:11px">SALE TODAY</span>' : ''}
         </div>
       `);
@@ -169,9 +180,9 @@
 
       venueMarker.bindPopup(`
         <div style="min-width:180px">
-          <strong>${v.name}</strong><br/>
-          ${v.label ? `<span style="font-size:12px;color:#666">${v.label}</span><br/>` : ''}
-          ${v.url ? `<a href="${v.url}" target="_blank" rel="noopener" style="font-size:12px">More info</a>` : ''}
+          <strong>${esc(v.name)}</strong><br/>
+          ${v.label ? `<span style="font-size:12px;color:#666">${esc(v.label)}</span><br/>` : ''}
+          ${safeHref(v.url) ? `<a href="${esc(safeHref(v.url))}" target="_blank" rel="noopener" style="font-size:12px">More info</a>` : ''}
         </div>
       `);
 

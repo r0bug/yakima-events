@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { safeHref } from '$lib/utils/safe-url';
   import type { PageData } from './$types';
 
   export let data: PageData;
@@ -239,7 +240,7 @@
           {#if result.event.externalUrl}
             <div class="mt-4">
               <a
-                href={result.event.externalUrl}
+                href={safeHref(result.event.externalUrl)}
                 target="_blank"
                 rel="noopener noreferrer"
                 class="text-purple-600 hover:underline"

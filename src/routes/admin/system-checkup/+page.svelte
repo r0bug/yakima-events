@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { safeHref } from '$lib/utils/safe-url';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
@@ -102,7 +103,7 @@
 				{#each data.activeSources as source}
 					<div class="flex items-center justify-between py-1">
 						<span class="text-sm text-gray-700">{source.name}</span>
-						<a href={source.url} target="_blank" rel="noopener" class="text-xs text-purple-600 hover:underline truncate max-w-xs">
+						<a href={safeHref(source.url)} target="_blank" rel="noopener" class="text-xs text-purple-600 hover:underline truncate max-w-xs">
 							{source.url}
 						</a>
 					</div>

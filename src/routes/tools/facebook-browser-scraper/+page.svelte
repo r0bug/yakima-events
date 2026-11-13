@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { safeHref } from '$lib/utils/safe-url';
   import type { PageData } from './$types';
 
   export let data: PageData;
@@ -374,7 +375,7 @@
                 </td>
                 <td class="px-3 py-2">
                   <a
-                    href={event.url}
+                    href={safeHref(event.url)}
                     target="_blank"
                     rel="noopener noreferrer"
                     class="text-purple-600 hover:underline text-xs"

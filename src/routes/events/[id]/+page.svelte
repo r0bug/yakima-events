@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { safeHref, jsonLdScript } from '$lib/utils/safe-url';
 	import { format, parseISO } from 'date-fns';
 	import MapView from '$lib/components/MapView.svelte';
 	import ShareButton from '$lib/components/ShareButton.svelte';
@@ -9,6 +10,8 @@
 	$: primaryShop = data.primaryShop;
 	$: participants = data.participants;
 	$: seo = data.seo;
+	// Stored links come from scrapers/extension posts: only http(s)/mailto/tel reach an href
+	$: externalHref = safeHref(event.externalUrl);
 
 	function getGoogleCalendarUrl(): string {
 		const start = new Date(event.startDatetime);
@@ -59,7 +62,7 @@
 	}
 
 	// Build JSON-LD structured data
-	function getJsonLd(): string {
+	function getJsonLd(): Record<string, unknown> {
 		const start = new Date(event.startDatetime);
 		const end = event.endDatetime
 			? new Date(event.endDatetime)
@@ -97,7 +100,7 @@
 			jsonLd.image = seo.image;
 		}
 
-		return JSON.stringify(jsonLd);
+		return jsonLd;
 	}
 </script>
 
@@ -122,7 +125,8 @@
 	<meta name="twitter:image" content={seo.image} />
 
 	<!-- JSON-LD Structured Data -->
-	{@html `<script type="application/ld+json">${getJsonLd()}</script>`}
+	<!-- jsonLdScript escapes < > & so stored text can never close the script element -->
+	{@html jsonLdScript(getJsonLd())}
 </svelte:head>
 
 <main class="container mx-auto px-4 py-8">
@@ -289,8 +293,8 @@
 			{#if event.sourceName}
 				<div class="text-sm text-gray-500">
 					Source:
-					{#if event.externalUrl}
-						<a href={event.externalUrl} target="_blank" rel="noopener noreferrer" class="text-purple-600 hover:underline">
+					{#if externalHref}
+						<a href={externalHref} target="_blank" rel="noopener noreferrer" class="text-purple-600 hover:underline">
 							{event.sourceName}
 						</a>
 					{:else}
@@ -358,9 +362,9 @@
 
 			<!-- Quick Actions -->
 			<div class="space-y-3">
-				{#if event.externalUrl}
+				{#if externalHref}
 					<a
-						href={event.externalUrl}
+						href={externalHref}
 						target="_blank"
 						rel="noopener noreferrer"
 						class="block w-full bg-purple-600 text-white text-center py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors"

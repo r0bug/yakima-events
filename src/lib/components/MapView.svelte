@@ -223,7 +223,7 @@
         ${place ? `<p style="font-size: 12px; color: #78716c; margin: 0 0 6px;">📍 ${escapeHtml(place)}</p>` : ''}
         ${desc ? `<p style="font-size: 12px; color: #57534e; margin: 0 0 8px; line-height: 1.4;">${escapeHtml(desc)}</p>` : ''}
         <button
-          onclick="window.dispatchEvent(new CustomEvent('selectEvent', { detail: ${event.id} }))"
+          onclick="window.dispatchEvent(new CustomEvent('selectEvent', { detail: ${Number(event.id)} }))"
           style="margin-top: 2px; padding: 6px 14px; background: linear-gradient(to right, #f59e0b, #ea580c); color: white; font-size: 12px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer;"
         >
           View Details
@@ -268,9 +268,9 @@
       const content = `
         <div style="padding: 8px; max-width: 240px; font-family: Inter, sans-serif;">
           <div style="width: 100%; height: 4px; background: #059669; border-radius: 4px; margin-bottom: 8px;"></div>
-          <h4 style="font-weight: 600; color: #1c1917; font-size: 14px; margin: 0 0 4px;">${shop.name}</h4>
-          ${shop.category_name ? `<p style="font-size: 12px; color: #78716c; margin: 0 0 2px;">${shop.category_name}</p>` : ''}
-          ${shop.address ? `<p style="font-size: 12px; color: #78716c; margin: 0;">${shop.address}</p>` : ''}
+          <h4 style="font-weight: 600; color: #1c1917; font-size: 14px; margin: 0 0 4px;">${escapeHtml(String(shop.name ?? ''))}</h4>
+          ${shop.category_name ? `<p style="font-size: 12px; color: #78716c; margin: 0 0 2px;">${escapeHtml(String(shop.category_name))}</p>` : ''}
+          ${shop.address ? `<p style="font-size: 12px; color: #78716c; margin: 0;">${escapeHtml(String(shop.address))}</p>` : ''}
         </div>
       `;
 

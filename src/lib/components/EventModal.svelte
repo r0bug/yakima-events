@@ -2,6 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   import { format, parseISO } from 'date-fns';
   import { fly, fade } from 'svelte/transition';
+  import { safeHref } from '$lib/utils/safe-url';
 
   interface CategoryDetail {
     name: string;
@@ -232,8 +233,8 @@
       {#if event.source_name}
         <div class="border-t border-warm-100 pt-4 text-sm text-stone-400">
           <span>Source:</span>
-          {#if event.external_url}
-            <a href={event.external_url} target="_blank" rel="noopener noreferrer" class="text-amber-700 hover:text-amber-800 hover:underline font-medium">
+          {#if safeHref(event.external_url)}
+            <a href={safeHref(event.external_url)} target="_blank" rel="noopener noreferrer" class="text-amber-700 hover:text-amber-800 hover:underline font-medium">
               {event.source_name}
             </a>
           {:else}
@@ -245,9 +246,9 @@
 
     <!-- Actions -->
     <div class="bg-warm-50 border-t border-warm-200 px-6 py-4 flex flex-wrap gap-3">
-      {#if event.external_url}
+      {#if safeHref(event.external_url)}
         <a
-          href={event.external_url}
+          href={safeHref(event.external_url)}
           target="_blank"
           rel="noopener noreferrer"
           class="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl hover:from-amber-600 hover:to-orange-600 flex items-center gap-2 font-medium shadow-sm transition-all"
