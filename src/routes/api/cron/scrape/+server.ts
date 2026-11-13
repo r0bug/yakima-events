@@ -19,9 +19,15 @@ import { requireScraperAuth, safeEqual } from '$lib/server/auth/scraper-guard';
  * There is deliberately no built-in default key any more: if CRON_SECRET_KEY
  * is unset, that path is simply closed.
  */
+
+// The fallback key this file used to ship with. It is public (it is in the
+// git history), so it must never be honoured - not even when .env sets
+// CRON_SECRET_KEY to this exact value.
+const RETIRED_DEFAULT_CRON_KEY = 'yakima-scrape-cron-2024';
+
 function cronKeyMatches(url: URL, request: Request): boolean {
   const configured = env.CRON_SECRET_KEY;
-  if (!configured || configured.length < 16) return false;
+  if (!configured || configured.length < 16 || configured === RETIRED_DEFAULT_CRON_KEY) return false;
   const presented = request.headers.get('x-cron-key') || url.searchParams.get('key');
   return !!presented && safeEqual(presented, configured);
 }
