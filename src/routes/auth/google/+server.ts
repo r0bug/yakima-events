@@ -7,6 +7,7 @@
 
 import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { safeRedirectPath } from '$lib/utils/safe-url';
 import { generateStateToken, getAuthorizationUrl, isGoogleOAuthConfigured } from '$lib/server/auth/google';
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
@@ -19,7 +20,8 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
   }
 
   // Get optional redirect URL from query params
-  const redirectTo = url.searchParams.get('redirect') || '/';
+  // Only same-site relative paths may be carried through the OAuth round trip
+  const redirectTo = safeRedirectPath(url.searchParams.get('redirect'));
 
   // Generate CSRF state token
   const state = generateStateToken(redirectTo);

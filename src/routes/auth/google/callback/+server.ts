@@ -8,9 +8,8 @@
 
 import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { validateStateToken, completeOAuthFlow
-
- } from '$lib/server/auth/google';
+import { validateStateToken, completeOAuthFlow } from '$lib/server/auth/google';
+import { safeRedirectPath } from '$lib/utils/safe-url';
 
 export const GET: RequestHandler = async ({ url, cookies, request }) => {
   const code = url.searchParams.get('code');
@@ -70,11 +69,6 @@ export const GET: RequestHandler = async ({ url, cookies, request }) => {
     });
 
     console.log(`[OAuth] User ${user.email} logged in successfully`);
-
-    // Redirect to original destination or home
-    const redirectTo = stateResult.redirectTo || '/';
-    throw redirect(302, redirectTo);
-
   } catch (err) {
     console.error('[OAuth] Error completing OAuth flow:', err);
 
@@ -90,4 +84,10 @@ export const GET: RequestHandler = async ({ url, cookies, request }) => {
 
     throw redirect(302, '/login?error=oauth_failed');
   }
+
+  // Redirect to the original destination or home. Re-validated here (not just
+  // when the state was minted) so a forged state can never bounce a freshly
+  // signed-in user to another site. Kept outside the try block: redirect()
+  // works by throwing, and the catch above would turn it into oauth_failed.
+  throw redirect(302, safeRedirectPath(stateResult.redirectTo));
 };

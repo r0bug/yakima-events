@@ -2,6 +2,7 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import type { PageData } from './$types';
+  import { safeRedirectPath } from '$lib/utils/safe-url';
 
   export let data: PageData;
 
@@ -23,7 +24,8 @@
 
   $: oauthError = $page.url.searchParams.get('error');
   $: oauthErrorMessage = oauthError ? errorMessages[oauthError] || 'An error occurred.' : null;
-  $: redirect = $page.url.searchParams.get('redirect') || $page.url.searchParams.get('return') || '/';
+  // Same-site relative paths only - never follow an attacker-supplied URL after sign-in
+  $: redirect = safeRedirectPath($page.url.searchParams.get('redirect') || $page.url.searchParams.get('return'));
 
   async function handleLogin() {
     errorMsg = '';
