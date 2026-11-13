@@ -23,7 +23,7 @@
           </div>
           <div>
             <h1 class="text-2xl font-display font-bold">YFEvents Page Capture</h1>
-            <p class="text-stone-300 text-sm">Browser Extension v1.3.0</p>
+            <p class="text-stone-300 text-sm">Browser Extension v1.4.0</p>
           </div>
         </div>
         <p class="text-stone-200 leading-relaxed">
@@ -31,7 +31,7 @@
         </p>
         <a
           href="/extension.zip"
-          download="yfevents-extension-v1.3.0.zip"
+          download="yfevents-extension-v1.4.0.zip"
           class="inline-flex items-center gap-2 mt-6 px-6 py-3 bg-amber-500 hover:bg-amber-400 text-stone-900 font-bold rounded-xl transition-colors shadow-lg"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,7 +54,11 @@
             <li>Turn on <strong>Developer mode</strong> (toggle in the top-right corner)</li>
             <li>Click <strong>"Load unpacked"</strong> and select the unzipped folder</li>
             <li>The YFEvents icon will appear in your browser toolbar</li>
+            <li>Click the icon, open the <strong>Config</strong> tab, paste the <strong>API key</strong> you were given by the site admin and click <strong>Save Config</strong>. The status bar should read <em>"API key OK"</em></li>
           </ol>
+          <p class="text-sm text-stone-500 ml-9 mt-3">
+            The API key is what allows your browser to publish events. Imports sent without a valid key are refused or held for admin approval.
+          </p>
         </section>
 
         <section>
@@ -109,7 +113,7 @@
         <section class="border-t border-warm-100 pt-6">
           <h2 class="text-lg font-display font-bold text-stone-800 mb-3">Updating the Extension</h2>
           <p class="text-stone-600 text-sm">
-            Sideloaded extensions don't auto-update. To update: download the new ZIP, unzip it to the <strong>same folder</strong> (overwrite files), then go to <code class="bg-warm-100 px-2 py-0.5 rounded text-sm font-mono text-stone-800">chrome://extensions</code> and click the <strong>refresh icon</strong> on the YFEvents card.
+Already running an older version? You don't have to reinstall just to add the key: the <strong>Config</strong> tab of every version has an API Key field. Sideloaded extensions don't auto-update. To update: download the new ZIP, unzip it to the <strong>same folder</strong> (overwrite files), then go to <code class="bg-warm-100 px-2 py-0.5 rounded text-sm font-mono text-stone-800">chrome://extensions</code> and click the <strong>refresh icon</strong> on the YFEvents card.
           </p>
         </section>
       </div>

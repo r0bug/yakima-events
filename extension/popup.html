@@ -103,8 +103,9 @@
   </div>
   <div class="config-row">
     <label>API Key</label>
-    <input type="text" id="cfg-key" placeholder="optional" />
+    <input type="password" id="cfg-key" placeholder="required - ask the site admin" autocomplete="off" spellcheck="false" />
   </div>
+  <p style="font-size:11px;color:#6b7280;margin-bottom:8px;">The API key lets this browser publish events to YFEvents. Without it, imports are refused (or held for admin approval). It is only sent over HTTPS.</p>
   <button class="btn btn-secondary" id="btn-save-config">Save Config</button>
   <button class="btn btn-secondary" id="btn-test-config" style="margin-top:6px;">Test Connection</button>
 </div>

@@ -32,24 +32,56 @@ document.querySelectorAll('.mode-tab').forEach(function(tab) {
   });
 });
 
+// ===== AUTH =====
+// The API key is only ever sent over HTTPS (or to a local dev server), so a
+// mistyped http:// API URL can not leak it.
+function keyAllowedFor(url) {
+  return /^https:\/\//i.test(url) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(url);
+}
+
+function authHeaders(base) {
+  var headers = base || {};
+  if (apiKey && keyAllowedFor(apiUrl)) {
+    headers['Authorization'] = 'Bearer ' + apiKey;
+    headers['X-API-Key'] = apiKey;
+  }
+  return headers;
+}
+
 // ===== CONNECTION CHECK =====
-function checkConnection() {
+function setStatus(text, ok) {
   var statusEl = document.getElementById('status');
-  fetch(apiUrl + '/api/auth/status', { method: 'GET' })
+  statusEl.textContent = text;
+  statusEl.className = 'status ' + (ok ? 'connected' : 'disconnected');
+}
+
+function checkConnection() {
+  if (apiKey && !keyAllowedFor(apiUrl)) {
+    setStatus('API URL must be https:// - key not sent', false);
+    return;
+  }
+  // A key-protected, read-only endpoint: 200 means the key was accepted.
+  fetch(apiUrl + '/api/scraper/page-capture', { method: 'GET', headers: authHeaders({}) })
     .then(function(r) {
-      statusEl.textContent = 'Connected to ' + apiUrl;
-      statusEl.className = 'status connected';
+      if (r.ok) {
+        setStatus('Connected to ' + apiUrl + ' - API key OK', true);
+      } else if (r.status === 401 || r.status === 403) {
+        setStatus(apiKey
+          ? 'Connected, but the API key was rejected - check Config'
+          : 'Connected, but no API key set - add it in Config', false);
+      } else {
+        setStatus('Connected to ' + apiUrl + ' (server said ' + r.status + ')', false);
+      }
     })
     .catch(function() {
-      statusEl.textContent = 'Cannot reach ' + apiUrl;
-      statusEl.className = 'status disconnected';
+      setStatus('Cannot reach ' + apiUrl, false);
     });
 }
 
 // ===== CONFIG BUTTONS =====
 document.getElementById('btn-save-config').addEventListener('click', function() {
-  apiUrl = document.getElementById('cfg-url').value.replace(/\/+$/, '') || DEFAULT_URL;
-  apiKey = document.getElementById('cfg-key').value;
+  apiUrl = document.getElementById('cfg-url').value.trim().replace(/\/+$/, '') || DEFAULT_URL;
+  apiKey = document.getElementById('cfg-key').value.trim();
   chrome.storage.local.set({ apiUrl: apiUrl, apiKey: apiKey });
   checkConnection();
 });
@@ -494,11 +526,14 @@ document.getElementById('btn-send-events').addEventListener('click', function() 
       try {
         var res = JSON.parse(msg);
         pre.textContent = 'Added: ' + res.added + ' | Duplicates skipped: ' + res.duplicate + ' | Invalid: ' + res.invalid;
+        if (res.notice) pre.textContent += '\n\n' + res.notice;
       } catch(e) {
         pre.textContent = 'Sent successfully! ' + msg;
       }
     } else {
-      pre.textContent = 'Error: ' + msg;
+      var errText = msg;
+      try { var errRes = JSON.parse(msg); if (errRes && errRes.error) errText = errRes.error; } catch(e) {}
+      pre.textContent = 'Error: ' + errText;
     }
   });
 });
@@ -836,8 +871,7 @@ document.getElementById('btn-fb-extract').addEventListener('click', function() {
 
 // ===== SEND TO SERVER =====
 function sendToServer(path, data, callback) {
-  var headers = { 'Content-Type': 'application/json' };
-  if (apiKey) headers['X-API-Key'] = apiKey;
+  var headers = authHeaders({ 'Content-Type': 'application/json' });
 
   fetch(apiUrl + path, {
     method: 'POST',
