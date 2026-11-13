@@ -25,12 +25,21 @@ pm2 status
 
 # IMPORTANT: PM2 must be started via ecosystem.config.cjs to load .env
 # If restarting from scratch: pm2 start ecosystem.config.cjs
+# After CHANGING .env, a plain `pm2 restart yakima-events` keeps the old values. Use:
+#   pm2 startOrRestart ecosystem.config.cjs --update-env
 ```
 
 ## Auth
 - Google OAuth via `/auth/google` → Google → `/auth/google/callback`
 - `PUBLIC_APP_URL` must be imported from `$env/dynamic/public` (not `$env/dynamic/private`)
 - Session cookies validated in `src/hooks.server.ts`
+- Sessions are stored hashed: `user_sessions.id` holds SHA-256(cookie token), never the token
+- "Admin" means role `admin` or `moderator` (`isAdminUser` in `src/lib/server/api-utils.ts`).
+  `src/hooks.server.ts` enforces it for **every** route under `/admin` and `/api/admin`
+  (pages, `__data.json`, form actions, endpoints) - layout loads alone do not protect those
+- Post-login redirects only accept same-site relative paths (`safeRedirectPath`)
+- Links built from stored data go through `safeHref`, JSON-LD through `jsonLdScript`
+  (`src/lib/utils/safe-url.ts`)
 
 ## Database
 
@@ -60,9 +69,14 @@ Facebook is the single largest event source, and it does **not** come from the c
 scraper:
 
 1. `extension/` (Manifest V3) captures events while a human browses facebook.com/events
-2. It POSTs to `/api/scraper/facebook-browser`, which calls `processEvent()`
+2. "Send All to YFEvents" POSTs `{events:[...]}` to **`/api/scraper/page-capture/import`**,
+   which calls `processEvent(..., 'approved')` - trusted posts go public immediately
 3. Events land under the `calendar_sources` row "Facebook Browser Extension"
-   (`scrape_type=facebook`), auto-created with `active: false`
+   (`scrape_type=facebook`, id 54), which is `active: false`
+
+(`/api/scraper/facebook-browser` is a *different* endpoint, used only by the bookmarklet
+on `/tools/facebook-browser-scraper`. It stores events as `pending` under "Facebook
+Browser Import". The extension has never posted there.)
 
 That source showing `active=0` with a NULL `last_scraped` is **correct and deliberate** -
 the scheduler must never pick it up. Do not "fix" it by activating it: `scrapeFacebook()`
@@ -73,8 +87,25 @@ automatic link to `extension/`, so `npm run build` fails while they diverge
 (`tools/check-extension-fresh.mjs`, wired as `prebuild`). Regenerate with
 `python3 tools/pack-extension.py`.
 
-Health check, non-destructive: `POST /api/scraper/facebook-browser` with `{"events":[]}`
-should return **400**. A 500 means the import chain is broken.
+### Scraper / ingestion auth
+
+All ingestion endpoints go through `src/lib/server/auth/scraper-guard.ts`
+(`requireScraperAuth`): `/api/scrape` (POST), `/api/cron/scrape` (POST),
+`/api/sources/[id]/test`, `/api/scraper/page-capture` (GET+POST),
+`/api/scraper/page-capture/import`, `/api/scraper/facebook-browser`.
+A request is allowed with an admin/moderator session, **or** the shared secret from env
+`SCRAPER_SECRET` (min 24 chars) sent as `Authorization: Bearer <secret>` or
+`X-API-Key: <secret>`. The extension's Config tab "API Key" field is that secret.
+
+`SCRAPER_LEGACY_EXTENSION=1` is a temporary transition switch: posts with **no**
+credentials to the two import endpoints are still accepted, but strictly validated, rate
+limited, and stored as `pending` under the source "Browser Extension (unverified)" (they
+do not go public). A later keyed import of the same event takes it over and approves it.
+Remove the variable once every extension copy has the key.
+
+Health check, non-destructive: `POST /api/scraper/page-capture/import` with
+`{"events":[]}` should return **401** without credentials and **400** with
+`-H "Authorization: Bearer $SCRAPER_SECRET"`. A 500 means the import chain is broken.
 
 ## Tools
 
