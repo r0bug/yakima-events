@@ -5,18 +5,30 @@ import type { ScrapedEvent } from '$lib/server/scrapers/types';
 import { processEvent } from '$lib/server/scrapers/scraper';
 import { db, calendarSources } from '$lib/server/db';
 import { eq, and } from 'drizzle-orm';
+import { requireScraperAuth, consumeLegacyBudget } from '$lib/server/auth/scraper-guard';
+import { httpUrlOrUndefined } from '$lib/utils/safe-url';
 
 const browserEventSchema = z.object({
-  eventId: z.string().min(1),
-  url: z.string().url(),
-  title: z.string().optional(),
-  dateText: z.string().optional(),
-  location: z.string().optional(),
-  imageUrl: z.string().optional(),
+  eventId: z.string().min(1).max(64).regex(/^[A-Za-z0-9_.-]+$/),
+  url: z.string().url().max(2000).refine((u) => httpUrlOrUndefined(u) !== undefined, 'url must be http(s)'),
+  title: z.string().max(500).optional(),
+  dateText: z.string().max(200).optional(),
+  location: z.string().max(500).optional(),
+  imageUrl: z.string().max(2000).optional(),
 });
 
 const importSchema = z.object({
   events: z.array(browserEventSchema).min(1).max(200),
+});
+
+/** Stricter shape for unauthenticated (legacy switch) posts: real Facebook events only */
+const legacyEventSchema = browserEventSchema.extend({
+  eventId: z.string().regex(/^\d{5,25}$/),
+  url: z
+    .string()
+    .max(500)
+    .regex(/^https:\/\/(www\.|m\.)?facebook\.com\/events\/\d{5,25}\/?(\?.*)?$/),
+  title: z.string().trim().min(4).max(300),
 });
 
 /**
@@ -115,11 +127,20 @@ async function getOrCreateBrowserSource(): Promise<number> {
 
 /**
  * POST /api/scraper/facebook-browser
- * Import events extracted by the browser bookmarklet
+ * Import events extracted by the browser bookmarklet / tools page.
+ *
+ * Auth: admin session or scraper secret (see scraper-guard.ts). With
+ * SCRAPER_LEGACY_EXTENSION=1 unauthenticated posts are still accepted, but only
+ * well-formed facebook.com event links, rate limited. Everything from this
+ * endpoint is stored as `pending` (it always has been), whoever sends it.
  */
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async (event) => {
+  const auth = requireScraperAuth(event, { allowLegacy: true });
+  if (!auth.ok) return auth.response;
+  const legacy = auth.mode === 'legacy';
+
   try {
-    const body = await request.json();
+    const body = await event.request.json().catch(() => null);
     const parsed = importSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -127,6 +148,19 @@ export const POST: RequestHandler = async ({ request }) => {
         { error: 'Invalid input', details: parsed.error.errors },
         { status: 400 }
       );
+    }
+
+    if (legacy) {
+      const strict = z.array(legacyEventSchema).safeParse(parsed.data.events);
+      if (!strict.success) {
+        return json(
+          { error: 'Invalid input', details: strict.error.errors.slice(0, 20) },
+          { status: 400 }
+        );
+      }
+      if (!consumeLegacyBudget(parsed.data.events.length)) {
+        return json({ error: 'Too many imports without an API key this hour' }, { status: 429 });
+      }
     }
 
     const sourceId = await getOrCreateBrowserSource();
@@ -183,7 +217,6 @@ export const POST: RequestHandler = async ({ request }) => {
     return json(
       {
         error: 'Failed to import events',
-        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

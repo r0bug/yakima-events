@@ -1,26 +1,86 @@
 import { json } from '@sveltejs/kit';
+import { z } from 'zod';
 import type { RequestHandler } from './$types';
 import { processEvent } from '$lib/server/scrapers/scraper';
 import type { ScrapedEvent } from '$lib/server/scrapers/types';
 import { db } from '$lib/server/db';
-import { calendarSources } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
+import { calendarSources, events } from '$lib/server/db/schema';
+import { and, eq } from 'drizzle-orm';
+import { requireScraperAuth, consumeLegacyBudget } from '$lib/server/auth/scraper-guard';
+import { httpUrlOrUndefined } from '$lib/utils/safe-url';
+
+/** Hard cap per request (the extension has posted 230+ events from one long scroll) */
+const MAX_EVENTS_PER_REQUEST = 500;
+
+/** Where unauthenticated (legacy-switch) posts land, always as `pending` */
+const UNVERIFIED_SOURCE_NAME = 'Browser Extension (unverified)';
+
+/** Capture files are only ever written as capture_<epoch-ms>.json */
+const CAPTURE_FILENAME = /^capture_\d{1,16}\.json$/;
+
+/**
+ * Strict shape for an event from an UNAUTHENTICATED (legacy) post. Unknown keys
+ * are dropped, every string is bounded, and links must be plain http(s).
+ */
+const optionalText = (max: number) => z.string().max(max).nullish();
+const legacyEventSchema = z.object({
+	title: z.string().trim().min(4).max(300),
+	startDate: optionalText(100),
+	_rawDate: optionalText(200),
+	venue: optionalText(300),
+	location: optionalText(500),
+	description: optionalText(5000),
+	url: z
+		.string()
+		.max(2000)
+		.refine((u) => httpUrlOrUndefined(u) !== undefined, 'url must be http(s)')
+		.nullish(),
+	facebookId: z
+		.union([z.string(), z.number()])
+		.transform((v) => String(v))
+		.refine((v) => /^\d{5,25}$/.test(v), 'facebookId must be numeric')
+		.nullish(),
+	source: optionalText(50),
+});
 
 /**
  * POST /api/scraper/page-capture/import
  *
- * Import Facebook events from browser extension captures.
+ * Import events captured by the browser extension. This is the endpoint the
+ * extension's "Send All to YFEvents" button posts to, and the single biggest
+ * source of events on the site.
+ *
  * Accepts either:
  *   - { filename: "capture_xxx.json" } to import from a saved capture file
  *   - { events: [...] } to import events directly
+ *
+ * Auth (see scraper-guard.ts): admin session, or the scraper secret as
+ * `Authorization: Bearer` / `X-API-Key`. Those trusted posts are auto-approved
+ * and go public immediately, exactly as before.
+ *
+ * With SCRAPER_LEGACY_EXTENSION=1, a post with no credentials is still accepted
+ * (so extension copies without a key keep working) but is untrusted: `events`
+ * only, strictly validated, rate limited, stored as `pending` under a separate
+ * "unverified" source. A later trusted import of the same event approves it.
  */
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async (event) => {
+	const auth = requireScraperAuth(event, { allowLegacy: true });
+	if (!auth.ok) return auth.response;
+	const legacy = auth.mode === 'legacy';
+
 	try {
-		const body = await request.json();
+		const body = await event.request.json().catch(() => null);
+		if (!body || typeof body !== 'object' || Array.isArray(body)) {
+			return json({ success: false, error: 'Invalid JSON body' }, { status: 400 });
+		}
+
 		let eventsToImport: any[] = [];
 
-		if (body.filename) {
+		if (body.filename && !legacy) {
 			// Load from saved capture file
+			if (typeof body.filename !== 'string' || !CAPTURE_FILENAME.test(body.filename)) {
+				return json({ success: false, error: 'Invalid capture filename' }, { status: 400 });
+			}
 			const fs = await import('fs');
 			const path = await import('path');
 			const filePath = path.join(process.cwd(), 'data', 'captures', body.filename);
@@ -37,57 +97,161 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json({ success: false, error: 'Provide filename or events array' }, { status: 400 });
 		}
 
+		if (!Array.isArray(eventsToImport)) {
+			return json({ success: false, error: 'events must be an array' }, { status: 400 });
+		}
+
 		if (eventsToImport.length === 0) {
 			return json({ success: false, error: 'No events to import' }, { status: 400 });
 		}
 
-		// Determine source based on content
-		const hasFacebookEvents = eventsToImport.some((e: any) => e.facebookId || e.source === 'facebook');
-		const hasHeraldEvents = eventsToImport.some((e: any) =>
-			e.source === 'herald' || e.url?.includes('yakimaherald.com') || e.url?.includes('cityspark.com')
-		);
-		let sourceId = hasFacebookEvents
-			? await getOrCreateSource('Facebook Browser Extension', 'https://www.facebook.com/events/', 'facebook')
-			: hasHeraldEvents
-				? await getOrCreateSource('Herald Browser Extension', 'https://www.yakimaherald.com/events/', 'cityspark')
-				: await getOrCreateSource('Browser Extension', body.url || 'browser-extension', 'html');
+		if (eventsToImport.length > MAX_EVENTS_PER_REQUEST) {
+			return json(
+				{ success: false, error: `Too many events in one request (max ${MAX_EVENTS_PER_REQUEST})` },
+				{ status: 413 }
+			);
+		}
+
+		if (legacy && !consumeLegacyBudget(eventsToImport.length)) {
+			return json(
+				{
+					success: false,
+					error:
+						'Too many imports without an API key this hour. Add the YFEvents API key in the extension Config tab to lift this limit.',
+				},
+				{ status: 429 }
+			);
+		}
 
 		const results = { added: 0, duplicate: 0, invalid: 0, errors: [] as string[] };
 
-		for (const raw of eventsToImport) {
+		// Non-object rows can never be events
+		const rows = eventsToImport.filter((e: any) => {
+			const ok = e && typeof e === 'object' && !Array.isArray(e);
+			if (!ok) results.invalid++;
+			return ok;
+		});
+
+		// Determine source based on content
+		const hasFacebookEvents = rows.some((e: any) => e.facebookId || e.source === 'facebook');
+		const hasHeraldEvents = rows.some((e: any) =>
+			e.source === 'herald' ||
+			(typeof e.url === 'string' && (e.url.includes('yakimaherald.com') || e.url.includes('cityspark.com')))
+		);
+		const sourceId = legacy
+			? await getOrCreateSource(UNVERIFIED_SOURCE_NAME, 'browser-extension', 'html', false)
+			: hasFacebookEvents
+				? await getOrCreateSource('Facebook Browser Extension', 'https://www.facebook.com/events/', 'facebook')
+				: hasHeraldEvents
+					? await getOrCreateSource('Herald Browser Extension', 'https://www.yakimaherald.com/events/', 'cityspark')
+					: await getOrCreateSource(
+							'Browser Extension',
+							typeof body.url === 'string' ? body.url.slice(0, 500) : 'browser-extension',
+							'html'
+						);
+		const unverifiedSourceId = legacy ? null : await findSourceId(UNVERIFIED_SOURCE_NAME);
+
+		for (let raw of rows) {
 			try {
+				if (legacy) {
+					const strict = legacyEventSchema.safeParse(raw);
+					if (!strict.success) {
+						results.invalid++;
+						continue;
+					}
+					raw = strict.data;
+				}
+
 				const scraped = convertCaptureToScrapedEvent(raw);
 				if (!scraped) {
 					results.invalid++;
 					continue;
 				}
 
-				const result = await processEvent(scraped, sourceId, 'approved');
+				const result = await processEvent(scraped, sourceId, legacy ? 'pending' : 'approved');
 				results[result]++;
+
+				if (result === 'duplicate' && unverifiedSourceId !== null) {
+					await promoteUnverified(scraped, unverifiedSourceId, sourceId);
+				}
 			} catch (err) {
 				results.invalid++;
-				results.errors.push(`${raw.title || 'unknown'}: ${String(err)}`);
+				if (results.errors.length < 20) {
+					results.errors.push(`${String(raw?.title || 'unknown').slice(0, 80)}: ${String(err).slice(0, 200)}`);
+				}
 			}
 		}
 
-		console.log(`[PageCapture Import] Processed ${eventsToImport.length} events: ${results.added} added, ${results.duplicate} duplicates, ${results.invalid} invalid`);
+		console.log(`[PageCapture Import] (${auth.mode}) Processed ${eventsToImport.length} events: ${results.added} added, ${results.duplicate} duplicates, ${results.invalid} invalid`);
 
 		return json({
 			success: true,
 			total: eventsToImport.length,
-			...results
+			...results,
+			...(legacy
+				? {
+						pendingReview: true,
+						notice:
+							'No API key was sent, so these events are waiting for admin approval instead of going live. Paste the YFEvents API key into the extension Config tab to publish directly.',
+					}
+				: {}),
 		});
 	} catch (err) {
 		console.error('[PageCapture Import] Error:', err);
-		return json({ success: false, error: String(err) }, { status: 500 });
+		return json({ success: false, error: 'Failed to import events' }, { status: 500 });
 	}
 };
+
+/**
+ * A trusted import just reported `scraped` as a duplicate. If the existing row
+ * is one an unauthenticated (legacy) post left pending, take it over: replace
+ * its content with the trusted copy and approve it. Without this, anything a
+ * legacy post touched first would stay pending forever (or, worse, keep
+ * whatever text the unauthenticated poster supplied).
+ */
+async function promoteUnverified(
+	scraped: ScrapedEvent,
+	unverifiedSourceId: number,
+	trustedSourceId: number
+): Promise<void> {
+	if (!scraped.externalEventId) return;
+	await db
+		.update(events)
+		.set({
+			title: scraped.title,
+			description: scraped.description || null,
+			// same Date -> DATETIME handling as the insert in processEvent()
+			startDatetime: scraped.startDatetime as unknown as string,
+			location: scraped.location || null,
+			address: scraped.address || null,
+			externalUrl: scraped.externalUrl || null,
+			sourceId: trustedSourceId,
+			status: 'approved',
+		})
+		.where(
+			and(
+				eq(events.externalEventId, scraped.externalEventId),
+				eq(events.sourceId, unverifiedSourceId),
+				eq(events.status, 'pending')
+			)
+		);
+}
 
 /**
  * Convert a raw capture event to a ScrapedEvent for processEvent()
  */
 function convertCaptureToScrapedEvent(raw: any): ScrapedEvent | null {
-	if (!raw.title || raw.title.length < 4) return null;
+	if (typeof raw.title !== 'string' || raw.title.trim().length < 4) return null;
+	// Everything below treats these as strings; coerce junk types away up front
+	for (const key of ['startDate', '_rawDate', 'venue', 'location', 'description', 'url'] as const) {
+		if (raw[key] != null && typeof raw[key] !== 'string') raw = { ...raw, [key]: undefined };
+	}
+	if (raw.facebookId != null) {
+		const fbId = String(raw.facebookId);
+		raw = { ...raw, facebookId: /^[A-Za-z0-9_.-]{1,64}$/.test(fbId) ? fbId : undefined };
+	}
+	// Stored links are rendered as <a href>: only ever keep plain http(s)
+	raw = { ...raw, url: httpUrlOrUndefined(raw.url) };
 
 	// Parse the start date
 	let startDatetime: Date | null = null;
@@ -423,22 +587,25 @@ function parseHeraldLinkText(text: string): { title: string; venue?: string; cit
 /**
  * Get or create a calendar_sources entry for browser extension imports
  */
-async function getOrCreateSource(name: string, url: string, scrapeType: string): Promise<number> {
-	const existing = await db.select()
-		.from(calendarSources)
-		.where(eq(calendarSources.name, name))
-		.limit(1);
-
-	if (existing.length > 0) {
-		return existing[0].id;
-	}
+async function getOrCreateSource(name: string, url: string, scrapeType: string, active = true): Promise<number> {
+	const existingId = await findSourceId(name);
+	if (existingId !== null) return existingId;
 
 	const result = await db.insert(calendarSources).values({
 		name,
 		url,
 		scrapeType,
-		active: true,
+		active,
 	});
 
 	return Number(result[0].insertId);
+}
+
+async function findSourceId(name: string): Promise<number | null> {
+	const existing = await db.select({ id: calendarSources.id })
+		.from(calendarSources)
+		.where(eq(calendarSources.name, name))
+		.limit(1);
+
+	return existing.length > 0 ? existing[0].id : null;
 }

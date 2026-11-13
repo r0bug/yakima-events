@@ -2,17 +2,31 @@
 // Protected endpoint for scheduled scraping
 //
 // To set up cron (every 4 hours):
-// 0 0,4,8,12,16,20 * * * curl -X POST https://yfevents.yakimafinds.com/api/cron/scrape?key=YOUR_CRON_KEY
+// 0 0,4,8,12,16,20 * * * curl -X POST -H "Authorization: Bearer $SCRAPER_SECRET" http://localhost:3002/api/cron/scrape
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { scrapeAllSources, getScrapingStats } from '$server/scrapers/scraper';
 import { notifyDailySummary } from '$server/services/email';
+import { env } from '$env/dynamic/private';
+import { requireScraperAuth, safeEqual } from '$lib/server/auth/scraper-guard';
 
-// Simple cron key protection (you should use a proper secret)
-const CRON_KEY = process.env.CRON_SECRET_KEY || 'yakima-scrape-cron-2024';
+/**
+ * POST is allowed with any of:
+ *   - an admin session or the shared scraper secret (see scraper-guard.ts)
+ *   - the older dedicated cron key, env CRON_SECRET_KEY, as `?key=` or
+ *     `X-Cron-Key` (kept so existing schedulers keep working)
+ * There is deliberately no built-in default key any more: if CRON_SECRET_KEY
+ * is unset, that path is simply closed.
+ */
+function cronKeyMatches(url: URL, request: Request): boolean {
+  const configured = env.CRON_SECRET_KEY;
+  if (!configured || configured.length < 16) return false;
+  const presented = request.headers.get('x-cron-key') || url.searchParams.get('key');
+  return !!presented && safeEqual(presented, configured);
+}
 
-export const GET: RequestHandler = async ({ url }) => {
+export const GET: RequestHandler = async () => {
   // Return scraping stats without authentication
   const stats = await getScrapingStats();
   return json({
@@ -21,13 +35,12 @@ export const GET: RequestHandler = async ({ url }) => {
   });
 };
 
-export const POST: RequestHandler = async ({ url, request }) => {
-  // Check cron key
-  const key = url.searchParams.get('key');
-  const headerKey = request.headers.get('x-cron-key');
+export const POST: RequestHandler = async (event) => {
+  const { url, request } = event;
 
-  if (key !== CRON_KEY && headerKey !== CRON_KEY) {
-    return json({ error: 'Invalid cron key' }, { status: 401 });
+  if (!cronKeyMatches(url, request)) {
+    const auth = requireScraperAuth(event);
+    if (!auth.ok) return auth.response;
   }
 
   const startTime = Date.now();

@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { scrapeAllSources, scrapeSourceById, getScrapingStats } from '$server/scrapers/scraper';
+import { requireScraperAuth } from '$lib/server/auth/scraper-guard';
 
 /**
  * GET /api/scrape
@@ -25,18 +26,27 @@ export const GET: RequestHandler = async () => {
 
 /**
  * POST /api/scrape
- * Trigger scraping of all active sources or a specific source
+ * Trigger scraping of all active sources or a specific source.
+ * Requires an admin session or the scraper secret (see scraper-guard.ts).
  */
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async (event) => {
+  // Admin session, or `Authorization: Bearer $SCRAPER_SECRET` (the cron job)
+  const auth = requireScraperAuth(event);
+  if (!auth.ok) return auth.response;
+
   try {
-    const data = await request.json().catch(() => ({}));
+    const data = (await event.request.json().catch(() => ({}))) || {};
     const sourceId = data.source_id;
 
     let results;
 
-    if (sourceId) {
+    if (sourceId !== undefined && sourceId !== null && sourceId !== '') {
+      const id = Number(sourceId);
+      if (!Number.isInteger(id) || id <= 0) {
+        return json({ success: false, error: 'Invalid source_id' }, { status: 400 });
+      }
       // Scrape a single source
-      const result = await scrapeSourceById(parseInt(sourceId));
+      const result = await scrapeSourceById(id);
       results = [result];
     } else {
       // Scrape all active sources
