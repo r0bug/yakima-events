@@ -1,7 +1,7 @@
 import { db } from '$lib/server/db';
 import { users, userSessions } from '$lib/server/db/schema';
 import { eq, and, gt, lt } from 'drizzle-orm';
-import { randomBytes } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import type { User, UserSession } from '$lib/server/db/schema';
 
 const SESSION_EXPIRY_DAYS = 7;
@@ -29,6 +29,23 @@ export function generateSessionToken(): string {
 }
 
 /**
+ * Sessions are stored by SHA-256 of the token, never the token itself, so a
+ * read of the `user_sessions` table (backup, SQL injection, shared-DB access)
+ * does not hand out usable session cookies. The cookie keeps the raw token.
+ *
+ * The digest is 64 hex chars and lives in the existing `user_sessions.id`
+ * column (varchar 128), so no schema change is needed. Rows written before
+ * this change hold raw tokens; they can no longer match any cookie and simply
+ * expire (see migrations/2026-11-13-invalidate-plaintext-sessions.sql).
+ */
+export function hashSessionToken(token: string): string {
+  return createHash('sha256').update(token, 'utf8').digest('hex');
+}
+
+/** Shape of a token we issued: 32 random bytes, hex */
+const SESSION_TOKEN_PATTERN = /^[a-f0-9]{64}$/;
+
+/**
  * Create a new session for a user
  */
 export async function createSession(
@@ -41,7 +58,7 @@ export async function createSession(
   expiresAt.setDate(expiresAt.getDate() + SESSION_EXPIRY_DAYS);
 
   await db.insert(userSessions).values({
-    id: token,
+    id: hashSessionToken(token),
     userId,
     ipAddress: ipAddress || null,
     userAgent: userAgent || null,
@@ -56,9 +73,10 @@ export async function createSession(
  * Validate a session token and return the user if valid
  */
 export async function validateSession(token: string): Promise<SessionUser | null> {
-  if (!token) return null;
+  if (!token || !SESSION_TOKEN_PATTERN.test(token)) return null;
 
   const now = new Date();
+  const tokenHash = hashSessionToken(token);
 
   // Get session with user data
   const sessionResults = await db
@@ -70,7 +88,7 @@ export async function validateSession(token: string): Promise<SessionUser | null
     .innerJoin(users, eq(userSessions.userId, users.id))
     .where(
       and(
-        eq(userSessions.id, token),
+        eq(userSessions.id, tokenHash),
         eq(userSessions.isActive, true),
         gt(userSessions.expiresAt, now)
       )
@@ -107,7 +125,7 @@ export async function invalidateSession(token: string): Promise<void> {
   await db
     .update(userSessions)
     .set({ isActive: false })
-    .where(eq(userSessions.id, token));
+    .where(eq(userSessions.id, hashSessionToken(token)));
 }
 
 /**
