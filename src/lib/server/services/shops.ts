@@ -130,10 +130,9 @@ export async function getNearbyShops(
 ): Promise<ShopWithDetails[]> {
   const radiusKm = radiusMiles * 1.60934;
 
-  let categoryCondition = '';
-  if (category) {
-    categoryCondition = `AND sc.slug = '${category}'`;
-  }
+  // Bound parameter, never string-built: `category` comes straight from the
+  // query string of /api/shops/nearby
+  const categoryCondition = category ? sql`AND sc.slug = ${category}` : sql``;
 
   const results = await db.execute(sql`
     SELECT
@@ -150,7 +149,7 @@ export async function getNearbyShops(
     WHERE s.status = 'active'
       AND s.latitude IS NOT NULL
       AND s.longitude IS NOT NULL
-      ${sql.raw(categoryCondition)}
+      ${categoryCondition}
     HAVING distance <= ${radiusKm}
     ORDER BY distance ASC, s.featured DESC
   `);

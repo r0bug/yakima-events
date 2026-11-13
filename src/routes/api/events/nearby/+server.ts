@@ -24,7 +24,11 @@ export const GET: RequestHandler = async ({ url }) => {
     const lng = parseFloat(longitude);
     const radiusMiles = radius ? parseFloat(radius) : 10;
 
-    if (isNaN(lat) || isNaN(lng)) {
+    if (
+      !Number.isFinite(lat) || !Number.isFinite(lng) ||
+      Math.abs(lat) > 90 || Math.abs(lng) > 180 ||
+      !Number.isFinite(radiusMiles) || radiusMiles <= 0 || radiusMiles > 500
+    ) {
       return json(
         { success: false, error: 'Invalid coordinates' },
         { status: 400 }
