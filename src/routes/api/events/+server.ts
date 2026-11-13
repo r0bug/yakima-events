@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { z } from 'zod';
 import type { RequestHandler } from './$types';
+import { isAdminUser, parseNonNegativeInt, parseFiniteFloat } from '$server/api-utils';
 import { getEvents, createEvent, getEventCategories } from '$server/services/events';
 import { formatEventResponse } from '$server/api-format';
 
@@ -22,7 +23,7 @@ const createEventSchema = z.object({
  * GET /api/events
  * Get events with optional filtering
  */
-export const GET: RequestHandler = async ({ url }) => {
+export const GET: RequestHandler = async ({ url, locals }) => {
   try {
     const startDate = url.searchParams.get('start_date') || undefined;
     const endDate = url.searchParams.get('end_date') || undefined;
@@ -36,7 +37,9 @@ export const GET: RequestHandler = async ({ url }) => {
     const radius = url.searchParams.get('radius');
     const limit = url.searchParams.get('limit');
     const offset = url.searchParams.get('offset');
-    const includeUnapproved = url.searchParams.get('include_unapproved') === 'true';
+    // Pending (unmoderated) events are only visible to admins
+    const includeUnapproved =
+      url.searchParams.get('include_unapproved') === 'true' && isAdminUser(locals.user);
 
     const filters = {
       startDate,
@@ -46,11 +49,11 @@ export const GET: RequestHandler = async ({ url }) => {
       excludeCategories: excludeCats ? excludeCats.split(',').filter(Boolean) : undefined,
       featured: featured === 'true' ? true : featured === 'false' ? false : undefined,
       search,
-      latitude: latitude ? parseFloat(latitude) : undefined,
-      longitude: longitude ? parseFloat(longitude) : undefined,
-      radius: radius ? parseFloat(radius) : undefined,
-      limit: limit ? parseInt(limit) : undefined,
-      offset: offset ? parseInt(offset) : undefined,
+      latitude: parseFiniteFloat(latitude),
+      longitude: parseFiniteFloat(longitude),
+      radius: parseFiniteFloat(radius),
+      limit: parseNonNegativeInt(limit),
+      offset: parseNonNegativeInt(offset),
       includeUnapproved,
     };
 

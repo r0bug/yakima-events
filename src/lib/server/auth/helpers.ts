@@ -4,6 +4,7 @@
 
 import { redirect, error } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
+import { isAdminUser } from '$lib/server/api-utils';
 
 /**
  * Require authenticated user
@@ -29,19 +30,10 @@ export function requireAuthApi(event: RequestEvent): { id: number; username: str
 }
 
 /**
- * Check if user is admin
- * TODO: Implement proper admin role check when user roles are available
+ * Check if user is admin (role `admin` or `moderator`)
  */
-export async function isAdmin(user: { id: number } | null): Promise<boolean> {
-  if (!user) return false;
-
-  // TODO: Check admin role in database
-  // For now, allow all authenticated users
-  // In production:
-  // const userRecord = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
-  // return userRecord[0]?.isAdmin ?? false;
-
-  return true;
+export async function isAdmin(user: { id: number; role?: string | null } | null): Promise<boolean> {
+  return isAdminUser(user);
 }
 
 /**

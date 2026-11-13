@@ -1,12 +1,13 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { isAdminUser, parseNonNegativeInt, parseFiniteFloat } from '$server/api-utils';
 import { getShops, createShop, getShopCategories, getShopCategoryTree } from '$server/services/shops';
 
 /**
  * GET /api/shops
  * Get shops with optional filtering
  */
-export const GET: RequestHandler = async ({ url }) => {
+export const GET: RequestHandler = async ({ url, locals }) => {
   try {
     const category = url.searchParams.get('category') || undefined;
     const featured = url.searchParams.get('featured');
@@ -17,19 +18,24 @@ export const GET: RequestHandler = async ({ url }) => {
     const radius = url.searchParams.get('radius');
     const limit = url.searchParams.get('limit');
     const offset = url.searchParams.get('offset');
-    const status = url.searchParams.get('status') as 'active' | 'pending' | 'inactive' | undefined;
+    // Only admins may list shops that are not public yet (pending/inactive)
+    const statusParam = url.searchParams.get('status');
+    const status: 'active' | 'pending' | 'inactive' =
+      isAdminUser(locals.user) && (statusParam === 'pending' || statusParam === 'inactive')
+        ? statusParam
+        : 'active';
 
     const filters = {
       category,
       featured: featured === 'true' ? true : featured === 'false' ? false : undefined,
       verified: verified === 'true' ? true : verified === 'false' ? false : undefined,
       search,
-      latitude: latitude ? parseFloat(latitude) : undefined,
-      longitude: longitude ? parseFloat(longitude) : undefined,
-      radius: radius ? parseFloat(radius) : undefined,
-      limit: limit ? parseInt(limit) : undefined,
-      offset: offset ? parseInt(offset) : undefined,
-      status: status || 'active',
+      latitude: parseFiniteFloat(latitude),
+      longitude: parseFiniteFloat(longitude),
+      radius: parseFiniteFloat(radius),
+      limit: parseNonNegativeInt(limit),
+      offset: parseNonNegativeInt(offset),
+      status,
     };
 
     const shops = await getShops(filters);

@@ -5,12 +5,8 @@
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { isAdminUser } from '$lib/server/api-utils';
 import { approveClaim, rejectClaim } from '$lib/server/services/shopClaim';
-
-// TODO: Add proper admin role check when user roles are fully implemented
-async function isAdmin(user: { id: number; username: string } | null): Promise<boolean> {
-  return user !== null;
-}
 
 export const POST: RequestHandler = async ({ params, locals, request }) => {
   const claimId = parseInt(params.id);
@@ -23,8 +19,9 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const admin = await isAdmin(locals.user);
-  if (!admin) {
+  // Claims carry applicants' contact details and approving one grants shop
+  // ownership, so this is admin/moderator only (also enforced in hooks.server.ts)
+  if (!isAdminUser(locals.user)) {
     return json({ error: 'Forbidden' }, { status: 403 });
   }
 
